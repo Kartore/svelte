@@ -1,0 +1,41 @@
+<script lang="ts">
+	import type {
+		LineLayerSpecification,
+		SourceSpecification
+	} from '@maplibre/maplibre-gl-style-spec';
+	import type { Snippet } from 'svelte';
+	import type { HTMLAttributes } from 'svelte/elements';
+
+	import { FilterProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties';
+	import { GeneralProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/GeneralProperties';
+	import { RawDataProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties';
+	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
+	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { cn } from '$lib/utils/tailwindUtil.ts';
+
+	let {
+		children,
+		layer,
+		sources,
+		onChange,
+		class: className,
+		...props
+	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
+		class?: string;
+		layer: LineLayerSpecification;
+		sources: { [key: string]: SourceSpecification };
+		onChange?: onChangeType;
+		children?: Snippet;
+	} = $props();
+</script>
+
+<div {...props} class={cn('flex flex-col gap-6', className)}>
+	<GeneralProperties {layer} {sources} {onChange} />
+	<FilterProperties {layer} {onChange} />
+	<RawDataProperties
+		{layer}
+		{onChange}
+		schema={getStyleJSONSchemaDefinition('LineLayerSpecification')}
+	/>
+	{@render children?.()}
+</div>

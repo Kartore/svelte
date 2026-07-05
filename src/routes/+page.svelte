@@ -1,0 +1,74 @@
+<script lang="ts">
+	import type { LayerSpecification } from 'maplibre-gl';
+
+	import { ControlPanel } from '$lib/components/editor/ControlPanel';
+	import { MapPanel } from '$lib/components/editor/MapPanel';
+	import { NavigationPanel } from '$lib/components/editor/NavigationPanel';
+	import { PropertiesPanel } from '$lib/components/editor/PropertiesPanel';
+	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { replaceLayerData } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
+	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
+	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
+
+	const store = new MapStyleStore({
+		adapter: localStorageMapStyleStoreAdapter,
+		initialStyle: osmLibertyMigrated
+	});
+
+	provideBackgroundMap();
+
+	let selectedLayerId = $state<string>(osmLibertyMigrated.layers[4].id);
+	const selectedLayer = $derived(
+		store.mapStyle.layers.find((layer) => layer.id === selectedLayerId) ?? store.mapStyle.layers[0]
+	);
+
+	$effect(() => {
+		if (!store.mapStyle.layers.some((layer) => layer.id === selectedLayerId)) {
+			selectedLayerId = store.mapStyle.layers[0].id;
+		}
+	});
+
+	const handleChangeLayerOrder = (layers: LayerSpecification[]) => {
+		store.setMapStyle((currentStyle) => ({ ...currentStyle, layers }));
+	};
+
+	const handleChangeLayerData: onChangeType = (layer, group, key, value) => {
+		store.setMapStyle((currentStyle) => replaceLayerData(currentStyle, layer, group, key, value));
+	};
+</script>
+
+<svelte:head>
+	<title>Kartore</title>
+</svelte:head>
+
+{#if store.isLoading}
+	<div class="flex min-h-screen items-center justify-center text-sm text-gray-600">
+		Loading map style...
+	</div>
+{:else}
+	<div class="relative flex max-h-screen min-h-screen w-full flex-row overflow-hidden">
+		<MapPanel mapStyle={store.mapStyle} />
+		<div class="pointer-events-none absolute inset-2 flex gap-2">
+			<NavigationPanel
+				class="w-1/5"
+				mapStyle={store.mapStyle}
+				onChangeLayerOrder={handleChangeLayerOrder}
+				{selectedLayerId}
+				onClickLayer={(layer) => {
+					selectedLayerId = layer.id;
+				}}
+			/>
+
+			<ControlPanel class="flex-1" />
+
+			<PropertiesPanel
+				class="w-2/5"
+				sprite={store.mapStyle.sprite}
+				layer={selectedLayer}
+				sources={store.mapStyle.sources}
+				onChange={handleChangeLayerData}
+			/>
+		</div>
+	</div>
+{/if}
