@@ -13,6 +13,7 @@
 		disableInteraction?: boolean;
 		layer: LayerSpecification;
 		isSelected?: boolean;
+		errors?: string[];
 	} = $props();
 </script>
 

@@ -10,6 +10,8 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
+	// wrangler types が生成するファイルは byte 一致チェックがあるため lint/format 対象外
+	{ ignores: ['worker-configuration.d.ts'] },
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,

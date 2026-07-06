@@ -177,9 +177,19 @@ export function replaceLayerData<
 
 					//@ts-expect-error ObjectGroupによって担保される
 					if (currentLayer[group] != null) {
-						//@ts-expect-error ObjectKey/ObjectGroupによって担保される
-						currentLayer[group][key] = value;
+						if (value === undefined) {
+							// undefined を残すと maplibre の setStyle diff が
+							// "'undefined' value invalid. Use null instead." を出すため key ごと削除する
+							//@ts-expect-error ObjectKey/ObjectGroupによって担保される
+							delete currentLayer[group][key];
+						} else {
+							//@ts-expect-error ObjectKey/ObjectGroupによって担保される
+							currentLayer[group][key] = value;
+						}
 					}
+				} else if (value === undefined) {
+					//@ts-expect-error ObjectKeyによって担保される
+					delete currentLayer[key];
 				} else {
 					//@ts-expect-error ObjectKeyによって担保される
 					currentLayer[key] = value;

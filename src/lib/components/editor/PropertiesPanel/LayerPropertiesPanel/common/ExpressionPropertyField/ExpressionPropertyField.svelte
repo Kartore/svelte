@@ -10,6 +10,7 @@
 		literalToZoomInterpolate
 	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -18,6 +19,8 @@
 		defaultLiteral,
 		onChange,
 		rampable,
+		propertyKey,
+		propertyGroup = 'paint',
 		children,
 		class: className,
 		...props
@@ -32,6 +35,10 @@
 		onChange?: (value: unknown | undefined) => void;
 		/** offers the zoom-interpolate shortcut — only for interpolatable (number/color) properties */
 		rampable?: boolean;
+		/** style-spec property name (e.g. 'fill-color') — enables inline validation errors */
+		propertyKey?: string;
+		/** property group the validation errors are looked up in */
+		propertyGroup?: 'paint' | 'layout';
 		/** the literal editor, rendered while the value is not an expression */
 		children: Snippet;
 	} = $props();
@@ -79,27 +86,35 @@
 			{/if}
 		</div>
 		<ExpressionInputField class="text-sm" value={value as ExpressionSpecification} {onChange} />
+		{#if propertyKey}
+			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />
+		{/if}
 	</div>
 {:else}
-	<div {...props} class={cn('group/property flex flex-row items-center gap-1', className)}>
-		<div class="min-w-0 flex-1">{@render children()}</div>
-		{#if rampable}
+	<div {...props} class={cn('flex flex-col gap-1', className)}>
+		<div class="group/property flex flex-row items-center gap-1">
+			<div class="min-w-0 flex-1">{@render children()}</div>
+			{#if rampable}
+				<Button
+					aria-label={`Interpolate ${label} by zoom`}
+					title={`Interpolate ${label} by zoom`}
+					class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
+					onclick={() => onChange?.(literalToZoomInterpolate(value ?? defaultLiteral))}
+				>
+					∿
+				</Button>
+			{/if}
 			<Button
-				aria-label={`Interpolate ${label} by zoom`}
-				title={`Interpolate ${label} by zoom`}
-				class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
-				onclick={() => onChange?.(literalToZoomInterpolate(value ?? defaultLiteral))}
+				aria-label={`Use expression for ${label}`}
+				title={`Use expression for ${label}`}
+				class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
+				onclick={() => onChange?.(literalToExpression(value ?? defaultLiteral))}
 			>
-				∿
+				fx
 			</Button>
+		</div>
+		{#if propertyKey}
+			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />
 		{/if}
-		<Button
-			aria-label={`Use expression for ${label}`}
-			title={`Use expression for ${label}`}
-			class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
-			onclick={() => onChange?.(literalToExpression(value ?? defaultLiteral))}
-		>
-			fx
-		</Button>
 	</div>
 {/if}

@@ -11,6 +11,9 @@
 		items = [],
 		value = $bindable(),
 		onValueChange,
+		allowsCustomValue = false,
+		inputValue,
+		onInputChange,
 		disabled,
 		'aria-label': ariaLabel
 	}: {
@@ -19,6 +22,12 @@
 		items?: SelectItem[];
 		value?: string;
 		onValueChange?: (value: string) => void;
+		/** 選択肢にないテキストの自由入力を許可する（react-aria の allowsCustomValue 相当） */
+		allowsCustomValue?: boolean;
+		/** 入力テキストの外部制御値（allowsCustomValue と併用） */
+		inputValue?: string;
+		/** 入力テキストが変わるたびに発火（allowsCustomValue と併用） */
+		onInputChange?: (value: string) => void;
 		disabled?: boolean;
 		'aria-label'?: string;
 	} = $props();
@@ -31,6 +40,11 @@
 			: items.filter((item) => item.label.toLowerCase().includes(searchValue.toLowerCase()))
 	);
 	const selectedLabel = $derived(items.find((item) => item.value === value)?.label ?? '');
+
+	// 入力テキストの外部制御値。inputValue prop を優先し、なければ選択項目のラベル。
+	// bits-ui の inputValue は read-only prop（プログラム的な入力欄更新用）で、
+	// ユーザー入力・選択時のラベル反映は bits-ui が内部で処理する。
+	const comboInputValue = $derived(inputValue ?? selectedLabel);
 </script>
 
 <div class={cn('flex items-center justify-between text-sm', className)}>
@@ -40,21 +54,25 @@
 	<Combobox.Root
 		type="single"
 		bind:value
+		inputValue={comboInputValue}
 		{onValueChange}
 		{disabled}
 		items={filteredItems}
+		allowDeselect={false}
 		onOpenChange={(open) => {
 			if (!open) searchValue = '';
 		}}
 	>
 		<div
-			class="flex w-1/2 cursor-pointer flex-row rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-within:bg-gray-200 aria-expanded:bg-gray-200"
+			class="flex w-1/2 cursor-pointer flex-row rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200"
 		>
 			<Combobox.Input
 				aria-label={label ?? ariaLabel}
-				defaultValue={selectedLabel}
 				oninput={(event) => {
 					searchValue = event.currentTarget.value;
+					if (allowsCustomValue) {
+						onInputChange?.(event.currentTarget.value);
+					}
 				}}
 				class="w-full flex-1 border-none focus-visible:outline-0"
 			/>
@@ -86,7 +104,9 @@
 							{/snippet}
 						</Combobox.Item>
 					{:else}
-						<div class="px-2 py-1 text-xs text-gray-400">No results</div>
+						<div class="px-2 py-1 text-xs text-gray-400">
+							{allowsCustomValue ? 'No matching sprites' : 'No results'}
+						</div>
 					{/each}
 				</Combobox.Viewport>
 			</Combobox.Content>

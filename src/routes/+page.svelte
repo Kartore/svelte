@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { LayerSpecification } from 'maplibre-gl';
+	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
 	import { ControlPanel } from '$lib/components/editor/ControlPanel';
 	import { MapPanel } from '$lib/components/editor/MapPanel';
@@ -10,6 +10,7 @@
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
+	import { validateMapStyle } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
 		adapter: localStorageMapStyleStoreAdapter,
@@ -21,6 +22,11 @@
 	let selectedLayerId = $state<string>(osmLibertyMigrated.layers[4].id);
 	const selectedLayer = $derived(
 		store.mapStyle.layers.find((layer) => layer.id === selectedLayerId) ?? store.mapStyle.layers[0]
+	);
+
+	// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
+	const validation = $derived(
+		validateMapStyle($state.snapshot(store.mapStyle as object) as StyleSpecification)
 	);
 
 	$effect(() => {
@@ -53,6 +59,7 @@
 			<NavigationPanel
 				class="w-1/5"
 				mapStyle={store.mapStyle}
+				layerErrors={validation.layerErrors}
 				onChangeLayerOrder={handleChangeLayerOrder}
 				{selectedLayerId}
 				onClickLayer={(layer) => {
@@ -67,6 +74,7 @@
 				sprite={store.mapStyle.sprite}
 				layer={selectedLayer}
 				sources={store.mapStyle.sources}
+				errors={validation.layerErrors[selectedLayer.id]}
 				onChange={handleChangeLayerData}
 			/>
 		</div>

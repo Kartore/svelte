@@ -3,7 +3,10 @@
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
-		"checkJs": true,
+		// worker-configuration.d.ts の `typeof import("./.svelte-kit/cloudflare/_worker")` が
+		// ビルド成果物の JS を型プログラムに引き込むため、JS のチェックは無効化する
+		// （ソースはすべて TS/Svelte なので影響なし）
+		"checkJs": false,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
@@ -12,5 +15,17 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"types": ["./worker-configuration.d.ts"]
-	}
+	},
+	// exclude は extends 先を上書きするため、生成 tsconfig の除外対象も再掲する
+	"exclude": [
+		"node_modules/**",
+		".svelte-kit/output/**",
+		".svelte-kit/cloudflare/**",
+		"src/service-worker.js",
+		"src/service-worker/**/*.js",
+		"src/service-worker.ts",
+		"src/service-worker/**/*.ts",
+		"src/service-worker.d.ts",
+		"src/service-worker/**/*.d.ts"
+	]
 }

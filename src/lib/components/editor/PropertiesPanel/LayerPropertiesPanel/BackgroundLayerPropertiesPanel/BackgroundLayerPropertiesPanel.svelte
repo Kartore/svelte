@@ -11,11 +11,12 @@
 	import { NumberField } from '$lib/components/common/NumberField';
 	import { RangeSlider } from '$lib/components/common/RangeSlider';
 	import { TextField } from '$lib/components/common/TextField';
+	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { RawDataProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties';
 	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import { createSpriteIds } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { parseColor, type Color } from '$lib/utils/color.ts';
+	import { parseColor, tryParseColor, type Color } from '$lib/utils/color.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -82,10 +83,12 @@
 					: undefined}
 			/>
 		{/if}
+		<PropertyErrorMessage group="paint" property="background-opacity" />
 		{#if typeof layer.paint?.['background-color'] === 'string' || layer.paint?.['background-color'] === undefined}
 			<ColorField
 				label="Color"
-				value={parseColor(layer.paint?.['background-color'] ?? 'rgba(255, 255, 255, 1)')}
+				value={tryParseColor(layer.paint?.['background-color'] ?? 'rgba(255, 255, 255, 1)') ??
+					parseColor('rgba(255, 255, 255, 1)')}
 				onChange={(color: Color | null) => {
 					onChange?.(layer, 'paint', 'background-color', color?.toString('rgba'));
 				}}
@@ -96,18 +99,25 @@
 				value={layer.paint?.['background-color'] ? String(layer.paint?.['background-color']) : '1'}
 			/>
 		{/if}
+		<PropertyErrorMessage group="paint" property="background-color" />
 		{#if typeof layer.paint?.['background-pattern'] === 'string' || layer.paint?.['background-pattern'] === undefined}
 			<ComboBox
 				label="Pattern"
+				allowsCustomValue
 				items={(spriteIds ?? []).map((spriteId) => ({ value: spriteId, label: spriteId }))}
+				inputValue={layer.paint?.['background-pattern']}
 				value={layer.paint?.['background-pattern']}
-				onValueChange={(value) => {
+				onInputChange={(value) => {
 					if (value === layer.paint?.['background-pattern']) return;
 					if (!value) {
 						onChange?.(layer, 'paint', 'background-pattern', undefined);
 					} else {
 						onChange?.(layer, 'paint', 'background-pattern', value);
 					}
+				}}
+				onValueChange={(value) => {
+					if (!value || value === layer.paint?.['background-pattern']) return;
+					onChange?.(layer, 'paint', 'background-pattern', value);
 				}}
 			/>
 		{:else}
@@ -118,6 +128,7 @@
 					: '1'}
 			/>
 		{/if}
+		<PropertyErrorMessage group="paint" property="background-pattern" />
 	</div>
 	<RawDataProperties
 		{layer}

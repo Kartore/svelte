@@ -83,6 +83,11 @@ export function parseColor(value: string): Color {
 	throw new Error('Invalid color value: ' + value);
 }
 
+/** Parses a color from a string value. Returns undefined if the string could not be parsed. */
+export function tryParseColor(value: string): Color | undefined {
+	return RGBColor.parse(value) || HSBColor.parse(value) || HSLColor.parse(value) || undefined;
+}
+
 export function normalizeColor(v: string | Color): Color {
 	if (typeof v === 'string') {
 		return parseColor(v);

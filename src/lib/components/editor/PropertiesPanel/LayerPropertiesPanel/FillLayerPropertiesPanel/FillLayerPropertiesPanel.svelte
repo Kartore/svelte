@@ -20,7 +20,7 @@
 	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import { createSpriteIds } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { parseColor, type Color } from '$lib/utils/color.ts';
+	import { parseColor, tryParseColor, type Color } from '$lib/utils/color.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -56,6 +56,7 @@
 		<ExpressionPropertyField
 			label="Opacity"
 			value={paint?.['fill-opacity']}
+			propertyKey="fill-opacity"
 			defaultLiteral={1}
 			rampable
 			onChange={handlePaintChange('fill-opacity')}
@@ -77,15 +78,16 @@
 		<ExpressionPropertyField
 			label="Fill Color"
 			value={paint?.['fill-color']}
+			propertyKey="fill-color"
 			defaultLiteral="rgba(255, 255, 255, 1)"
 			rampable
 			onChange={handlePaintChange('fill-color')}
 		>
 			<ColorField
 				label="Fill Color"
-				value={parseColor(
-					typeof paint?.['fill-color'] === 'string' ? paint['fill-color'] : 'rgba(255, 255, 255, 1)'
-				)}
+				value={(typeof paint?.['fill-color'] === 'string'
+					? tryParseColor(paint['fill-color'])
+					: undefined) ?? parseColor('rgba(255, 255, 255, 1)')}
 				onChange={(color: Color | null) => {
 					onChange?.(layer, 'paint', 'fill-color', color?.toString('rgba'));
 				}}
@@ -94,6 +96,7 @@
 		<ExpressionPropertyField
 			label="Antialias"
 			value={paint?.['fill-antialias']}
+			propertyKey="fill-antialias"
 			defaultLiteral={true}
 			onChange={handlePaintChange('fill-antialias')}
 		>
@@ -108,17 +111,16 @@
 		<ExpressionPropertyField
 			label="Outline Color"
 			value={paint?.['fill-outline-color']}
+			propertyKey="fill-outline-color"
 			defaultLiteral="rgba(255, 255, 255, 1)"
 			rampable
 			onChange={handlePaintChange('fill-outline-color')}
 		>
 			<ColorField
 				label="Outline Color"
-				value={parseColor(
-					typeof paint?.['fill-outline-color'] === 'string'
-						? paint['fill-outline-color']
-						: 'rgba(255, 255, 255, 1)'
-				)}
+				value={(typeof paint?.['fill-outline-color'] === 'string'
+					? tryParseColor(paint['fill-outline-color'])
+					: undefined) ?? parseColor('rgba(255, 255, 255, 1)')}
 				onChange={(color: Color | null) => {
 					onChange?.(layer, 'paint', 'fill-outline-color', color?.toString('rgba'));
 				}}
@@ -127,14 +129,17 @@
 		<ExpressionPropertyField
 			label="Pattern"
 			value={paint?.['fill-pattern']}
+			propertyKey="fill-pattern"
 			defaultLiteral=""
 			onChange={handlePaintChange('fill-pattern')}
 		>
 			<ComboBox
 				label="Pattern"
+				allowsCustomValue
 				items={(spriteIds ?? []).map((spriteId) => ({ value: spriteId, label: spriteId }))}
+				inputValue={typeof paint?.['fill-pattern'] === 'string' ? paint['fill-pattern'] : undefined}
 				value={typeof paint?.['fill-pattern'] === 'string' ? paint['fill-pattern'] : undefined}
-				onValueChange={(value) => {
+				onInputChange={(value) => {
 					if (value === paint?.['fill-pattern']) return;
 					if (!value) {
 						onChange?.(layer, 'paint', 'fill-pattern', undefined);
@@ -142,11 +147,16 @@
 						onChange?.(layer, 'paint', 'fill-pattern', value);
 					}
 				}}
+				onValueChange={(value) => {
+					if (!value || value === paint?.['fill-pattern']) return;
+					onChange?.(layer, 'paint', 'fill-pattern', value);
+				}}
 			/>
 		</ExpressionPropertyField>
 		<ExpressionPropertyField
 			label="Translate"
 			value={paint?.['fill-translate']}
+			propertyKey="fill-translate"
 			defaultLiteral={[0, 0]}
 			onChange={handlePaintChange('fill-translate')}
 		>
@@ -166,6 +176,7 @@
 		<ExpressionPropertyField
 			label="Translate Anchor"
 			value={paint?.['fill-translate-anchor']}
+			propertyKey="fill-translate-anchor"
 			defaultLiteral="map"
 			onChange={handlePaintChange('fill-translate-anchor')}
 		>

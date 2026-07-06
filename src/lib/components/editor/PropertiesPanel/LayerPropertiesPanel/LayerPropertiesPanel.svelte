@@ -8,6 +8,7 @@
 
 	import { BackgroundLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/BackgroundLayerPropertiesPanel';
 	import { CircleLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/CircleLayerPropertiesPanel';
+	import { provideLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 	import { LayerSuggestionsProvider } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerSuggestionsProvider';
 	import { FillExtrusionLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillExtrusionLayerPropertiesPanel';
 	import { FillLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillLayerPropertiesPanel';
@@ -28,11 +29,13 @@
 		isSymbolLayer
 	} from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import type { LayerValidationError } from '$lib/utils/styleValidation.ts';
 
 	let {
 		layer,
 		sprite,
 		sources,
+		errors,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -40,8 +43,11 @@
 		layer: LayerSpecification;
 		sprite?: SpriteSpecification;
 		sources: { [key: string]: SourceSpecification };
+		errors?: LayerValidationError[];
 		onChange?: onChangeType;
 	} = $props();
+
+	provideLayerErrors(() => errors ?? []);
 </script>
 
 {#if isBackgroundLayer(layer)}

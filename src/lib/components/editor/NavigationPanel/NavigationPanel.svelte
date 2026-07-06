@@ -3,6 +3,10 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
+	import {
+		formatLayerValidationError,
+		type LayerValidationError
+	} from '$lib/utils/styleValidation.ts';
 	import { cn } from '$lib/utils/tailwindUtil';
 
 	let {
@@ -11,13 +15,18 @@
 		mapStyle,
 		class: className,
 		selectedLayerId,
+		layerErrors,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
 		selectedLayerId: LayerSpecification['id'] | null;
+		layerErrors?: Record<string, LayerValidationError[]>;
 		onClickLayer: (layer: LayerSpecification) => void;
 		onChangeLayerOrder: (layers: LayerSpecification[]) => void;
 	} = $props();
+
+	const errorMessages = (layerId: string): string[] | undefined =>
+		layerErrors?.[layerId]?.map(formatLayerValidationError);
 
 	// dnd-kit (MouseSensor + verticalListSortingStrategy + DragOverlay) 相当を
 	// ネイティブ Pointer Events で実装している。
@@ -179,6 +188,7 @@
 			<SortableLayerTreeItem
 				isSelected={layer.id === selectedLayerId}
 				{layer}
+				errors={errorMessages(layer.id)}
 				indicator={layer.id === activeLayer?.id}
 				disableInteraction={activeLayer !== null}
 				style={itemStyle(index)}

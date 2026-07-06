@@ -11,6 +11,7 @@
 	import { FilterInputField } from '$lib/components/common/FilterInputField';
 	import { MonacoEditor } from '$lib/components/common/MonacoEditor';
 	import { isExpressionFilter } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties/utils/isExpressionFilter.ts';
+	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
@@ -99,5 +100,6 @@
 			</details>
 		</summary>
 	{/if}
+	<PropertyErrorMessage group="filter" />
 	{@render children?.()}
 </div>

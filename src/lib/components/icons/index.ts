@@ -6,3 +6,4 @@ export { default as CheckIcon } from './CheckIcon.svelte';
 export { default as ArrowDropDownIcon } from './ArrowDropDownIcon.svelte';
 export { default as CloseIcon } from './CloseIcon.svelte';
 export { default as ColorizeIcon } from './ColorizeIcon.svelte';
+export { default as ErrorIcon } from './ErrorIcon.svelte';
