@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type {
-		RasterLayerSpecification,
+		ColorReliefLayerSpecification,
 		SourceSpecification,
 		SpriteSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
@@ -25,7 +25,7 @@
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
 		class?: string;
-		layer: RasterLayerSpecification;
+		layer: ColorReliefLayerSpecification;
 		sprite?: SpriteSpecification;
 		sources: { [key: string]: SourceSpecification };
 		onChange?: onChangeType;
@@ -57,7 +57,7 @@
 	<RawDataProperties
 		{layer}
 		{onChange}
-		schema={getStyleJSONSchemaDefinition('RasterLayerSpecification')}
+		schema={getStyleJSONSchemaDefinition('ColorReliefLayerSpecification')}
 	/>
 	{@render children?.()}
 </div>

@@ -1842,6 +1842,61 @@ const StyleJSONSchemaBase = {
 			required: ['id', 'type', 'source'],
 			type: 'object'
 		},
+		ColorReliefLayerSpecification: {
+			additionalProperties: false,
+			properties: {
+				filter: {
+					$ref: '#/definitions/FilterSpecification'
+				},
+				id: {
+					type: 'string'
+				},
+				layout: {
+					additionalProperties: false,
+					properties: {
+						visibility: {
+							enum: ['visible', 'none'],
+							type: 'string'
+						}
+					},
+					type: 'object'
+				},
+				maxzoom: {
+					type: 'number'
+				},
+				metadata: {},
+				minzoom: {
+					type: 'number'
+				},
+				paint: {
+					additionalProperties: false,
+					properties: {
+						'color-relief-color': {
+							$ref: '#/definitions/PropertyValueSpecification<ColorSpecification>'
+						},
+						'color-relief-opacity': {
+							$ref: '#/definitions/PropertyValueSpecification<number>'
+						},
+						resampling: {
+							$ref: '#/definitions/PropertyValueSpecification<("linear"|"nearest")>'
+						}
+					},
+					type: 'object'
+				},
+				source: {
+					type: 'string'
+				},
+				'source-layer': {
+					type: 'string'
+				},
+				type: {
+					const: 'color-relief',
+					type: 'string'
+				}
+			},
+			required: ['id', 'type', 'source'],
+			type: 'object'
+		},
 		CollatorExpressionSpecification: {
 			items: [
 				{
@@ -6760,6 +6815,9 @@ const StyleJSONSchemaBase = {
 				},
 				{
 					$ref: '#/definitions/HillshadeLayerSpecification'
+				},
+				{
+					$ref: '#/definitions/ColorReliefLayerSpecification'
 				},
 				{
 					$ref: '#/definitions/BackgroundLayerSpecification'

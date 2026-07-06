@@ -1,6 +1,7 @@
 import type {
 	BackgroundLayerSpecification,
 	CircleLayerSpecification,
+	ColorReliefLayerSpecification,
 	FillExtrusionLayerSpecification,
 	FillLayerSpecification,
 	HeatmapLayerSpecification,
@@ -96,6 +97,12 @@ export const isCircleLayer = (layer: LayerSpecification): layer is CircleLayerSp
 	return layer.type === 'circle';
 };
 
+export const isColorReliefLayer = (
+	layer: LayerSpecification
+): layer is ColorReliefLayerSpecification => {
+	return layer.type === 'color-relief';
+};
+
 export const isHeatmapLayer = (layer: LayerSpecification): layer is HeatmapLayerSpecification => {
 	return layer.type === 'heatmap';
 };
@@ -175,17 +182,22 @@ export function replaceLayerData<
 						return value as LayerSpecification;
 					}
 
-					//@ts-expect-error ObjectGroupによって担保される
-					if (currentLayer[group] != null) {
-						if (value === undefined) {
-							// undefined を残すと maplibre の setStyle diff が
-							// "'undefined' value invalid. Use null instead." を出すため key ごと削除する
+					if (value === undefined) {
+						// undefined を残すと maplibre の setStyle diff が
+						// "'undefined' value invalid. Use null instead." を出すため key ごと削除する
+						//@ts-expect-error ObjectGroupによって担保される
+						if (currentLayer[group] != null) {
 							//@ts-expect-error ObjectKey/ObjectGroupによって担保される
 							delete currentLayer[group][key];
-						} else {
-							//@ts-expect-error ObjectKey/ObjectGroupによって担保される
-							currentLayer[group][key] = value;
+							if (Object.keys(currentLayer[group]).length === 0) {
+								delete currentLayer[group];
+							}
 						}
+					} else {
+						//@ts-expect-error ObjectGroupによって担保される
+						currentLayer[group] ??= {};
+						//@ts-expect-error ObjectKey/ObjectGroupによって担保される
+						currentLayer[group][key] = value;
 					}
 				} else if (value === undefined) {
 					//@ts-expect-error ObjectKeyによって担保される

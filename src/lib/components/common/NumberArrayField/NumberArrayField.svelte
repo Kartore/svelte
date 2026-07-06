@@ -11,24 +11,25 @@
 	}: {
 		class?: string;
 		label: string;
-		arrayLabels: [string, string];
-		values: [number, number];
-		onChange: (values: [number, number]) => void;
+		arrayLabels: string[];
+		values: number[];
+		onChange: (values: number[]) => void;
 	} = $props();
 </script>
 
 <div class={cn('flex flex-row items-center justify-between', className)}>
 	<span class="text-sm font-semibold text-gray-600">{label}</span>
 	<div class="flex w-1/2 flex-row gap-1">
-		<NumberArrayInnerField
-			label={arrayLabels[0]}
-			value={values[0]}
-			onValueChange={(value) => onChange([value, values[1]])}
-		/>
-		<NumberArrayInnerField
-			label={arrayLabels[1]}
-			value={values[1]}
-			onValueChange={(value) => onChange([values[0], value])}
-		/>
+		{#each arrayLabels as arrayLabel, index (arrayLabel)}
+			<NumberArrayInnerField
+				label={arrayLabel}
+				value={values[index]}
+				onValueChange={(value) => {
+					const next = [...values];
+					next[index] = value;
+					onChange(next);
+				}}
+			/>
+		{/each}
 	</div>
 </div>

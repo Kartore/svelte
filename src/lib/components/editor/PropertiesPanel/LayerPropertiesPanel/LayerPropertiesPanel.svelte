@@ -10,6 +10,7 @@
 	import { CircleLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/CircleLayerPropertiesPanel';
 	import { provideLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 	import { LayerSuggestionsProvider } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerSuggestionsProvider';
+	import { ColorReliefLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/ColorReliefLayerPropertiesPanel';
 	import { FillExtrusionLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillExtrusionLayerPropertiesPanel';
 	import { FillLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillLayerPropertiesPanel';
 	import { HeatmapLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/HeatmapLayerPropertiesPanel';
@@ -20,6 +21,7 @@
 	import {
 		isBackgroundLayer,
 		isCircleLayer,
+		isColorReliefLayer,
 		isFillExtrusionLayer,
 		isFillLayer,
 		isHeatmapLayer,
@@ -55,21 +57,23 @@
 {:else}
 	<LayerSuggestionsProvider {layer} {sources}>
 		{#if isCircleLayer(layer)}
-			<CircleLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<CircleLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+		{:else if isColorReliefLayer(layer)}
+			<ColorReliefLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isFillExtrusionLayer(layer)}
-			<FillExtrusionLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<FillExtrusionLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isFillLayer(layer)}
 			<FillLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isHeatmapLayer(layer)}
-			<HeatmapLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<HeatmapLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isHillshadeLayer(layer)}
-			<HillshadeLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<HillshadeLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isLineLayer(layer)}
-			<LineLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<LineLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isRasterLayer(layer)}
-			<RasterLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<RasterLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{:else if isSymbolLayer(layer)}
-			<SymbolLayerPropertiesPanel {layer} {sources} {onChange} {...props} />
+			<SymbolLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
 		{/if}
 	</LayerSuggestionsProvider>
 {/if}

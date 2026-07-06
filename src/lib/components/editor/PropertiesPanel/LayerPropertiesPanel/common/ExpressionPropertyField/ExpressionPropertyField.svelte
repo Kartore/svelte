@@ -19,6 +19,7 @@
 		defaultLiteral,
 		onChange,
 		rampable,
+		showExpressionButton = true,
 		propertyKey,
 		propertyGroup = 'paint',
 		children,
@@ -35,6 +36,8 @@
 		onChange?: (value: unknown | undefined) => void;
 		/** offers the zoom-interpolate shortcut — only for interpolatable (number/color) properties */
 		rampable?: boolean;
+		/** shows the literal-to-expression button */
+		showExpressionButton?: boolean;
 		/** style-spec property name (e.g. 'fill-color') — enables inline validation errors */
 		propertyKey?: string;
 		/** property group the validation errors are looked up in */
@@ -92,26 +95,36 @@
 	</div>
 {:else}
 	<div {...props} class={cn('flex flex-col gap-1', className)}>
-		<div class="group/property flex flex-row items-center gap-1">
-			<div class="min-w-0 flex-1">{@render children()}</div>
-			{#if rampable}
-				<Button
-					aria-label={`Interpolate ${label} by zoom`}
-					title={`Interpolate ${label} by zoom`}
-					class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
-					onclick={() => onChange?.(literalToZoomInterpolate(value ?? defaultLiteral))}
+		<div class="group/property relative flex flex-row items-center">
+			<div class="w-full min-w-0">{@render children()}</div>
+			{#if rampable || showExpressionButton}
+				<!-- ボタンをフロー外に置きラベルとコントロールの間の余白へ重ねる。
+					フロー内に置くとボタン数 (0〜2) の分だけコントロールの右端がずれるため -->
+				<div
+					class="pointer-events-none absolute top-1/2 right-1/2 mr-1 flex -translate-y-1/2 flex-row items-center gap-0.5 rounded bg-white/90 opacity-0 transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/property:pointer-events-auto group-hover/property:opacity-100"
 				>
-					∿
-				</Button>
+					{#if rampable}
+						<Button
+							aria-label={`Interpolate ${label} by zoom`}
+							title={`Interpolate ${label} by zoom`}
+							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 hover:text-gray-600"
+							onclick={() => onChange?.(literalToZoomInterpolate(value ?? defaultLiteral))}
+						>
+							∿
+						</Button>
+					{/if}
+					{#if showExpressionButton}
+						<Button
+							aria-label={`Use expression for ${label}`}
+							title={`Use expression for ${label}`}
+							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
+							onclick={() => onChange?.(literalToExpression(value ?? defaultLiteral))}
+						>
+							fx
+						</Button>
+					{/if}
+				</div>
 			{/if}
-			<Button
-				aria-label={`Use expression for ${label}`}
-				title={`Use expression for ${label}`}
-				class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/property:opacity-100 focus-visible:opacity-100"
-				onclick={() => onChange?.(literalToExpression(value ?? defaultLiteral))}
-			>
-				fx
-			</Button>
 		</div>
 		{#if propertyKey}
 			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />

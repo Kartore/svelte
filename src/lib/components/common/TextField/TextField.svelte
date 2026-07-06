@@ -6,6 +6,7 @@
 		label,
 		value = $bindable(''),
 		onValueChange,
+		onCommit,
 		description,
 		disabled,
 		'aria-label': ariaLabel
@@ -14,6 +15,7 @@
 		label?: string;
 		value?: string;
 		onValueChange?: (value: string) => void;
+		onCommit?: (value: string) => void;
 		description?: string;
 		disabled?: boolean;
 		'aria-label'?: string;
@@ -33,6 +35,12 @@
 		{disabled}
 		bind:value
 		oninput={() => onValueChange?.(value)}
+		onblur={() => onCommit?.(value)}
+		onkeydown={(event) => {
+			if (event.key === 'Enter') {
+				event.currentTarget.blur();
+			}
+		}}
 		class="w-1/2 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
 	/>
 	{#if description}

@@ -30,12 +30,12 @@
 		{disabled}
 		orientation="horizontal"
 		aria-label={label}
-		class="flex w-1/2 flex-row items-center justify-end gap-1"
+		class="flex w-1/2 flex-row flex-wrap items-center justify-end gap-1"
 	>
 		{#each items as item (item.value)}
 			<RadioGroup.Item
 				value={item.value}
-				class="block cursor-pointer rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 data-[state=checked]:bg-gray-300"
+				class="block cursor-pointer rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold whitespace-nowrap transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 data-[state=checked]:bg-gray-300"
 			>
 				{item.label}
 			</RadioGroup.Item>

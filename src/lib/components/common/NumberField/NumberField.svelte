@@ -89,7 +89,9 @@
 	{#if label}
 		<label for={id} class="text-sm font-semibold text-gray-600">{label}</label>
 	{/if}
-	<div class="w-1/2">
+	<div
+		class="flex w-1/2 flex-row items-center rounded bg-gray-100 transition-colors focus-within:bg-gray-200 hover:bg-gray-200"
+	>
 		<input
 			{id}
 			type="text"
@@ -116,14 +118,17 @@
 					stepBy(-1);
 				}
 			}}
-			class="w-full rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
+			class="w-full min-w-0 flex-1 rounded border-none bg-transparent px-2 py-1 text-sm font-semibold focus-visible:outline-0"
 		/>
+		{#if description}
+			<!-- 単位表記。入力欄の内側に出すことでフィールドの右端を揃える -->
+			<span class="max-w-16 truncate pr-2 text-xs text-gray-400 select-none" title={description}>
+				{description}
+			</span>
+		{/if}
 		{#if showButton}
 			<Button aria-label="Decrement" onclick={() => stepBy(-1)}>-</Button>
 			<Button aria-label="Increment" onclick={() => stepBy(1)}>+</Button>
 		{/if}
 	</div>
-	{#if description}
-		<div class="text-xs">{description}</div>
-	{/if}
 </div>
