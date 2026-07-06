@@ -9,9 +9,11 @@
 
 	import { RangeSlider } from '$lib/components/common/RangeSlider';
 	import { Select } from '$lib/components/common/Select';
+	import { TextField } from '$lib/components/common/TextField';
 	import { createSourceLayers } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSourceLayers/useSourceLayers.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { isVectorSource } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/SourceUtil/SourceUtil.ts';
+	import { getLayerGroup, GROUP_METADATA_KEY } from '$lib/utils/layerGroup.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -39,6 +41,11 @@
 
 <div {...props} class={cn('flex flex-col gap-2 px-4', className)}>
 	<h3 class="font-montserrat text-sm font-semibold">General</h3>
+	<TextField
+		label="Group"
+		value={getLayerGroup(layer) ?? ''}
+		onCommit={(value) => onChange?.(layer, 'metadata', GROUP_METADATA_KEY, value || undefined)}
+	/>
 	<Select
 		label="Source"
 		items={Object.keys(sources).map((sourceId) => ({ value: sourceId, label: sourceId }))}

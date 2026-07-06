@@ -3,9 +3,12 @@
 	import { onDestroy } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '$lib/components/common/Button';
+	import { LayerGroupHeader } from '$lib/components/editor/NavigationPanel/LayerGroupHeader';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
+	import { buildLayerTreeRows, getLayerGroup, resolveLayerDrop } from '$lib/utils/layerGroup.ts';
 	import {
 		formatLayerValidationError,
 		type LayerValidationError
@@ -32,14 +35,35 @@
 
 	const errorMessages = (layerId: string): string[] | undefined =>
 		layerErrors?.[layerId]?.map(formatLayerValidationError);
+	const groupErrorMessages = (layerIndexes: number[]): string[] | undefined => {
+		const errors = layerIndexes.flatMap((layerIndex) => {
+			const layerId = mapStyle.layers[layerIndex]?.id;
+			return layerId ? (errorMessages(layerId) ?? []) : [];
+		});
+		return errors.length > 0 ? errors : undefined;
+	};
+	const rows = $derived(buildLayerTreeRows(mapStyle.layers));
+	const collapsedGroups = new SvelteSet<string>();
+	const selectedLayer = $derived(mapStyle.layers.find((layer) => layer.id === selectedLayerId));
+	const selectedGroup = $derived(selectedLayer ? getLayerGroup(selectedLayer) : undefined);
+	const visibleRows = $derived(
+		rows.filter(
+			(row) =>
+				row.kind === 'group' ||
+				row.group === undefined ||
+				row.group === selectedGroup ||
+				!collapsedGroups.has(row.group)
+		)
+	);
 
 	// dnd-kit (MouseSensor + verticalListSortingStrategy + DragOverlay) 相当を
 	// ネイティブ Pointer Events で実装している。
 	const ACTIVATION_DISTANCE = 4;
 
 	let activeLayer = $state<LayerSpecification | null>(null);
-	let activeIndex = $state(-1);
-	let overIndex = $state(-1);
+	let activeLayerIndex = $state(-1);
+	let activeRowIndex = $state(-1);
+	let overRowIndex = $state(-1);
 	let overlayLeft = $state(0);
 	let overlayTop = $state(0);
 	let overlayWidth = $state(0);
@@ -59,12 +83,6 @@
 		};
 	};
 
-	const arrayMove = <T,>(array: T[], from: number, to: number): T[] => {
-		const newArray = array.slice();
-		newArray.splice(to < 0 ? newArray.length + to : to, 0, newArray.splice(from, 1)[0]);
-		return newArray;
-	};
-
 	const handleItemPointerDown = (event: PointerEvent, layer: LayerSpecification) => {
 		if (event.button !== 0) return;
 		pendingLayer = layer;
@@ -78,11 +96,15 @@
 	const startDrag = () => {
 		if (!pendingLayer || !listElement) return;
 		itemRects = Array.from(listElement.children).map((child) => child.getBoundingClientRect());
-		const index = mapStyle.layers.findIndex((layer) => layer.id === pendingLayer?.id);
-		if (index === -1 || !itemRects[index]) return;
-		activeIndex = index;
-		overIndex = index;
-		overlayWidth = itemRects[index].width;
+		const layerIndex = mapStyle.layers.findIndex((layer) => layer.id === pendingLayer?.id);
+		const rowIndex = visibleRows.findIndex(
+			(row) => row.kind === 'layer' && row.layerIndex === layerIndex
+		);
+		if (layerIndex === -1 || rowIndex === -1 || !itemRects[rowIndex]) return;
+		activeLayerIndex = layerIndex;
+		activeRowIndex = rowIndex;
+		overRowIndex = rowIndex;
+		overlayWidth = itemRects[rowIndex].width;
 		activeLayer = pendingLayer;
 		suppressClick = true;
 
@@ -101,14 +123,14 @@
 		}
 		event.preventDefault();
 
-		const activeRect = itemRects[activeIndex];
+		const activeRect = itemRects[activeRowIndex];
 		// dnd-kit の DragOverlay + adjustTranslate（y - 10）相当
 		overlayLeft = activeRect.left + dx;
 		overlayTop = activeRect.top + dy - 10;
 
 		// closestCenter 相当: ドラッグ中アイテムの中心に最も近いアイテムを over とする
 		const draggedCenterY = activeRect.top + activeRect.height / 2 + dy;
-		let closestIndex = activeIndex;
+		let closestIndex = activeRowIndex;
 		let closestDistance = Infinity;
 		itemRects.forEach((rect, index) => {
 			const distance = Math.abs(rect.top + rect.height / 2 - draggedCenterY);
@@ -117,15 +139,14 @@
 				closestIndex = index;
 			}
 		});
-		overIndex = closestIndex;
+		overRowIndex = closestIndex;
 	};
 
 	const handlePointerUp = () => {
-		if (activeLayer && overIndex !== activeIndex) {
-			const clonedLayers: LayerSpecification[] = JSON.parse(
-				JSON.stringify($state.snapshot(mapStyle.layers))
+		if (activeLayer && overRowIndex !== activeRowIndex) {
+			onChangeLayerOrder(
+				resolveLayerDrop(mapStyle.layers, visibleRows, activeLayerIndex, overRowIndex)
 			);
-			onChangeLayerOrder(arrayMove(clonedLayers, activeIndex, overIndex));
 		}
 		resetState();
 	};
@@ -139,8 +160,9 @@
 	const resetState = () => {
 		activeLayer = null;
 		pendingLayer = null;
-		activeIndex = -1;
-		overIndex = -1;
+		activeLayerIndex = -1;
+		activeRowIndex = -1;
+		overRowIndex = -1;
 		itemRects = [];
 
 		document.body.style.setProperty('cursor', '');
@@ -161,16 +183,28 @@
 		onClickLayer(layer);
 	};
 
+	const toggleGroup = (name: string) => {
+		if (collapsedGroups.has(name)) {
+			collapsedGroups.delete(name);
+		} else {
+			collapsedGroups.add(name);
+		}
+	};
+
+	const isCollapsed = (name: string): boolean => {
+		return selectedGroup !== name && collapsedGroups.has(name);
+	};
+
 	// verticalListSortingStrategy 相当の transform を計算する
 	const itemStyle = (index: number): string | undefined => {
-		if (!activeLayer || activeIndex === -1 || overIndex === -1) return undefined;
-		const activeRect = itemRects[activeIndex];
+		if (!activeLayer || activeRowIndex === -1 || overRowIndex === -1) return undefined;
+		const activeRect = itemRects[activeRowIndex];
 		let y = 0;
-		if (index === activeIndex) {
-			y = itemRects[overIndex].top - activeRect.top;
-		} else if (activeIndex < overIndex && index > activeIndex && index <= overIndex) {
+		if (index === activeRowIndex) {
+			y = itemRects[overRowIndex].top - activeRect.top;
+		} else if (activeRowIndex < overRowIndex && index > activeRowIndex && index <= overRowIndex) {
 			y = -activeRect.height;
-		} else if (activeIndex > overIndex && index >= overIndex && index < activeIndex) {
+		} else if (activeRowIndex > overRowIndex && index >= overRowIndex && index < activeRowIndex) {
 			y = activeRect.height;
 		}
 		return `transform: translate3d(0, ${y}px, 0); transition: transform 200ms ease;`;
@@ -201,21 +235,34 @@
 		<h2>Layers</h2>
 	</div>
 	<div class="flex-1 overflow-auto" {@attach setListElement}>
-		{#each mapStyle.layers as layer, index (layer.id)}
-			<SortableLayerTreeItem
-				isSelected={layer.id === selectedLayerId}
-				{layer}
-				errors={errorMessages(layer.id)}
-				indicator={layer.id === activeLayer?.id}
-				disableInteraction={activeLayer !== null}
-				style={itemStyle(index)}
-				onclick={() => {
-					handleItemClick(layer);
-				}}
-				onpointerdown={(event) => {
-					handleItemPointerDown(event, layer);
-				}}
-			/>
+		{#each visibleRows as row, rowIndex (row.kind === 'group' ? `group-${row.name}-${row.startIndex}` : (mapStyle.layers[row.layerIndex]?.id ?? row.layerIndex))}
+			{#if row.kind === 'group'}
+				<LayerGroupHeader
+					name={row.name}
+					count={row.layerIndexes.length}
+					collapsed={isCollapsed(row.name)}
+					errors={groupErrorMessages(row.layerIndexes)}
+					style={itemStyle(rowIndex)}
+					onToggle={() => toggleGroup(row.name)}
+				/>
+			{:else}
+				{@const layer = mapStyle.layers[row.layerIndex]}
+				<SortableLayerTreeItem
+					isSelected={layer.id === selectedLayerId}
+					{layer}
+					indent={row.group !== undefined}
+					errors={errorMessages(layer.id)}
+					indicator={layer.id === activeLayer?.id}
+					disableInteraction={activeLayer !== null}
+					style={itemStyle(rowIndex)}
+					onclick={() => {
+						handleItemClick(layer);
+					}}
+					onpointerdown={(event) => {
+						handleItemPointerDown(event, layer);
+					}}
+				/>
+			{/if}
 		{/each}
 	</div>
 </div>

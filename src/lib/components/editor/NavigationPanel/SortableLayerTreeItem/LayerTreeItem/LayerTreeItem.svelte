@@ -9,6 +9,7 @@
 		layer,
 		indicator,
 		disableInteraction,
+		indent,
 		clone,
 		class: className,
 		isSelected,
@@ -18,6 +19,7 @@
 		indicator?: boolean;
 		clone?: boolean;
 		disableInteraction?: boolean;
+		indent?: boolean;
 		layer: LayerSpecification;
 		isSelected?: boolean;
 		errors?: string[];
@@ -30,6 +32,7 @@
 		'flex w-full items-center gap-2 px-4 py-2 text-gray-800 text-sm',
 		indicator && 'opacity-60',
 		clone && 'inline-flex',
+		indent && 'pl-6',
 		disableInteraction || clone ? 'pointer-events-none' : 'pointer-events-auto',
 		isSelected ? 'bg-gray-200' : 'hover:bg-gray-100',
 		className
