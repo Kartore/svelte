@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
+	import { onDestroy } from 'svelte';
+	import type { Attachment } from 'svelte/attachments';
 	import type { HTMLAttributes } from 'svelte/elements';
 
+	import { Button } from '$lib/components/common/Button';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
 	import {
 		formatLayerValidationError,
@@ -16,6 +19,7 @@
 		class: className,
 		selectedLayerId,
 		layerErrors,
+		onClickImport,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
@@ -23,6 +27,7 @@
 		layerErrors?: Record<string, LayerValidationError[]>;
 		onClickLayer: (layer: LayerSpecification) => void;
 		onChangeLayerOrder: (layers: LayerSpecification[]) => void;
+		onClickImport?: () => void;
 	} = $props();
 
 	const errorMessages = (layerId: string): string[] | undefined =>
@@ -44,6 +49,15 @@
 	let pointerStart = { x: 0, y: 0 };
 	let pendingLayer: LayerSpecification | null = null;
 	let suppressClick = false;
+
+	const setListElement: Attachment<HTMLDivElement> = (node) => {
+		listElement = node;
+		return () => {
+			if (listElement === node) {
+				listElement = null;
+			}
+		};
+	};
 
 	const arrayMove = <T,>(array: T[], from: number, to: number): T[] => {
 		const newArray = array.slice();
@@ -137,11 +151,7 @@
 		window.removeEventListener('keydown', handleKeyDown);
 	};
 
-	$effect(() => {
-		return () => {
-			resetState();
-		};
-	});
+	onDestroy(resetState);
 
 	const handleItemClick = (layer: LayerSpecification) => {
 		if (suppressClick) {
@@ -176,14 +186,21 @@
 >
 	<div class="flex flex-col gap-2 border-b border-b-gray-300 px-4 py-4">
 		<h1 class="font-[Montserrat] font-bold">Kartore</h1>
-		<h2 class="font-[Montserrat] font-semibold">{mapStyle.name}</h2>
+		<div class="flex items-center justify-between gap-2">
+			<h2 class="min-w-0 overflow-hidden font-[Montserrat] font-semibold text-ellipsis">
+				{mapStyle.name}
+			</h2>
+			<Button class="rounded px-2 py-1 text-xs font-semibold text-gray-500" onclick={onClickImport}>
+				Import
+			</Button>
+		</div>
 	</div>
 	<div
 		class="border-b border-b-gray-300 px-4 py-2 font-[Montserrat] text-sm font-medium text-gray-500"
 	>
 		<h2>Layers</h2>
 	</div>
-	<div class="flex-1 overflow-auto" bind:this={listElement}>
+	<div class="flex-1 overflow-auto" {@attach setListElement}>
 		{#each mapStyle.layers as layer, index (layer.id)}
 			<SortableLayerTreeItem
 				isSelected={layer.id === selectedLayerId}
