@@ -4,8 +4,8 @@
 		{
 			"name": "svelte-dev",
 			"runtimeExecutable": "pnpm",
-			"runtimeArgs": ["run", "dev", "--port", "5199"],
-			"port": 5199
+			"runtimeArgs": ["run", "dev"],
+			"autoPort": true
 		}
 	]
 }

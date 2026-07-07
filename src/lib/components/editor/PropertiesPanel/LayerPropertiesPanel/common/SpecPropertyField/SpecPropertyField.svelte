@@ -15,6 +15,7 @@
 	import { ExpressionPropertyField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/ExpressionPropertyField';
 	import { VariableAnchorOffsetField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableAnchorOffsetField';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { parseColor, tryParseColor } from '$lib/utils/color.ts';
 	import { labelFromPropertyKey, type LayerPropertyEntry } from '$lib/utils/layerSpec.ts';
 
@@ -34,6 +35,7 @@
 		onChange?: onChangeType;
 	} = $props();
 
+	const flyout = useExpressionFlyout();
 	let { key, spec } = $derived(entry);
 	const label = $derived(labelFromPropertyKey(key, layer.type, labelPrefix));
 	const rawValue = $derived((layer[group] as Record<string, unknown> | undefined)?.[key]);
@@ -71,6 +73,11 @@
 	const unitLabel = $derived(
 		spec.units === undefined ? undefined : (unitLabels[spec.units] ?? spec.units)
 	);
+
+	const layerZoomRange = $derived<[number, number]>([
+		layer.minzoom ?? 0,
+		layer.maxzoom ?? 24
+	]);
 
 	const isDefault = (value: unknown) => JSON.stringify(value) === JSON.stringify(spec.default);
 	const commit = (value: unknown) => {
@@ -143,6 +150,7 @@
 		value={rawValue}
 		propertyKey={key}
 		propertyGroup={group}
+		zoomRange={layerZoomRange}
 		defaultLiteral={isColorRamp ? '' : (spec.default ?? '')}
 		rampable={spec.expression?.interpolated === true && spec['property-type'] !== 'color-ramp'}
 		showExpressionButton={!isColorRamp && key !== 'visibility'}
@@ -160,7 +168,10 @@
 				<Button
 					aria-label={`Add ${label} expression`}
 					class="rounded bg-gray-100 px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-200"
-					onclick={() => expressionChange(spec.default)}
+					onclick={() => {
+						expressionChange(spec.default);
+						flyout?.open({ group, key, label });
+					}}
 				>
 					+ Add
 				</Button>

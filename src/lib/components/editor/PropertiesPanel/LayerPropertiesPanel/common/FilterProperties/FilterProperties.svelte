@@ -14,6 +14,7 @@
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -30,6 +31,15 @@
 	} = $props();
 
 	const defaultFilter: ExpressionFilterSpecification = ['==', ['get', ''], ''];
+
+	const flyout = useExpressionFlyout();
+	const isFlyoutOpen = $derived(flyout?.isOpen('filter', 'filter') ?? false);
+	const openFlyout = () => flyout?.open({ group: 'filter', key: 'filter', label: 'Filter' });
+	const filterSummary = $derived(
+		Array.isArray(layer.filter) && typeof layer.filter[0] === 'string'
+			? layer.filter[0]
+			: String(layer.filter)
+	);
 </script>
 
 <div {...props} class={cn('flex flex-col gap-2 px-4', className)}>
@@ -39,27 +49,53 @@
 			<Button
 				aria-label="Add filter"
 				class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
-				onclick={() => onChange?.(layer, undefined, 'filter', defaultFilter)}
+				onclick={() => {
+					onChange?.(layer, undefined, 'filter', defaultFilter);
+					openFlyout();
+				}}
 			>
 				+ Add
 			</Button>
 		{:else}
-			<Button
-				aria-label="Delete filter"
-				class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500 hover:text-red-500"
-				onclick={() => onChange?.(layer, undefined, 'filter', undefined)}
-			>
-				Delete
-			</Button>
+			<div class="flex flex-row items-center gap-1">
+				{#if flyout !== undefined && isExpressionFilter(layer.filter)}
+					<Button
+						aria-label="Edit filter expression"
+						aria-pressed={isFlyoutOpen}
+						class={cn(
+							'flex min-w-0 flex-row items-center gap-1.5 rounded border px-2 py-0.5 text-xs transition-colors',
+							isFlyoutOpen
+								? 'border-blue-300 bg-blue-50 text-blue-600'
+								: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+						)}
+						onclick={openFlyout}
+					>
+						<span class="shrink-0 font-mono font-semibold italic">fx</span>
+						<span class="truncate font-mono">{filterSummary}</span>
+					</Button>
+				{/if}
+				<Button
+					aria-label="Delete filter"
+					class="shrink-0 rounded px-2 py-0.5 text-xs font-semibold text-gray-500 hover:text-red-500"
+					onclick={() => {
+						if (isFlyoutOpen) flyout?.close();
+						onChange?.(layer, undefined, 'filter', undefined);
+					}}
+				>
+					Delete
+				</Button>
+			</div>
 		{/if}
 	</div>
 	{#if layer.filter === undefined}
 		<!-- no filter -->
 	{:else if isExpressionFilter(layer.filter)}
-		<FilterInputField
-			value={layer.filter}
-			onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
-		/>
+		{#if flyout === undefined}
+			<FilterInputField
+				value={layer.filter}
+				onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
+			/>
+		{/if}
 	{:else}
 		<summary>
 			<details>

@@ -3,7 +3,7 @@ import { Color, createExpression } from '@maplibre/maplibre-gl-style-spec';
 
 const PROBE_KEY = '__kartore_curve_x';
 
-export type CurveOutputType = 'color' | 'number';
+export type CurveOutputType = 'color' | 'number' | 'text';
 
 export type CurveSample = {
 	x: number;
@@ -15,8 +15,15 @@ export type CurveSamplingResult = {
 	outputType: CurveOutputType;
 	/** stop input positions declared in the expression */
 	stops: number[];
+	/** empty for 'text' curves — text is not sampled, use textOutputs instead */
 	samples: CurveSample[];
 	domain: [number, number];
+	/** step segment labels in stop order, only set for outputType 'text' */
+	textOutputs?: string[];
+	/** curve input is ['zoom'] — enables the current-zoom marker in previews */
+	inputIsZoom: boolean;
+	/** evaluate the compiled expression at an arbitrary x — returns null on error */
+	evaluateAt?: (x: number) => number | null;
 };
 
 const curveOperators = new Set(['interpolate', 'interpolate-hcl', 'interpolate-lab', 'step']);
@@ -24,16 +31,18 @@ const curveOperators = new Set(['interpolate', 'interpolate-hcl', 'interpolate-l
 const isColorLike = (output: unknown): boolean => {
 	if (output instanceof Color) return true;
 	if (typeof output !== 'string') return false;
-	return output.trim() !== '' && Number.isNaN(Number(output));
+	return Color.parse(output) !== undefined;
 };
 
 const detectOutputType = (outputs: unknown[]): CurveOutputType | null => {
 	if (outputs.length === 0) return null;
 	if (outputs.every((output) => typeof output === 'number')) return 'number';
 	// expression outputs (arrays) may resolve to either type — only literal
-	// outputs decide; require every literal output to look like a color
+	// outputs decide
 	const literalOutputs = outputs.filter((output) => !Array.isArray(output));
-	if (literalOutputs.length > 0 && literalOutputs.every(isColorLike)) return 'color';
+	if (literalOutputs.length === 0) return null;
+	if (literalOutputs.every(isColorLike)) return 'color';
+	if (literalOutputs.every((output) => typeof output === 'string')) return 'text';
 	return null;
 };
 
@@ -72,12 +81,15 @@ export const curveHasColorOutputs = (expression: ExpressionSpecification): boole
  * curve input is swapped for a probed feature property, so the sampling is
  * exact (exponential bases, cubic-bezier, hcl/lab color spaces) regardless of
  * whether the original input was zoom, get, or line-progress.
+ * Text outputs (step only) are not sampled — the literal stop outputs are
+ * returned as textOutputs for a segmented preview.
  * Returns null when the expression is not a samplable curve or fails to
  * compile/evaluate (e.g. mid-edit states).
  */
 export const sampleCurveExpression = (
 	expression: ExpressionSpecification,
-	sampleCount = 64
+	sampleCount = 64,
+	domainOverride?: [number, number]
 ): CurveSamplingResult | null => {
 	const collected = collectCurveStops(expression);
 	if (!collected) return null;
@@ -86,10 +98,28 @@ export const sampleCurveExpression = (
 	const outputType = detectOutputType(outputs);
 	if (!outputType) return null;
 
+	const inputArg = expression[inputIndex];
+	const inputIsZoom = Array.isArray(inputArg) && inputArg[0] === 'zoom';
+
 	const min = stops[0];
 	const max = stops[stops.length - 1];
-	const margin = isStep ? (max - min || 1) * 0.15 : 0;
-	const domain: [number, number] = [min - margin, max + margin];
+	// zoom curve はレイヤーの表示 zoom 範囲に合わせる (呼び出し側が domainOverride で指定)
+	const domain: [number, number] =
+		inputIsZoom && domainOverride
+			? domainOverride
+			: inputIsZoom
+				? [Math.min(0, min), Math.max(24, max)]
+				: (() => {
+						const margin = isStep ? (max - min || 1) * 0.15 : 0;
+						return [min - margin, max + margin];
+					})();
+
+	if (outputType === 'text') {
+		// interpolate cannot output strings; a segmented preview needs every
+		// output to be a literal label
+		if (!isStep || !outputs.every((output) => typeof output === 'string')) return null;
+		return { outputType, stops, samples: [], domain, textOutputs: outputs, inputIsZoom };
+	}
 
 	const probed = expression.map((part, index) =>
 		index === inputIndex ? ['to-number', ['get', PROBE_KEY]] : part
@@ -127,5 +157,23 @@ export const sampleCurveExpression = (
 	} catch {
 		return null;
 	}
-	return { outputType, stops, samples, domain };
+	const evaluateAt =
+		outputType === 'number'
+			? (x: number): number | null => {
+					try {
+						const output = compiled.value.evaluate(
+							{ zoom: 0 } as Parameters<typeof compiled.value.evaluate>[0],
+							{
+								type: 'Point',
+								geometry: { type: 'Point', coordinates: [0, 0] },
+								properties: { [PROBE_KEY]: x }
+							} as unknown as Parameters<typeof compiled.value.evaluate>[1]
+						);
+						return typeof output === 'number' ? output : null;
+					} catch {
+						return null;
+					}
+				}
+			: undefined;
+	return { outputType, stops, samples, domain, inputIsZoom, evaluateAt };
 };

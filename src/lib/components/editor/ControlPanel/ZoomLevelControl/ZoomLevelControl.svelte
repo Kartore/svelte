@@ -23,6 +23,7 @@
 	const handleResetNorthPitch = () => {
 		backgroundMap.map?.resetNorthPitch();
 	};
+	const isNorthUpFlat = $derived(backgroundMap.bearing === 0 && backgroundMap.pitch === 0);
 	const rotateCompassArrow = $derived.by(() => {
 		if (!backgroundMap.map) return '';
 		const pitch = backgroundMap.pitch;
@@ -52,7 +53,7 @@
 		class="rounded-t-none"
 		aria-label="Reset North Pitch"
 		onclick={handleResetNorthPitch}
-		disabled={isMinZoom}
+		disabled={isNorthUpFlat}
 	>
 		<CompassIcon style={`transform: ${rotateCompassArrow}`} />
 	</ZoomLevelControlButton>

@@ -49,15 +49,20 @@
 		max={maxValue}
 		{step}
 		{disabled}
-		class={cn('relative mt-2 flex h-0.5 w-full rounded-full bg-gray-300', disabled && 'opacity-60')}
+		class={cn(
+			'relative flex h-4 w-full touch-none items-center select-none',
+			disabled && 'opacity-60'
+		)}
 	>
 		{#snippet children({ thumbItems })}
-			<Slider.Range class="absolute h-0.5 bg-gray-500" />
+			<span class="relative h-1 w-full grow overflow-hidden rounded-full bg-gray-300">
+				<Slider.Range class="absolute h-full bg-gray-500" />
+			</span>
 			{#each thumbItems as { index } (index)}
 				<Slider.Thumb
 					{index}
 					aria-label={sliderThumbLabel?.[index]}
-					class="mt-[1px] size-3 rounded-full border border-gray-500 bg-white"
+					class="block size-3.5 rounded-full border border-gray-500 bg-white shadow-sm transition-colors hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
 			{/each}
 		{/snippet}
