@@ -13,6 +13,7 @@
 	import { Switch } from '$lib/components/common/Switch';
 	import { TextField } from '$lib/components/common/TextField';
 	import { ExpressionPropertyField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/ExpressionPropertyField';
+	import { VariableAnchorOffsetField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableAnchorOffsetField';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { parseColor, tryParseColor } from '$lib/utils/color.ts';
 	import { labelFromPropertyKey, type LayerPropertyEntry } from '$lib/utils/layerSpec.ts';
@@ -272,8 +273,9 @@
 				value={typeof rawValue === 'string' ? rawValue : undefined}
 				onCommit={(value) => commit(value || undefined)}
 			/>
+		{:else if spec.type === 'variableAnchorOffsetCollection'}
+			<VariableAnchorOffsetField {label} value={rawValue} onChange={(value) => commit(value)} />
 		{:else}
-			<!-- text-variable-anchor-offset remains a read-only fallback in Phase 2. -->
 			<TextField {label} value={fallbackValue(rawValue)} disabled />
 		{/if}
 	</ExpressionPropertyField>
