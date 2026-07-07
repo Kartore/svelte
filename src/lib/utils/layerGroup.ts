@@ -2,11 +2,61 @@ import type { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 export const GROUP_METADATA_KEY = 'kartore:group';
 
+// $state の deep proxy は structuredClone できない (DataCloneError) ため、
+// 呼び出し元を問わず安全な JSON ベースのクローンを使う (スタイルは JSON 化可能なデータのみ)
+const cloneLayers = (layers: LayerSpecification[]): LayerSpecification[] => {
+	return JSON.parse(JSON.stringify(layers)) as LayerSpecification[];
+};
+
 export const getLayerGroup = (layer: LayerSpecification): string | undefined => {
 	const metadata = layer.metadata;
 	if (typeof metadata !== 'object' || metadata === null) return undefined;
 	const group = (metadata as Record<string, unknown>)[GROUP_METADATA_KEY];
 	return typeof group === 'string' && group !== '' ? group : undefined;
+};
+
+/** Maputnik の layerPrefix と同等: id の先頭セグメントをグループ候補名として取り出す */
+export const layerIdPrefix = (id: string): string => {
+	return id.replace(' ', '-').replace('_', '-').split('-')[0];
+};
+
+/**
+ * 隣接して同じ id 接頭辞を持つ 2 レイヤー以上の run に kartore:group を付与する。
+ * 既に kartore:group を持つレイヤーは変更せず、run の境界として扱う
+ */
+export const groupLayersByIdPrefix = (
+	layers: LayerSpecification[]
+): { layers: LayerSpecification[]; groupCount: number } => {
+	const nextLayers = cloneLayers(layers);
+	let groupCount = 0;
+	let runStart = 0;
+
+	const applyRun = (endExclusive: number) => {
+		if (endExclusive - runStart < 2) return;
+		const prefix = layerIdPrefix(nextLayers[runStart].id);
+		for (let i = runStart; i < endExclusive; i++) {
+			setLayerGroup(nextLayers[i], prefix);
+		}
+		groupCount += 1;
+	};
+
+	for (let index = 1; index <= nextLayers.length; index++) {
+		const current = index < nextLayers.length ? nextLayers[index] : undefined;
+		const previous = nextLayers[index - 1];
+		const continues =
+			current !== undefined &&
+			getLayerGroup(current) === undefined &&
+			getLayerGroup(previous) === undefined &&
+			layerIdPrefix(current.id) === layerIdPrefix(previous.id);
+		if (!continues) {
+			if (getLayerGroup(previous) === undefined) {
+				applyRun(index);
+			}
+			runStart = index;
+		}
+	}
+
+	return { layers: nextLayers, groupCount };
 };
 
 export type LayerTreeRow =
@@ -58,14 +108,26 @@ const setLayerGroup = (layer: LayerSpecification, group: string | undefined): vo
 	}
 };
 
-const insertionIndexAfterMove = (
+/**
+ * グループヘッダー行へのドロップ: グループ先頭の「直前」に挿入する。
+ * 除去によるインデックスずれを補正する
+ */
+const insertionIndexBeforeGroup = (
 	activeLayerIndex: number,
-	targetLayerIndex: number,
+	groupStartIndex: number,
 	length: number
 ): number => {
-	const adjustedIndex =
-		targetLayerIndex > activeLayerIndex ? targetLayerIndex - 1 : targetLayerIndex;
-	return Math.max(0, Math.min(adjustedIndex, length - 1));
+	const adjustedIndex = groupStartIndex > activeLayerIndex ? groupStartIndex - 1 : groupStartIndex;
+	return Math.max(0, Math.min(adjustedIndex, length));
+};
+
+/**
+ * レイヤー行へのドロップ: over 行の位置に着地させる (dnd の arrayMove 相当)。
+ * 除去前インデックスをそのまま使うことで、下方向は over の直後・上方向は直前に入り、
+ * ドラッグ中の transform プレビューと結果が一致する
+ */
+const insertionIndexAtLayer = (targetLayerIndex: number, length: number): number => {
+	return Math.max(0, Math.min(targetLayerIndex, length));
 };
 
 /**
@@ -84,14 +146,12 @@ export const resolveLayerDrop = (
 		return layers;
 	}
 
-	const nextLayers = structuredClone(layers);
+	const nextLayers = cloneLayers(layers);
 	const [activeLayer] = nextLayers.splice(activeLayerIndex, 1);
-	const targetLayerIndex = overRow.kind === 'group' ? overRow.startIndex : overRow.layerIndex;
-	const insertIndex = insertionIndexAfterMove(
-		activeLayerIndex,
-		targetLayerIndex,
-		nextLayers.length
-	);
+	const insertIndex =
+		overRow.kind === 'group'
+			? insertionIndexBeforeGroup(activeLayerIndex, overRow.startIndex, nextLayers.length)
+			: insertionIndexAtLayer(overRow.layerIndex, nextLayers.length);
 
 	nextLayers.splice(insertIndex, 0, activeLayer);
 

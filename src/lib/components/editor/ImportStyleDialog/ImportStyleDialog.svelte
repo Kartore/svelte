@@ -3,7 +3,9 @@
 	import type { StyleSpecification } from 'maplibre-gl';
 
 	import { Button } from '$lib/components/common/Button';
+	import { Switch } from '$lib/components/common/Switch';
 	import { TextField } from '$lib/components/common/TextField';
+	import { getLayerGroup, groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { parseStyleJSON, type StyleImportResult } from '$lib/utils/styleImport.ts';
 
 	let {
@@ -18,17 +20,29 @@
 	let result = $state<StyleImportResult | null>(null);
 	let isFetching = $state(false);
 	let fileInputKey = $state(0);
+	let groupByPrefix = $state(false);
 	const fileInputId = $props.id();
+
+	// id 接頭辞 → kartore:group 変換のプレビュー (グループが作れないスタイルではトグルを出さない)
+	const prefixGrouping = $derived(
+		result?.ok === true ? groupLayersByIdPrefix(result.style.layers) : null
+	);
 
 	const reset = () => {
 		url = '';
 		result = null;
 		isFetching = false;
 		fileInputKey += 1;
+		groupByPrefix = false;
 	};
 
 	const parseText = (text: string) => {
 		result = parseStyleJSON(text);
+		// 既存グループが無く、変換で 1 つ以上グループが作れる場合はデフォルト ON
+		groupByPrefix =
+			result.ok &&
+			!result.style.layers.some((layer) => getLayerGroup(layer) !== undefined) &&
+			groupLayersByIdPrefix(result.style.layers).groupCount > 0;
 	};
 
 	const fetchStyle = async () => {
@@ -75,7 +89,11 @@
 
 	const importStyle = () => {
 		if (result?.ok !== true) return;
-		onImport(result.style);
+		const style =
+			groupByPrefix && prefixGrouping !== null && prefixGrouping.groupCount > 0
+				? { ...result.style, layers: prefixGrouping.layers }
+				: result.style;
+		onImport(style);
 		open = false;
 		reset();
 	};
@@ -95,7 +113,7 @@
 			<div class="flex flex-col gap-4">
 				<div class="flex flex-col gap-1">
 					<Dialog.Title class="font-montserrat text-base font-semibold">Import Style</Dialog.Title>
-					<p class="text-xs text-gray-500">現在のスタイルは置き換えられます。</p>
+					<p class="text-xs text-gray-500">The current style will be replaced.</p>
 				</div>
 
 				<div class="flex flex-col gap-2">
@@ -103,8 +121,8 @@
 						<TextField
 							class="flex-1 [&>input]:w-full"
 							aria-label="Style URL"
+							placeholder="https://example.com/style.json"
 							bind:value={url}
-							onValueChange={(value) => (url = value)}
 						/>
 						<Button
 							class="rounded px-2 py-1 text-xs font-semibold text-gray-600 disabled:cursor-default disabled:text-gray-300"
@@ -145,18 +163,34 @@
 								sources
 							</p>
 						</div>
+						{#if prefixGrouping !== null && prefixGrouping.groupCount > 0}
+							<div class="flex flex-col gap-0.5">
+								<Switch
+									label="Group layers by ID prefix"
+									checked={groupByPrefix}
+									onCheckedChange={(checked) => (groupByPrefix = checked)}
+								/>
+								<p class="text-xs text-gray-500">
+									Creates {prefixGrouping.groupCount} group{prefixGrouping.groupCount === 1
+										? ''
+										: 's'} from adjacent layers like road_* / tunnel_*.
+								</p>
+							</div>
+						{/if}
 						{#if result.warnings.length > 0}
 							<div
 								class="flex flex-col gap-1 rounded border border-yellow-300 bg-yellow-50 px-3 py-2"
 							>
 								<p class="text-xs font-semibold text-yellow-700">
-									{result.warnings.length} 件の検証エラーがあります
+									{result.warnings.length} validation error{result.warnings.length === 1 ? '' : 's'} found
 								</p>
 								{#each result.warnings.slice(0, 10) as warning, index (warning + index)}
 									<p class="text-xs break-words text-yellow-700">{warning}</p>
 								{/each}
 								{#if result.warnings.length > 10}
-									<p class="text-xs text-yellow-700">他 {result.warnings.length - 10} 件</p>
+									<p class="text-xs text-yellow-700">
+										+{result.warnings.length - 10} more
+									</p>
 								{/if}
 							</div>
 						{/if}

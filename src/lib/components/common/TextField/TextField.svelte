@@ -8,6 +8,7 @@
 		onValueChange,
 		onCommit,
 		description,
+		placeholder,
 		disabled,
 		'aria-label': ariaLabel
 	}: {
@@ -17,6 +18,7 @@
 		onValueChange?: (value: string) => void;
 		onCommit?: (value: string) => void;
 		description?: string;
+		placeholder?: string;
 		disabled?: boolean;
 		'aria-label'?: string;
 	} = $props();
@@ -32,6 +34,7 @@
 		{id}
 		type="text"
 		aria-label={label ? undefined : ariaLabel}
+		{placeholder}
 		{disabled}
 		bind:value
 		oninput={() => onValueChange?.(value)}

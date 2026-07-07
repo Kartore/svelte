@@ -143,12 +143,15 @@
 	};
 
 	const handlePointerUp = () => {
-		if (activeLayer && overRowIndex !== activeRowIndex) {
-			onChangeLayerOrder(
-				resolveLayerDrop(mapStyle.layers, visibleRows, activeLayerIndex, overRowIndex)
-			);
+		try {
+			if (activeLayer && overRowIndex !== activeRowIndex) {
+				// $state の deep proxy は structuredClone できないため snapshot を渡す
+				const layers = $state.snapshot(mapStyle.layers as object) as LayerSpecification[];
+				onChangeLayerOrder(resolveLayerDrop(layers, visibleRows, activeLayerIndex, overRowIndex));
+			}
+		} finally {
+			resetState();
 		}
-		resetState();
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
