@@ -8,6 +8,7 @@
 	import { Button } from '$lib/components/common/Button';
 	import { LayerGroupHeader } from '$lib/components/editor/NavigationPanel/LayerGroupHeader';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
+	import { PlusIcon } from '$lib/components/icons';
 	import { buildLayerTreeRows, getLayerGroup, resolveLayerDrop } from '$lib/utils/layerGroup.ts';
 	import {
 		formatLayerValidationError,
@@ -22,7 +23,15 @@
 		class: className,
 		selectedLayerId,
 		layerErrors,
+		canUndo,
+		canRedo,
+		onClickUndo,
+		onClickRedo,
+		onClickExport,
 		onClickImport,
+		onClickSettings,
+		onClickAddLayer,
+		onClickSources,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
@@ -30,7 +39,15 @@
 		layerErrors?: Record<string, LayerValidationError[]>;
 		onClickLayer: (layer: LayerSpecification) => void;
 		onChangeLayerOrder: (layers: LayerSpecification[]) => void;
+		canUndo?: boolean;
+		canRedo?: boolean;
+		onClickUndo?: () => void;
+		onClickRedo?: () => void;
+		onClickExport?: () => void;
 		onClickImport?: () => void;
+		onClickSettings?: () => void;
+		onClickAddLayer?: () => void;
+		onClickSources?: () => void;
 	} = $props();
 
 	const errorMessages = (layerId: string): string[] | undefined =>
@@ -217,25 +234,84 @@
 <div
 	{...props}
 	class={cn(
-		'pointer-events-auto flex h-auto w-auto flex-col rounded-lg border border-gray-300 bg-white',
+		'pointer-events-auto flex h-auto w-auto flex-col overflow-hidden rounded-lg border border-gray-300/80 bg-white/95 shadow-lg shadow-gray-950/10 backdrop-blur',
 		className
 	)}
 >
-	<div class="flex flex-col gap-2 border-b border-b-gray-300 px-4 py-4">
-		<h1 class="font-[Montserrat] font-bold">Kartore</h1>
-		<div class="flex items-center justify-between gap-2">
-			<h2 class="min-w-0 overflow-hidden font-[Montserrat] font-semibold text-ellipsis">
-				{mapStyle.name}
-			</h2>
-			<Button class="rounded px-2 py-1 text-xs font-semibold text-gray-500" onclick={onClickImport}>
+	<div class="flex flex-col gap-3 border-b border-b-gray-200 px-3 py-3">
+		<div class="flex items-start justify-between gap-3">
+			<div class="min-w-0">
+				<h1 class="font-[Montserrat] text-sm font-bold tracking-normal text-gray-950">Kartore</h1>
+				<p
+					class="mt-0.5 truncate text-xs font-semibold text-gray-500"
+					title={mapStyle.name ?? 'Untitled style'}
+				>
+					{mapStyle.name ?? 'Untitled style'}
+				</p>
+			</div>
+			<div class="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
+				<Button
+					class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
+					aria-label="Undo"
+					title="Undo"
+					disabled={!canUndo}
+					onclick={onClickUndo}
+				>
+					↶
+				</Button>
+				<Button
+					class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
+					aria-label="Redo"
+					title="Redo"
+					disabled={!canRedo}
+					onclick={onClickRedo}
+				>
+					↷
+				</Button>
+			</div>
+		</div>
+		<div class="grid grid-cols-3 gap-1.5">
+			<Button
+				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
+				onclick={onClickExport}
+			>
+				Export
+			</Button>
+			<Button
+				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
+				onclick={onClickImport}
+			>
 				Import
+			</Button>
+			<Button
+				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
+				onclick={onClickSettings}
+			>
+				Settings
 			</Button>
 		</div>
 	</div>
-	<div
-		class="border-b border-b-gray-300 px-4 py-2 font-[Montserrat] text-sm font-medium text-gray-500"
-	>
-		<h2>Layers</h2>
+	<div class="flex items-center justify-between border-b border-b-gray-200 px-3 py-2.5">
+		<div>
+			<h2 class="font-[Montserrat] text-sm font-semibold text-gray-800">Layers</h2>
+			<p class="text-[11px] font-semibold text-gray-400">{mapStyle.layers.length} items</p>
+		</div>
+		<div class="flex items-center gap-1.5">
+			<Button
+				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+				onclick={onClickSources}
+			>
+				Sources
+			</Button>
+			<Button
+				class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-900 text-white shadow-sm hover:bg-gray-700"
+				aria-label="Add layer"
+				title="Add layer"
+				onclick={onClickAddLayer}
+			>
+				<PlusIcon class="h-4 w-4" />
+			</Button>
+		</div>
 	</div>
 	<div class="flex-1 overflow-auto" {@attach setListElement}>
 		{#each visibleRows as row, rowIndex (row.kind === 'group' ? `group-${row.name}-${row.startIndex}` : (mapStyle.layers[row.layerIndex]?.id ?? row.layerIndex))}

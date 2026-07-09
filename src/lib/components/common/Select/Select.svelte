@@ -1,5 +1,18 @@
 <script lang="ts" module>
-	export type SelectItem = { value: string; label: string; disabled?: boolean };
+	export type SelectItemPreview = {
+		src: string;
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		pixelRatio?: number;
+	};
+	export type SelectItem = {
+		value: string;
+		label: string;
+		disabled?: boolean;
+		preview?: SelectItemPreview;
+	};
 	export type SelectSection = { title: string; items: SelectItem[] };
 </script>
 

@@ -31,6 +31,7 @@
 
 	const spriteIdsState = createSpriteIds(() => sprite);
 	const spriteIds = $derived(spriteIdsState.spriteIds);
+	const spriteImages = $derived(spriteIdsState.spriteImages);
 </script>
 
 <div {...props} class={cn('flex flex-col gap-6', className)}>
@@ -52,8 +53,22 @@
 			}}
 		/>
 	</div>
-	<SpecPropertiesSection {layer} groups={['layout']} title="Layout" {spriteIds} {onChange} />
-	<SpecPropertiesSection {layer} groups={['paint']} title="Paint" {spriteIds} {onChange} />
+	<SpecPropertiesSection
+		{layer}
+		groups={['layout']}
+		title="Layout"
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
+	<SpecPropertiesSection
+		{layer}
+		groups={['paint']}
+		title="Paint"
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
 	<RawDataProperties
 		{layer}
 		{onChange}

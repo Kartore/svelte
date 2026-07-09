@@ -2,6 +2,7 @@
 	import type { LayerSpecification, SourceSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 	import { SpecPropertyField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertyField';
+	import type { SpriteImage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import {
 		getLayerProperties,
@@ -16,6 +17,7 @@
 		prefix,
 		exclude = [],
 		spriteIds,
+		spriteImages,
 		sources,
 		onChange
 	}: {
@@ -25,6 +27,7 @@
 		prefix?: string;
 		exclude?: string[];
 		spriteIds?: string[];
+		spriteImages?: SpriteImage[];
 		sources?: { [key: string]: SourceSpecification };
 		onChange?: onChangeType;
 	} = $props();
@@ -55,6 +58,7 @@
 				{entry}
 				labelPrefix={prefix}
 				{spriteIds}
+				{spriteImages}
 				{onChange}
 			/>
 		{/each}

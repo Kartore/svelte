@@ -35,6 +35,7 @@
 
 	const spriteIdsState = createSpriteIds(() => sprite);
 	const spriteIds = $derived(spriteIdsState.spriteIds);
+	const spriteImages = $derived(spriteIdsState.spriteImages);
 </script>
 
 <div {...props} class={cn('flex flex-col gap-6', className)}>
@@ -56,6 +57,7 @@
 		prefix="symbol-"
 		title="Symbol"
 		{spriteIds}
+		{spriteImages}
 		{onChange}
 	/>
 	<SpecPropertiesSection
@@ -65,6 +67,7 @@
 		prefix="icon-"
 		title="Icon"
 		{spriteIds}
+		{spriteImages}
 		{onChange}
 	/>
 	<SpecPropertiesSection
@@ -74,6 +77,7 @@
 		prefix="text-"
 		title="Text"
 		{spriteIds}
+		{spriteImages}
 		{onChange}
 	/>
 	<RawDataProperties

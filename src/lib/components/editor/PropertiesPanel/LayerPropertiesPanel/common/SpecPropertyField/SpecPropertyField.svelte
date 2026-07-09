@@ -14,6 +14,7 @@
 	import { TextField } from '$lib/components/common/TextField';
 	import { ExpressionPropertyField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/ExpressionPropertyField';
 	import { VariableAnchorOffsetField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableAnchorOffsetField';
+	import type { SpriteImage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { parseColor, tryParseColor } from '$lib/utils/color.ts';
@@ -25,6 +26,7 @@
 		entry,
 		labelPrefix,
 		spriteIds,
+		spriteImages,
 		onChange
 	}: {
 		layer: LayerSpecification;
@@ -32,6 +34,7 @@
 		entry: LayerPropertyEntry;
 		labelPrefix?: string;
 		spriteIds?: string[];
+		spriteImages?: SpriteImage[];
 		onChange?: onChangeType;
 	} = $props();
 
@@ -59,6 +62,20 @@
 	const numberArrayLabels = $derived(
 		spec.length === 4 ? ['Top', 'Right', 'Bottom', 'Left'] : ['X', 'Y']
 	);
+	const spriteImageItems = $derived(
+		spriteImages?.map((image) => ({
+			value: image.id,
+			label: image.id,
+			preview: {
+				src: image.src,
+				x: image.x,
+				y: image.y,
+				width: image.width,
+				height: image.height,
+				pixelRatio: image.pixelRatio
+			}
+		})) ?? (spriteIds ?? []).map((spriteId) => ({ value: spriteId, label: spriteId }))
+	);
 
 	// spec の units は長文があるため入力欄内に収まる短縮表記にする
 	const unitLabels: Record<string, string> = {
@@ -74,10 +91,7 @@
 		spec.units === undefined ? undefined : (unitLabels[spec.units] ?? spec.units)
 	);
 
-	const layerZoomRange = $derived<[number, number]>([
-		layer.minzoom ?? 0,
-		layer.maxzoom ?? 24
-	]);
+	const layerZoomRange = $derived<[number, number]>([layer.minzoom ?? 0, layer.maxzoom ?? 24]);
 
 	const isDefault = (value: unknown) => JSON.stringify(value) === JSON.stringify(spec.default);
 	const commit = (value: unknown) => {
@@ -264,7 +278,7 @@
 			<ComboBox
 				{label}
 				allowsCustomValue
-				items={(spriteIds ?? []).map((spriteId) => ({ value: spriteId, label: spriteId }))}
+				items={spriteImageItems}
 				inputValue={typeof rawValue === 'string' ? rawValue : undefined}
 				value={typeof rawValue === 'string' ? rawValue : undefined}
 				onInputChange={(value) => {

@@ -40,12 +40,51 @@
 			: items.filter((item) => item.label.toLowerCase().includes(searchValue.toLowerCase()))
 	);
 	const selectedLabel = $derived(items.find((item) => item.value === value)?.label ?? '');
+	const selectedItem = $derived(items.find((item) => item.value === value));
 
 	// 入力テキストの外部制御値。inputValue prop を優先し、なければ選択項目のラベル。
 	// bits-ui の inputValue は read-only prop（プログラム的な入力欄更新用）で、
 	// ユーザー入力・選択時のラベル反映は bits-ui が内部で処理する。
 	const comboInputValue = $derived(inputValue ?? selectedLabel);
+
+	const previewScale = (item: SelectItem): number => {
+		if (!item.preview) return 1;
+		const ratio = item.preview.pixelRatio ?? 1;
+		const width = item.preview.width / ratio;
+		const height = item.preview.height / ratio;
+		return Math.min(2, 20 / Math.max(width, height, 1));
+	};
+	const previewCropStyle = (item: SelectItem): string => {
+		if (!item.preview) return '';
+		const ratio = item.preview.pixelRatio ?? 1;
+		const scale = previewScale(item);
+		return `width: ${Math.max(1, (item.preview.width / ratio) * scale)}px; height: ${Math.max(1, (item.preview.height / ratio) * scale)}px;`;
+	};
+	const previewImageStyle = (item: SelectItem): string => {
+		if (!item.preview) return '';
+		const ratio = item.preview.pixelRatio ?? 1;
+		const scale = previewScale(item);
+		return `left: ${-(item.preview.x / ratio) * scale}px; top: ${-(item.preview.y / ratio) * scale}px; transform: scale(${scale / ratio});`;
+	};
 </script>
+
+{#snippet preview(item: SelectItem)}
+	<span
+		class="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-gray-200 bg-white"
+		aria-hidden="true"
+	>
+		{#if item.preview}
+			<span class="relative block overflow-hidden" style={previewCropStyle(item)}>
+				<img
+					src={item.preview.src}
+					alt=""
+					class="absolute max-w-none origin-top-left"
+					style={previewImageStyle(item)}
+				/>
+			</span>
+		{/if}
+	</span>
+{/snippet}
 
 <div class={cn('flex items-center justify-between text-sm', className)}>
 	{#if label}
@@ -64,8 +103,11 @@
 		}}
 	>
 		<div
-			class="flex w-1/2 cursor-pointer flex-row rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200"
+			class="flex w-1/2 cursor-pointer flex-row items-center gap-1 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200"
 		>
+			{#if selectedItem?.preview}
+				{@render preview(selectedItem)}
+			{/if}
 			<Combobox.Input
 				aria-label={label ?? ariaLabel}
 				oninput={(event) => {
@@ -99,7 +141,10 @@
 									{:else}
 										<div class="w-4"></div>
 									{/if}
-									{item.label}
+									{#if item.preview}
+										{@render preview(item)}
+									{/if}
+									<span class="min-w-0 truncate">{item.label}</span>
 								</div>
 							{/snippet}
 						</Combobox.Item>
