@@ -53,7 +53,15 @@ export const parseStyleJSON = (text: string): StyleImportResult => {
 		};
 	}
 
-	let warnings = validateStyleMin(style).map((error) => error.message);
+	let warnings: string[];
+	try {
+		warnings = validateStyleMin(style).map((error) => error.message);
+	} catch (error) {
+		return {
+			ok: false,
+			error: `Failed to validate style: ${error instanceof Error ? error.message : String(error)}`
+		};
+	}
 
 	// 旧式フィルタと expression の混在は validator に弾かれるが機械的に等価変換できるため、
 	// 該当レイヤーのフィルタを正規化してから再検証する
@@ -70,7 +78,14 @@ export const parseStyleJSON = (text: string): StyleImportResult => {
 			const layer = style.layers[index] as { filter?: unknown };
 			layer.filter = convertMixedFilter(layer.filter);
 		}
-		warnings = validateStyleMin(style).map((error) => error.message);
+		try {
+			warnings = validateStyleMin(style).map((error) => error.message);
+		} catch (error) {
+			return {
+				ok: false,
+				error: `Failed to validate style: ${error instanceof Error ? error.message : String(error)}`
+			};
+		}
 	}
 
 	return { ok: true, style, warnings };

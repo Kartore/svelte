@@ -5,8 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "wrangler types --check || vite build",
+		"build": "wrangler types --check && vite build",
 		"preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
+		"deploy": "vite build && wrangler deploy",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "wrangler types --check || svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -38,6 +39,8 @@
 	},
 	"dependencies": {
 		"@internationalized/number": "^3.6.7",
+		"@kartore-internal/github-adapter": "0.1.0",
+		"@kartore/file-adapter": "0.1.0",
 		"@maplibre/maplibre-gl-style-spec": "^25.0.1",
 		"@shikijs/monaco": "^4.3.1",
 		"bits-ui": "^2.18.1",

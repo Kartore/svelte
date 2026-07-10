@@ -1,9 +1,19 @@
+packages:
+  - '.'
+
+engineStrict: true
+registries:
+  '@kartore-internal': https://npm.pkg.github.com/
+
 allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
 configDependencies:
   '@pnpm/pacquet': 0.11.12
+minimumReleaseAgeExclude:
+  - '@kartore-internal/github-adapter@0.1.0'
+  - '@kartore/file-adapter@0.1.0'
 onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - workerd

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 	import { onDestroy } from 'svelte';
+	import type { Snippet } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -32,6 +33,7 @@
 		onClickSettings,
 		onClickAddLayer,
 		onClickSources,
+		headerActions,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
@@ -48,6 +50,7 @@
 		onClickSettings?: () => void;
 		onClickAddLayer?: () => void;
 		onClickSources?: () => void;
+		headerActions?: Snippet;
 	} = $props();
 
 	const errorMessages = (layerId: string): string[] | undefined =>
@@ -289,6 +292,9 @@
 			>
 				Settings
 			</Button>
+			<div class="col-span-3 flex min-w-0 flex-wrap items-center gap-1.5 empty:hidden">
+				{@render headerActions?.()}
+			</div>
 		</div>
 	</div>
 	<div class="flex items-center justify-between border-b border-b-gray-200 px-3 py-2.5">

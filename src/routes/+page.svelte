@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
+	import { setContext } from 'svelte';
 
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { AddLayerDialog } from '$lib/components/editor/AddLayerDialog';
@@ -16,6 +17,8 @@
 	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
+	import type { EditorApi, EditorPreview } from '$lib/editor/EditorModule.ts';
+	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
 	import { validateMapStyle } from '$lib/utils/styleValidation.ts';
@@ -33,25 +36,45 @@
 	let settingsDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
+	let previewState = $state<EditorPreview | null>(null);
+	const effectiveStyle = $derived(previewState?.style ?? store.mapStyle);
 	const selectedLayer = $derived(
-		store.mapStyle.layers.find((layer) => layer.id === selectedLayerId) ?? store.mapStyle.layers[0]
+		effectiveStyle.layers.find((layer) => layer.id === selectedLayerId) ?? effectiveStyle.layers[0]
 	);
 	const effectiveSelectedLayerId = $derived(selectedLayer?.id ?? null);
 
 	// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
 	const validation = $derived(
-		validateMapStyle($state.snapshot(store.mapStyle as object) as StyleSpecification)
+		validateMapStyle($state.snapshot(effectiveStyle as object) as StyleSpecification)
 	);
 
+	const editorApi: EditorApi = {
+		getStyle: () => store.mapStyle,
+		setStyle: (style) => store.setMapStyle(style),
+		setPreview: (preview) => (previewState = preview),
+		getPreview: () => previewState
+	};
+	for (const module of adapterModules) {
+		setContext(`module:${module.id}`, module.setup?.(editorApi));
+	}
+
 	const handleChangeLayerOrder = (layers: LayerSpecification[]) => {
+		if (previewState) return;
 		store.setMapStyle((currentStyle) => ({ ...currentStyle, layers }));
 	};
 
 	const handleChangeLayerData: onChangeType = (layer, group, key, value) => {
+		if (previewState) return;
 		store.setMapStyle((currentStyle) => replaceLayerData(currentStyle, layer, group, key, value));
 	};
 
 	const handleImport = (style: StyleSpecification) => {
+		if (previewState) return;
+		store.setMapStyle(style);
+	};
+
+	const handleApplyStyle = (style: StyleSpecification) => {
+		if (previewState) return;
 		store.setMapStyle(style);
 	};
 
@@ -79,6 +102,7 @@
 	};
 
 	const handleAddLayer = (layer: LayerSpecification) => {
+		if (previewState) return;
 		store.setMapStyle((currentStyle) => ({
 			...currentStyle,
 			layers: [...currentStyle.layers, layer]
@@ -87,6 +111,7 @@
 	};
 
 	const handleDuplicateLayer = () => {
+		if (previewState) return;
 		store.setMapStyle((currentStyle) => {
 			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayer.id);
 			if (index === -1) return currentStyle;
@@ -100,6 +125,7 @@
 	};
 
 	const handleDeleteLayer = () => {
+		if (previewState) return;
 		if (store.mapStyle.layers.length <= 1) return;
 		store.setMapStyle((currentStyle) => {
 			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayer.id);
@@ -163,16 +189,30 @@
 	</div>
 {:else}
 	<div class="relative flex max-h-screen min-h-screen w-full flex-row overflow-hidden">
-		<MapPanel mapStyle={store.mapStyle} onClickLayer={handleSelectLayer} />
+		<MapPanel mapStyle={effectiveStyle} onClickLayer={handleSelectLayer} />
+		{#if previewState}
+			<div
+				class="pointer-events-auto absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-900 shadow-lg shadow-gray-950/10"
+			>
+				<span>Previewing {previewState.label}. Editing is disabled.</span>
+				<button
+					type="button"
+					class="cursor-pointer rounded px-2 py-1 text-blue-700 transition-colors hover:bg-blue-100"
+					onclick={() => (previewState = null)}
+				>
+					Exit preview
+				</button>
+			</div>
+		{/if}
 		<div class="pointer-events-none absolute inset-3 flex gap-3">
 			<NavigationPanel
 				class="w-[20rem] min-w-[18rem] max-w-[22rem]"
-				mapStyle={store.mapStyle}
+				mapStyle={effectiveStyle}
 				layerErrors={validation.layerErrors}
 				onChangeLayerOrder={handleChangeLayerOrder}
 				selectedLayerId={effectiveSelectedLayerId}
-				canUndo={store.canUndo}
-				canRedo={store.canRedo}
+				canUndo={!previewState && store.canUndo}
+				canRedo={!previewState && store.canRedo}
 				onClickUndo={() => store.undo()}
 				onClickRedo={() => store.redo()}
 				onClickExport={handleExport}
@@ -181,7 +221,16 @@
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
 				onClickLayer={handleSelectLayer}
-			/>
+			>
+				{#snippet headerActions()}
+					{#each adapterModules as module (module.id)}
+						{#if module.headerAction}
+							{@const HeaderAction = module.headerAction}
+							<HeaderAction />
+						{/if}
+					{/each}
+				{/snippet}
+			</NavigationPanel>
 
 			<ControlPanel class="flex-1" />
 
@@ -199,14 +248,14 @@
 			{#key selectedLayer.id}
 				<PropertiesPanel
 					class="w-[min(42rem,42vw)] min-w-[25rem]"
-					sprite={store.mapStyle.sprite}
+					sprite={effectiveStyle.sprite}
 					layer={selectedLayer}
-					sources={store.mapStyle.sources}
+					sources={effectiveStyle.sources}
 					errors={validation.layerErrors[selectedLayer.id]}
 					onChange={handleChangeLayerData}
 					onDuplicateLayer={handleDuplicateLayer}
 					onDeleteLayer={handleDeleteLayer}
-					canDeleteLayer={store.mapStyle.layers.length > 1}
+					canDeleteLayer={!previewState && effectiveStyle.layers.length > 1}
 				/>
 			{/key}
 		</div>
@@ -214,23 +263,28 @@
 		{#if settingsDialogOpen}
 			<StyleSettingsDialog
 				bind:open={settingsDialogOpen}
-				mapStyle={store.mapStyle}
-				onApply={(next) => store.setMapStyle(next)}
+				mapStyle={effectiveStyle}
+				onApply={handleApplyStyle}
 			/>
 		{/if}
 		{#if addLayerDialogOpen}
 			<AddLayerDialog
 				bind:open={addLayerDialogOpen}
-				mapStyle={store.mapStyle}
+				mapStyle={effectiveStyle}
 				onAdd={handleAddLayer}
 			/>
 		{/if}
 		{#if sourcesDialogOpen}
 			<SourcesDialog
 				bind:open={sourcesDialogOpen}
-				mapStyle={store.mapStyle}
-				onApply={(next) => store.setMapStyle(next)}
+				mapStyle={effectiveStyle}
+				onApply={handleApplyStyle}
 			/>
 		{/if}
+		{#each adapterModules as module (module.id)}
+			{#each module.overlays ?? [] as Overlay, index (`${module.id}-${index}`)}
+				<Overlay />
+			{/each}
+		{/each}
 	</div>
 {/if}

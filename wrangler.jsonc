@@ -8,6 +8,23 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
+	"kv_namespaces": [
+		{
+			"binding": "KARTORE_KV",
+			"id": "5716643b00b142f0b0084978e2524cf9"
+		}
+	],
 	"workers_dev": true,
-	"preview_urls": true
+	"preview_urls": true,
+	"routes": [
+		{
+			"pattern": "app.kartore.io",
+			"custom_domain": true,
+			"enabled": true,
+			"previews_enabled": false
+		}
+	],
+	"vars": {
+		"PUBLIC_ORIGIN": "https://app.kartore.io"
+	}
 }

@@ -1,2 +1,5 @@
 [mcp_servers.svelte]
 url = "https://mcp.svelte.dev/mcp"
+
+[sandbox_workspace_write]
+writable_roots = ["../file-adapter", "../github-adapter"]

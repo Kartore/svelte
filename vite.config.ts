@@ -1,12 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
+import { fileAdapter } from '@kartore/file-adapter/vite';
+import { githubAdapter } from '@kartore-internal/github-adapter/vite';
 import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
+import { kartore } from './vite-plugin-kartore.ts';
+
 export default defineConfig({
-	// PORT はプレビュー/CI 環境が割り当てるポート。未設定時は vite のデフォルトを使う
-	server: process.env.PORT ? { port: Number(process.env.PORT) } : undefined,
 	plugins: [
+		kartore({
+			adapters: [fileAdapter(), githubAdapter()]
+		}),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
