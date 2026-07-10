@@ -87,7 +87,9 @@ const registryPlugin = (adapters: KartoreAdapterVitePlugin[]): Plugin => {
 	];
 	const clientIds = apis.map(({ clientModule }) => clientModule);
 	const serverIds = apis.flatMap(({ serverModule }) => (serverModule ? [serverModule] : []));
-	const svelteDependencies = [...new Set(apis.flatMap((api) => api.svelteDependencies ?? []))];
+	const svelteDependencies = [
+		...new Set([...clientIds, ...apis.flatMap((api) => api.svelteDependencies ?? [])])
+	];
 	const registeredIds = new Set(clientIds);
 	const resolvedIds = new Map([
 		[clientVirtualModuleId, '\0' + clientVirtualModuleId],
@@ -98,7 +100,7 @@ const registryPlugin = (adapters: KartoreAdapterVitePlugin[]): Plugin => {
 		name: 'kartore-adapter-registry',
 		config() {
 			if (svelteDependencies.length === 0) return;
-			// アダプタの Svelte 系依存はソースのままホスト側でコンパイルする
+			// アダプタ本体と Svelte 系依存はソースのままホスト側でコンパイルする
 			return {
 				optimizeDeps: { exclude: svelteDependencies },
 				ssr: { noExternal: svelteDependencies }
