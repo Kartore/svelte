@@ -47,12 +47,15 @@
 	// ユーザー入力・選択時のラベル反映は bits-ui が内部で処理する。
 	const comboInputValue = $derived(inputValue ?? selectedLabel);
 
+	// 外枠 (h-5 w-5 = 20px) から border 1px ×2 を引いた内容領域に収める。
+	// これを超えると flex に押し潰されてスプライトの端が欠ける。
+	const PREVIEW_BOX_SIZE = 18;
 	const previewScale = (item: SelectItem): number => {
 		if (!item.preview) return 1;
 		const ratio = item.preview.pixelRatio ?? 1;
 		const width = item.preview.width / ratio;
 		const height = item.preview.height / ratio;
-		return Math.min(2, 20 / Math.max(width, height, 1));
+		return Math.min(2, PREVIEW_BOX_SIZE / Math.max(width, height, 1));
 	};
 	const previewCropStyle = (item: SelectItem): string => {
 		if (!item.preview) return '';
@@ -74,7 +77,7 @@
 		aria-hidden="true"
 	>
 		{#if item.preview}
-			<span class="relative block overflow-hidden" style={previewCropStyle(item)}>
+			<span class="relative block shrink-0 overflow-hidden" style={previewCropStyle(item)}>
 				<img
 					src={item.preview.src}
 					alt=""

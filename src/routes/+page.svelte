@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
-	import { setContext } from 'svelte';
+	import { onDestroy, setContext } from 'svelte';
 
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { AddLayerDialog } from '$lib/components/editor/AddLayerDialog';
@@ -182,13 +182,22 @@
 		void effectiveSelectedLayerId;
 		expressionFlyout.target = null;
 	});
+
+	// 保存は 500ms デバウンスされるため、SPA 遷移によるアンマウント時に
+	// 未保存の編集が落ちないよう flush する
+	onDestroy(() => store.flushSave());
 </script>
 
 <svelte:head>
 	<title>Kartore</title>
 </svelte:head>
 
-<svelte:window onkeydown={handleKeyDown} onbeforeunload={() => store.flushSave()} />
+<!-- pagehide: モバイル Safari 等では beforeunload が発火しないため両方で flush する -->
+<svelte:window
+	onkeydown={handleKeyDown}
+	onbeforeunload={() => store.flushSave()}
+	onpagehide={() => store.flushSave()}
+/>
 
 {#if store.isLoading}
 	<div class="flex min-h-screen items-center justify-center text-sm text-gray-600">
