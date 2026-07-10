@@ -18,6 +18,7 @@ export class MapStyleStore {
 	#past = $state<StyleSpecification[]>([]);
 	#future = $state<StyleSpecification[]>([]);
 	#lastPushAt = 0;
+	#saveTimer: ReturnType<typeof setTimeout> | null = null;
 
 	mapStyle = $state() as StyleSpecification;
 	isLoading = $state(true);
@@ -53,18 +54,18 @@ export class MapStyleStore {
 	setMapStyle = (value: SetMapStyleAction) => {
 		// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
 		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
-		const historyEntry = structuredClone(currentStyle);
-		const nextStyle = typeof value === 'function' ? value(currentStyle) : value;
 
 		const now = performance.now();
 		if (now - this.#lastPushAt > COALESCE_MS) {
-			this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), historyEntry];
+			// updater は currentStyle を破壊的に変更できるため、実行前に履歴を clone する
+			this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), structuredClone(currentStyle)];
 		}
 		this.#lastPushAt = now;
 		this.#future = [];
 
+		const nextStyle = typeof value === 'function' ? value(currentStyle) : value;
 		this.mapStyle = nextStyle;
-		void this.#save($state.snapshot(this.mapStyle as object) as StyleSpecification);
+		this.#scheduleSave();
 	};
 
 	undo = () => {
@@ -75,7 +76,7 @@ export class MapStyleStore {
 		this.#future = [...this.#future, currentStyle];
 		this.#lastPushAt = 0;
 		this.mapStyle = previous;
-		void this.#save($state.snapshot(this.mapStyle as object) as StyleSpecification);
+		this.#scheduleSave();
 	};
 
 	redo = () => {
@@ -86,6 +87,21 @@ export class MapStyleStore {
 		this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), currentStyle];
 		this.#lastPushAt = 0;
 		this.mapStyle = next;
+		this.#scheduleSave();
+	};
+
+	#scheduleSave() {
+		if (this.#saveTimer !== null) clearTimeout(this.#saveTimer);
+		this.#saveTimer = setTimeout(() => {
+			this.#saveTimer = null;
+			void this.#save($state.snapshot(this.mapStyle as object) as StyleSpecification);
+		}, COALESCE_MS);
+	}
+
+	flushSave = () => {
+		if (this.#saveTimer === null) return;
+		clearTimeout(this.#saveTimer);
+		this.#saveTimer = null;
 		void this.#save($state.snapshot(this.mapStyle as object) as StyleSpecification);
 	};
 

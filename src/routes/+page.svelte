@@ -21,7 +21,7 @@
 	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
-	import { validateMapStyle } from '$lib/utils/styleValidation.ts';
+	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
 		adapter: localStorageMapStyleStoreAdapter,
@@ -43,10 +43,17 @@
 	);
 	const effectiveSelectedLayerId = $derived(selectedLayer?.id ?? null);
 
-	// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
-	const validation = $derived(
-		validateMapStyle($state.snapshot(effectiveStyle as object) as StyleSpecification)
-	);
+	let validation = $state<StyleValidationResult>({ layerErrors: {}, styleErrors: [] });
+	$effect(() => {
+		void effectiveStyle;
+		const timer = setTimeout(() => {
+			// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
+			validation = validateMapStyle(
+				$state.snapshot(effectiveStyle as object) as StyleSpecification
+			);
+		}, 200);
+		return () => clearTimeout(timer);
+	});
 
 	const editorApi: EditorApi = {
 		getStyle: () => store.mapStyle,
@@ -181,7 +188,7 @@
 	<title>Kartore</title>
 </svelte:head>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} onbeforeunload={() => store.flushSave()} />
 
 {#if store.isLoading}
 	<div class="flex min-h-screen items-center justify-center text-sm text-gray-600">
