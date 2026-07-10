@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	import {
 		clamp,
 		normalizeColor,
@@ -43,21 +45,55 @@
 	const DEFAULT_COLOR = parseColor('hsl(0, 100%, 50%)');
 
 	let internalValue = $state<Color | undefined>(undefined);
+	let isDragging = $state(false);
 
 	const color = $derived.by(() => {
 		const v =
-			value != null
-				? normalizeColor(value)
-				: (internalValue ?? (defaultValue ? normalizeColor(defaultValue) : DEFAULT_COLOR));
+			isDragging && internalValue
+				? internalValue
+				: value != null
+					? normalizeColor(value)
+					: (internalValue ?? (defaultValue ? normalizeColor(defaultValue) : DEFAULT_COLOR));
 		return colorSpace ? v.toFormat(colorSpace) : v;
 	});
 
 	let lastColor: Color | null = null;
+	let pendingChange: Color | null = null;
+	let changeFrame: number | null = null;
+
+	const flushChange = () => {
+		if (changeFrame !== null) {
+			cancelAnimationFrame(changeFrame);
+			changeFrame = null;
+		}
+		const nextColor = pendingChange;
+		pendingChange = null;
+		if (nextColor) onChange?.(nextColor);
+	};
+
+	const emitChange = (newColor: Color) => {
+		if (!isDragging) {
+			onChange?.(newColor);
+			return;
+		}
+		pendingChange = newColor;
+		if (changeFrame !== null) return;
+		changeFrame = requestAnimationFrame(() => {
+			changeFrame = null;
+			const nextColor = pendingChange;
+			pendingChange = null;
+			if (nextColor) onChange?.(nextColor);
+		});
+	};
+
+	onDestroy(() => {
+		if (changeFrame !== null) cancelAnimationFrame(changeFrame);
+	});
 
 	const setColor = (newColor: Color) => {
 		lastColor = newColor;
 		internalValue = newColor;
-		onChange?.(newColor);
+		emitChange(newColor);
 	};
 
 	const range = $derived(color.getChannelRange(channel));
@@ -126,7 +162,6 @@
 
 	let trackEl: HTMLDivElement | null = $state(null);
 	let inputEl: HTMLInputElement | null = $state(null);
-	let isDragging = $state(false);
 
 	const setValueFromPointerEvent = (e: PointerEvent) => {
 		if (!trackEl) {
@@ -152,6 +187,8 @@
 		}
 		e.preventDefault();
 		trackEl?.setPointerCapture(e.pointerId);
+		internalValue = color;
+		lastColor = color;
 		isDragging = true;
 		setValueFromPointerEvent(e);
 		inputEl?.focus({ preventScroll: true });
@@ -168,6 +205,7 @@
 		if (!isDragging) {
 			return;
 		}
+		flushChange();
 		isDragging = false;
 		if (trackEl?.hasPointerCapture(e.pointerId)) {
 			trackEl.releasePointerCapture(e.pointerId);

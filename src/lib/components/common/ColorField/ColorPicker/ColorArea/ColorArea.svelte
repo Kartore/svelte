@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	import {
 		clamp,
 		normalizeColor,
@@ -45,23 +47,57 @@
 	const DEFAULT_COLOR = parseColor('#ffffff');
 
 	let internalValue = $state<Color | undefined>(undefined);
+	let isDragging = $state(false);
 
 	const color = $derived.by(() => {
 		const v =
-			value != null
-				? normalizeColor(value)
-				: (internalValue ?? (defaultValue ? normalizeColor(defaultValue) : DEFAULT_COLOR));
+			isDragging && internalValue
+				? internalValue
+				: value != null
+					? normalizeColor(value)
+					: (internalValue ?? (defaultValue ? normalizeColor(defaultValue) : DEFAULT_COLOR));
 		return colorSpace ? v.toFormat(colorSpace) : v;
 	});
 
 	// Keeps track of the latest color for onChangeEnd, since `color` is derived
 	// from the controlled `value` prop and may not have updated yet.
 	let lastColor: Color | null = null;
+	let pendingChange: Color | null = null;
+	let changeFrame: number | null = null;
+
+	const flushChange = () => {
+		if (changeFrame !== null) {
+			cancelAnimationFrame(changeFrame);
+			changeFrame = null;
+		}
+		const nextColor = pendingChange;
+		pendingChange = null;
+		if (nextColor) onChange?.(nextColor);
+	};
+
+	const emitChange = (newColor: Color) => {
+		if (!isDragging) {
+			onChange?.(newColor);
+			return;
+		}
+		pendingChange = newColor;
+		if (changeFrame !== null) return;
+		changeFrame = requestAnimationFrame(() => {
+			changeFrame = null;
+			const nextColor = pendingChange;
+			pendingChange = null;
+			if (nextColor) onChange?.(nextColor);
+		});
+	};
+
+	onDestroy(() => {
+		if (changeFrame !== null) cancelAnimationFrame(changeFrame);
+	});
 
 	const setColor = (newColor: Color) => {
 		lastColor = newColor;
 		internalValue = newColor;
-		onChange?.(newColor);
+		emitChange(newColor);
 	};
 
 	const channels = $derived(color.getColorSpaceAxes({ xChannel, yChannel }));
@@ -215,7 +251,6 @@
 	let xInputEl: HTMLInputElement | null = $state(null);
 	let yInputEl: HTMLInputElement | null = $state(null);
 
-	let isDragging = $state(false);
 	let focusedInput = $state<'x' | 'y' | null>(null);
 
 	const focusInput = (input: 'x' | 'y' = 'x') => {
@@ -242,6 +277,8 @@
 		}
 		e.preventDefault();
 		containerEl?.setPointerCapture(e.pointerId);
+		internalValue = color;
+		lastColor = color;
 		isDragging = true;
 		setColorFromPointerEvent(e);
 		focusInput();
@@ -258,6 +295,7 @@
 		if (!isDragging) {
 			return;
 		}
+		flushChange();
 		isDragging = false;
 		if (containerEl?.hasPointerCapture(e.pointerId)) {
 			containerEl.releasePointerCapture(e.pointerId);
