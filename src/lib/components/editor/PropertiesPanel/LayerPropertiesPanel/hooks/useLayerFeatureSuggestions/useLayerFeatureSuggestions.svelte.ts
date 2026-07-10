@@ -25,8 +25,13 @@ export const createLayerFeatureSuggestions = (
 	getLayer: () => Exclude<LayerSpecification, BackgroundLayerSpecification>
 ) => {
 	const backgroundMap = useBackgroundMap();
+	const sourceId = $derived(getLayer().source);
+	const sourceLayerId = $derived.by(() => {
+		const layer = getLayer();
+		return 'source-layer' in layer ? layer['source-layer'] : undefined;
+	});
 	const sourceLayersState = createSourceLayers(() => {
-		const source = getSources()[getLayer().source];
+		const source = getSources()[sourceId];
 		return source?.type === 'vector' ? source : undefined;
 	});
 
@@ -47,11 +52,9 @@ export const createLayerFeatureSuggestions = (
 
 	const suggestions: ExpressionSuggestions = $derived.by(() => {
 		void featuresVersion;
-		const layer = getLayer();
 		const sourceLayers = sourceLayersState.sourceLayers;
 		const map = backgroundMap.map;
 
-		const sourceLayerId = 'source-layer' in layer ? layer['source-layer'] : undefined;
 		const fields =
 			sourceLayers?.find((sourceLayer) => sourceLayer.id === sourceLayerId)?.fields ?? {};
 
@@ -59,7 +62,7 @@ export const createLayerFeatureSuggestions = (
 		const valuesByKey = new Map<string, Set<ExpressionSuggestionValue>>();
 		try {
 			const features =
-				map?.querySourceFeatures(layer.source, {
+				map?.querySourceFeatures(sourceId, {
 					sourceLayer: sourceLayerId
 				}) ?? [];
 			for (const feature of features.slice(0, MAX_FEATURES)) {
