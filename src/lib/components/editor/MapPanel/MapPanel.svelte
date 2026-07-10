@@ -42,10 +42,20 @@
 		candidates: LayerPickCandidate[];
 	} | null>(null);
 
-	// mapStyle is a deep $state proxy; take a snapshot so any deep edit
-	// produces a new object and is reactively applied to the map.
-	// (StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する)
-	const style = $derived($state.snapshot(mapStyle as object) as StyleSpecification);
+	// mapStyle は編集のたびルート参照が差し替わる。フレームに 1 回だけ snapshot し、
+	// raw state として MapLibre に渡して大きなスタイルの再 proxy 化を避ける。
+	// 初期描画用の値であり、以後の更新は下の effect で反映する。
+	// svelte-ignore state_referenced_locally
+	let style = $state.raw<StyleSpecification>(
+		$state.snapshot(mapStyle as object) as StyleSpecification
+	);
+	$effect(() => {
+		void mapStyle;
+		const id = requestAnimationFrame(() => {
+			style = $state.snapshot(mapStyle as object) as StyleSpecification;
+		});
+		return () => cancelAnimationFrame(id);
+	});
 
 	const resolveFeatureLayers = (features: MapGeoJSONFeature[]): LayerPickCandidate[] => {
 		const candidates: LayerPickCandidate[] = [];
