@@ -1,4 +1,5 @@
 import type { VectorSourceSpecification } from '@maplibre/maplibre-gl-style-spec';
+import { createQuery } from '@tanstack/svelte-query';
 
 type SourceVectorLayer = {
 	id: string;
@@ -11,34 +12,20 @@ type SourceVectorLayer = {
 };
 
 export const createSourceLayers = (getSource: () => VectorSourceSpecification | undefined) => {
-	let data = $state<SourceVectorLayer[] | undefined>(undefined);
-
-	$effect(() => {
-		const url = getSource()?.url;
-		data = undefined;
-		if (!url) return;
-		let cancelled = false;
-		void (async () => {
-			try {
-				const response = await fetch(url);
-				const json = (await response.json()) as { vector_layers?: SourceVectorLayer[] };
-				if (cancelled) return;
-				if (!Object.prototype.hasOwnProperty.call(json, 'vector_layers')) {
-					return;
-				}
-				data = json.vector_layers;
-			} catch {
-				// fetch/parse failure — keep data undefined
-			}
-		})();
-		return () => {
-			cancelled = true;
-		};
-	});
+	const url = $derived(getSource()?.url);
+	const query = createQuery(() => ({
+		queryKey: ['tilejson', url],
+		enabled: !!url,
+		queryFn: async () => {
+			const response = await fetch(url!);
+			const json = (await response.json()) as { vector_layers?: SourceVectorLayer[] };
+			return json.vector_layers ?? null;
+		}
+	}));
 
 	return {
 		get sourceLayers(): SourceVectorLayer[] | undefined {
-			return data;
+			return query.data ?? undefined;
 		}
 	};
 };

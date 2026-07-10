@@ -1,4 +1,5 @@
 import type { SpriteSpecification } from '@maplibre/maplibre-gl-style-spec';
+import { createQuery } from '@tanstack/svelte-query';
 
 export type SpriteImage = {
 	id: string;
@@ -69,31 +70,29 @@ const fetchSpriteImages = async (url: SpriteSpecification | undefined): Promise<
 };
 
 export const createSpriteIds = (getSprite: () => SpriteSpecification | undefined) => {
-	let data = $state<SpriteImage[] | undefined>(undefined);
-
-	$effect(() => {
-		const url = getSprite();
-		data = undefined;
-		let cancelled = false;
-		void (async () => {
-			try {
-				const images = await fetchSpriteImages(url);
-				if (!cancelled) data = images;
-			} catch {
-				// fetch/parse failure — keep data undefined
-			}
-		})();
-		return () => {
-			cancelled = true;
-		};
+	const spriteKey = $derived.by(() => {
+		const sprite = getSprite();
+		if (!sprite) return [];
+		return typeof sprite === 'string'
+			? [{ id: 'default', url: sprite }]
+			: sprite.map(({ id, url }) => ({ id, url }));
 	});
+	const query = createQuery(() => ({
+		queryKey: ['sprite', spriteKey],
+		queryFn: () => {
+			const sprite = getSprite();
+			return fetchSpriteImages(
+				sprite == null ? undefined : ($state.snapshot(sprite as object) as SpriteSpecification)
+			);
+		}
+	}));
 
 	return {
 		get spriteIds(): string[] | undefined {
-			return data?.map((image) => image.id);
+			return query.data?.map((image) => image.id);
 		},
 		get spriteImages(): SpriteImage[] | undefined {
-			return data;
+			return query.data;
 		}
 	};
 };
