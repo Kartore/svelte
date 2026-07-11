@@ -3,6 +3,7 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { ErrorIcon, LayerIcon } from '$lib/components/icons';
+	import { resolveLayerSwatchColor } from '$lib/utils/layerSwatch.ts';
 	import { cn } from '$lib/utils/tailwindUtil';
 
 	let {
@@ -26,6 +27,9 @@
 		isSelected?: boolean;
 		errors?: string[];
 	} = $props();
+
+	const swatchColor = $derived(resolveLayerSwatchColor(layer));
+	const dragCursorClass = $derived(dragDisabled ? 'cursor-default' : 'cursor-grab');
 </script>
 
 <div
@@ -40,10 +44,18 @@
 		className
 	)}
 >
-	<LayerIcon
-		type={layer.type}
-		class={cn('h-3 w-3 min-w-3', dragDisabled ? 'cursor-default' : 'cursor-grab')}
-	/>
+	{#if swatchColor}
+		<span
+			class={cn(
+				'size-[11px] min-w-[11px] rounded-[2px] border-[0.5px] border-black/25',
+				dragCursorClass
+			)}
+			style:background={swatchColor}
+			title={swatchColor}
+		></span>
+	{:else}
+		<LayerIcon type={layer.type} class={cn('h-3 w-3 min-w-3', dragCursorClass)} />
+	{/if}
 	<p class="flex-1 overflow-hidden text-ellipsis">{layer.id}</p>
 	{#if errors && errors.length > 0}
 		<span class="flex items-center" title={errors.join('\n')}>
