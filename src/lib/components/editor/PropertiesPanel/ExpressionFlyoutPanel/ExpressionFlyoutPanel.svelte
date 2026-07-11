@@ -65,7 +65,9 @@
 	>
 		<div class="flex min-w-0 flex-col">
 			<h3 class="font-montserrat truncate text-sm font-semibold">{target.label}</h3>
-			<span class="truncate font-mono text-xs text-gray-400">{target.key}</span>
+			<span class="truncate font-mono text-xs text-gray-400" title={`${layer.id} · ${target.key}`}>
+				{layer.id} · {target.key}
+			</span>
 		</div>
 		<Button
 			aria-label="Close expression editor"
