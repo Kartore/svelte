@@ -12,7 +12,7 @@
 	import { ExpressionInputTypeInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import {
-		removeArgsAt,
+		removeArgsOrCollapse,
 		replaceArgAt
 	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
@@ -56,12 +56,13 @@
 		/>
 		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">=</div>
 		<ExpressionArgInputField parentValue={expression} index={nameIndex + 1} {onChange} />
-		{#if onChange && bindingCount > 1}
+		{#if onChange}
 			<Button
 				aria-label="Remove binding"
 				title="Remove binding"
 				class="rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
-				onclick={() => onChange(removeArgsAt(expression, nameIndex, 2))}
+				onclick={() =>
+					onChange(removeArgsOrCollapse(expression, nameIndex, 2, expression[resultIndex]))}
 			>
 				×
 			</Button>

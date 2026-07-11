@@ -6,7 +6,7 @@
 	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
 	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { removeArgsAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -29,7 +29,6 @@
 
 	const expression = $derived(value as ExpressionSpecification);
 	const argCount = $derived(value.length - 1);
-	const canRemove = $derived(argCount > 2);
 </script>
 
 <div
@@ -44,8 +43,9 @@
 			parentValue={expression}
 			{index}
 			{onChange}
-			onRemove={canRemove && onChange
-				? () => onChange?.(removeArgsAt(expression, index, 1))
+			onRemove={onChange
+				? () =>
+						onChange?.(removeArgsOrCollapse(expression, index, 1, expression[index === 1 ? 2 : 1]))
 				: undefined}
 		/>
 		{#if index < argCount}

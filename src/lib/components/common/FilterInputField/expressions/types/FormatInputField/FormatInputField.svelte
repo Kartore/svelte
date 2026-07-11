@@ -9,6 +9,7 @@
 	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
 	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -58,7 +59,23 @@
 				format option: {JSON.stringify(arg)}
 			</div>
 		{:else}
-			<ExpressionArgInputField parentValue={expression} index={index + 1} {onChange} />
+			<ExpressionArgInputField
+				parentValue={expression}
+				index={index + 1}
+				{onChange}
+				onRemove={onChange
+					? () =>
+							onChange(
+								removeArgsOrCollapse(
+									expression,
+									index + 1,
+									isStyleOptionsObject(values[index + 1]) ? 2 : 1,
+									''
+								)
+							)
+					: undefined}
+				removeLabel="Remove format section"
+			/>
 		{/if}
 	{/each}
 	<ExpressionAppendArgButton value={expression} {onChange} />

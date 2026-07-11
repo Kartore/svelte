@@ -46,6 +46,7 @@
 				{index}
 				{onChange}
 				onRemove={onChange ? () => onChange(removeArgsAt(expression, index, 1)) : undefined}
+				removeLabel="Remove condition"
 			/>
 		{/each}
 	</div>

@@ -9,7 +9,7 @@
 	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
 	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { removeArgsAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -67,9 +67,13 @@
 					parentValue={expression}
 					index={1 + pair * 2 + 1}
 					{onChange}
-					onRemove={onChange && pairCount > 1
-						? () => onChange(removeArgsAt(expression, 1 + pair * 2, 2))
+					onRemove={onChange
+						? () =>
+								onChange(
+									removeArgsOrCollapse(expression, 1 + pair * 2, 2, expression[fallbackIndex])
+								)
 						: undefined}
+					removeLabel="Remove condition case"
 				/>
 			</div>
 		{/each}

@@ -21,7 +21,7 @@
 	import InterpolationsInputField from '$lib/components/common/FilterInputField/expressions/curves/interpolations/InterpolationsInputField.svelte';
 	import { curveHasColorOutputs } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 	import {
-		removeArgsAt,
+		removeArgsOrCollapse,
 		replaceArgAt
 	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
@@ -52,7 +52,6 @@
 		}
 		return indexes;
 	});
-	const canRemoveStop = $derived(stopStartIndexes.length > 1);
 	const outputLiteralType = $derived(
 		expression[0] === 'interpolate-hcl' ||
 			expression[0] === 'interpolate-lab' ||
@@ -64,7 +63,15 @@
 		if (!onChange) return;
 		if (selectedStopIndex === stopIndex) selectedStopIndex = null;
 		else if (selectedStopIndex !== null && selectedStopIndex > stopIndex) selectedStopIndex -= 1;
-		onChange(removeArgsAt(expression, stopStartIndex, 2));
+		onChange(
+			removeArgsOrCollapse(
+				expression,
+				stopStartIndex,
+				2,
+				isStep ? expression[2] : expression[stopStartIndex + 1],
+				isStep ? 4 : undefined
+			)
+		);
 	};
 </script>
 
@@ -146,9 +153,8 @@
 						index={stopStartIndex + 1}
 						{onChange}
 						literalType={outputLiteralType}
-						onRemove={onChange && canRemoveStop
-							? () => removeStop(stopStartIndex, stopIndex)
-							: undefined}
+						onRemove={onChange ? () => removeStop(stopStartIndex, stopIndex) : undefined}
+						removeLabel="Remove stop"
 					/>
 				{/if}
 			</div>

@@ -10,7 +10,7 @@
 	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { removeArgsAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { getGetExpressionKey } from '$lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
@@ -90,9 +90,13 @@
 					parentValue={expression}
 					index={2 + pair * 2 + 1}
 					{onChange}
-					onRemove={onChange && pairCount > 1
-						? () => onChange(removeArgsAt(expression, 2 + pair * 2, 2))
+					onRemove={onChange
+						? () =>
+								onChange(
+									removeArgsOrCollapse(expression, 2 + pair * 2, 2, expression[fallbackIndex])
+								)
 						: undefined}
+					removeLabel="Remove match case"
 				/>
 			</div>
 		{/each}

@@ -16,6 +16,8 @@
 		onChange?: (value: ExpressionSpecification) => void;
 		/** renders an inline remove button when provided */
 		onRemove?: () => void;
+		/** accessible label for the inline remove button */
+		removeLabel?: string;
 		/** hides the literal → expression conversion button */
 		disableConvert?: boolean;
 		/** offers completion candidates from the layer's source data */
@@ -44,6 +46,7 @@
 		index,
 		onChange,
 		onRemove,
+		removeLabel = 'Remove argument',
 		disableConvert,
 		suggestion,
 		literalType,
@@ -88,9 +91,9 @@
 	{/if}
 	{#if onRemove && onChange}
 		<Button
-			aria-label="Remove argument"
-			title="Remove argument"
-			class="rounded px-1 py-0.5 text-xs text-gray-400 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:text-red-500 focus-visible:opacity-100"
+			aria-label={removeLabel}
+			title={removeLabel}
+			class="shrink-0 rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
 			onclick={onRemove}
 		>
 			×

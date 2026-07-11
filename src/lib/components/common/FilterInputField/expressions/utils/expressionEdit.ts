@@ -1,6 +1,7 @@
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 import { getExpressionOperatorMeta } from '$lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
+import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 
 export const replaceArgAt = (
 	expression: ExpressionSpecification,
@@ -49,7 +50,33 @@ export const literalToExpression = (value: unknown): ExpressionSpecification => 
 	if (typeof value === 'string') {
 		return ['string', value];
 	}
-	return ['literal', value ?? ''] as ExpressionSpecification;
+	return ['literal', value === undefined ? '' : value] as ExpressionSpecification;
+};
+
+export const valueToExpression = (value: unknown): ExpressionSpecification => {
+	return isExpression(value) ? value : literalToExpression(value);
+};
+
+/**
+ * Removes arguments while the operator remains valid. If the removal would
+ * cross the operator's minimum arity, unwraps the supplied value instead of
+ * leaving an invalid expression that the editor can no longer operate on.
+ */
+export const removeArgsOrCollapse = (
+	expression: ExpressionSpecification,
+	index: number,
+	count: number,
+	collapseValue: unknown,
+	minimumArgs?: number
+): ExpressionSpecification => {
+	const next = removeArgsAt(expression, index, count);
+	const minArgs = minimumArgs ?? getExpressionOperatorMeta(expression[0])?.minArgs;
+	if (minArgs === undefined || next.length - 1 >= minArgs) return next;
+	if (isExpression(collapseValue)) return collapseValue;
+	const collapsed = literalToExpression(collapseValue);
+	return collapsed[0] === expression[0]
+		? (['literal', collapseValue === undefined ? '' : collapseValue] as ExpressionSpecification)
+		: collapsed;
 };
 
 /**
