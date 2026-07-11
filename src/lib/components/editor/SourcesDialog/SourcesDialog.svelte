@@ -59,6 +59,8 @@
 	let editWarnings = $state<Record<string, string[]>>({});
 	let addSourceId = $state('');
 	let addSourceType = $state<AddableSourceType>('vector');
+	let addSourceTouched = $state(false);
+	let attemptedSubmit = $state(false);
 
 	const sourceEntries = $derived(Object.entries(mapStyle.sources));
 	const sourceIds = $derived(new Set(Object.keys(mapStyle.sources)));
@@ -68,6 +70,9 @@
 		if (sourceIds.has(trimmedAddSourceId)) return 'Source ID must be unique.';
 		return undefined;
 	});
+	const showAddSourceError = $derived(
+		addSourceError !== undefined && (addSourceTouched || attemptedSubmit)
+	);
 
 	const sourceLayerIds = (sourceId: string): string[] =>
 		mapStyle.layers
@@ -81,9 +86,23 @@
 		editWarnings = {};
 		addSourceId = '';
 		addSourceType = 'vector';
+		addSourceTouched = false;
+		attemptedSubmit = false;
 	};
 
 	const sourceJSON = (source: SourceSpecification): string => JSON.stringify(source, null, '\t');
+	const sourceSummary = (source: SourceSpecification): string | undefined => {
+		switch (source.type) {
+			case 'vector':
+			case 'raster':
+			case 'raster-dem':
+				return source.url ?? source.tiles?.[0];
+			case 'geojson':
+				return typeof source.data === 'string' ? source.data : undefined;
+			default:
+				return undefined;
+		}
+	};
 
 	const toggleEdit = (sourceId: string, source: SourceSpecification) => {
 		if (editingSourceIds.has(sourceId)) {
@@ -157,6 +176,7 @@
 	};
 
 	const addSource = () => {
+		attemptedSubmit = true;
 		if (addSourceError) return;
 		const source = structuredClone(sourceTemplates[addSourceType]);
 		const candidate = candidateWithSource(trimmedAddSourceId, source);
@@ -167,6 +187,8 @@
 		editWarnings[trimmedAddSourceId] = [];
 		addSourceId = '';
 		addSourceType = 'vector';
+		addSourceTouched = false;
+		attemptedSubmit = false;
 	};
 
 	const cancel = () => {
@@ -195,6 +217,7 @@
 			<div class="flex flex-1 flex-col gap-3 overflow-auto px-4 py-4">
 				{#each sourceEntries as [sourceId, source] (sourceId)}
 					{@const usedBy = sourceLayerIds(sourceId)}
+					{@const summary = sourceSummary(source)}
 					<div class="overflow-hidden rounded-md border border-gray-200 bg-white">
 						<div class="flex items-center gap-3 bg-gray-50/70 px-3 py-2">
 							<div class="min-w-0 flex-1">
@@ -206,8 +229,14 @@
 										{source.type}
 									</span>
 								</div>
-								<p class="text-xs text-gray-500">
-									{usedBy.length} referencing layer{usedBy.length === 1 ? '' : 's'}
+								<p class="flex min-w-0 items-center gap-1 text-xs text-gray-500">
+									<span class="shrink-0">
+										{usedBy.length} referencing layer{usedBy.length === 1 ? '' : 's'}
+									</span>
+									{#if summary}
+										<span aria-hidden="true">·</span>
+										<span class="truncate" title={summary}>{summary}</span>
+									{/if}
 								</p>
 							</div>
 							<Button
@@ -276,9 +305,19 @@
 					<h3 class="font-montserrat text-sm font-semibold text-gray-800">Add Source</h3>
 					<div class="flex items-start gap-2">
 						<div class="flex min-w-0 flex-1 flex-col gap-1">
-							<TextField class="[&>input]:w-[70%]" label="ID" bind:value={addSourceId} />
-							{#if addSourceError}
-								<p class="self-end text-xs text-red-600">{addSourceError}</p>
+							<TextField
+								class="[&>input]:w-[70%]"
+								label="ID"
+								bind:value={addSourceId}
+								onValueChange={() => {
+									addSourceTouched = true;
+								}}
+								onCommit={() => {
+									addSourceTouched = true;
+								}}
+							/>
+							{#if showAddSourceError}
+								<p class="self-end text-xs text-red-600" role="alert">{addSourceError}</p>
 							{/if}
 						</div>
 						<Select
