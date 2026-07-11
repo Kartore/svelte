@@ -14,10 +14,10 @@
 <script lang="ts">
 	import type { InterpolationSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-	import { CurvePreview } from '$lib/components/common/FilterInputField/expressions/common/CurvePreview';
 	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
 	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { CurveStopsCanvas } from '$lib/components/common/FilterInputField/expressions/curves/common/CurveStopsCanvas';
 	import InterpolationsInputField from '$lib/components/common/FilterInputField/expressions/curves/interpolations/InterpolationsInputField.svelte';
 	import { curveHasColorOutputs } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 	import {
@@ -33,6 +33,8 @@
 		onChange,
 		...props
 	}: CurveStopsEditorProps = $props();
+
+	let selectedStopIndex = $state<number | null>(null);
 
 	const isStep = $derived(expression[0] === 'step');
 	const inputIndex = $derived(isStep ? 1 : 2);
@@ -58,6 +60,12 @@
 			? ('color' as const)
 			: undefined
 	);
+	const removeStop = (stopStartIndex: number, stopIndex: number) => {
+		if (!onChange) return;
+		if (selectedStopIndex === stopIndex) selectedStopIndex = null;
+		else if (selectedStopIndex !== null && selectedStopIndex > stopIndex) selectedStopIndex -= 1;
+		onChange(removeArgsAt(expression, stopStartIndex, 2));
+	};
 </script>
 
 <div {...props} class={cn('flex min-w-0 flex-col gap-2 rounded bg-black/5 px-2 py-2', className)}>
@@ -86,7 +94,12 @@
 		</div>
 	</div>
 
-	<CurvePreview value={expression} class="px-0" />
+	<CurveStopsCanvas
+		value={expression}
+		{onChange}
+		{selectedStopIndex}
+		onSelectStop={(index) => (selectedStopIndex = index)}
+	/>
 
 	<div class="flex min-w-0 flex-col gap-1">
 		<div
@@ -112,9 +125,13 @@
 			</div>
 		{/if}
 
-		{#each stopStartIndexes as stopStartIndex (stopStartIndex)}
+		{#each stopStartIndexes as stopStartIndex, stopIndex (stopStartIndex)}
 			<div
-				class="grid min-w-0 grid-cols-[56px_minmax(0,1fr)_24px] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+				class={cn(
+					'grid min-w-0 grid-cols-[56px_minmax(0,1fr)_24px] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60',
+					selectedStopIndex === stopIndex && 'bg-blue-50 ring-1 ring-blue-200'
+				)}
+				data-selected={selectedStopIndex === stopIndex ? 'true' : undefined}
 			>
 				<ExpressionArgInputField
 					class="min-w-0 [&>input]:max-w-full"
@@ -130,7 +147,7 @@
 						{onChange}
 						literalType={outputLiteralType}
 						onRemove={onChange && canRemoveStop
-							? () => onChange(removeArgsAt(expression, stopStartIndex, 2))
+							? () => removeStop(stopStartIndex, stopIndex)
 							: undefined}
 					/>
 				{/if}

@@ -5,6 +5,8 @@
 		value: ExpressionSpecification;
 		/** zoom curve のドメインをレイヤーの表示範囲に合わせる */
 		zoomRange?: [number, number];
+		/** 編集中も数値グラフの縦軸を固定するための表示範囲 */
+		outputRange?: [number, number];
 		class?: string;
 	};
 </script>
@@ -15,7 +17,7 @@
 	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
-	let { value, zoomRange, class: className }: CurvePreviewProps = $props();
+	let { value, zoomRange, outputRange, class: className }: CurvePreviewProps = $props();
 
 	const backgroundMap = useBackgroundMap();
 
@@ -88,8 +90,8 @@
 
 {#snippet curveGraphPreview(result: CurveSamplingResult)}
 	{@const outputs = result.samples.map((sample) => sample.output as number)}
-	{@const minOutput = Math.min(...outputs)}
-	{@const maxOutput = Math.max(...outputs)}
+	{@const minOutput = outputRange?.[0] ?? Math.min(...outputs)}
+	{@const maxOutput = outputRange?.[1] ?? Math.max(...outputs)}
 	{@const outputSpan = maxOutput - minOutput || 1}
 	{@const toYPercent = (output: number) => 100 - ((output - minOutput) / outputSpan) * 100}
 	{@const points = result.samples
