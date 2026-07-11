@@ -31,6 +31,10 @@
 
 	provideBackgroundMap();
 	const expressionFlyout = provideExpressionFlyout();
+	type FlyoutPositionAnchor = {
+		contextElement: HTMLElement;
+		getBoundingClientRect: () => DOMRect;
+	};
 
 	let selectedLayerId = $state<string>(osmLibertyMigrated.layers[4].id);
 	let importDialogOpen = $state(false);
@@ -43,6 +47,22 @@
 		effectiveStyle.layers.find((layer) => layer.id === selectedLayerId) ?? effectiveStyle.layers[0]
 	);
 	const effectiveSelectedLayerId = $derived(selectedLayer?.id ?? null);
+	const flyoutPositionAnchor = $derived.by((): FlyoutPositionAnchor | null => {
+		const propertyAnchor = expressionFlyout.anchor;
+		if (!propertyAnchor) return null;
+		const propertiesPanel = propertyAnchor.closest('[data-properties-panel]');
+		if (!(propertiesPanel instanceof HTMLElement)) return null;
+
+		return {
+			// floating-ui がパネルのスクロール祖先を監視できるよう押下要素を紐付ける。
+			contextElement: propertyAnchor,
+			getBoundingClientRect: () => {
+				const propertyRect = propertyAnchor.getBoundingClientRect();
+				const panelRect = propertiesPanel.getBoundingClientRect();
+				return new DOMRect(panelRect.left, propertyRect.top, 0, propertyRect.height);
+			}
+		};
+	});
 
 	let validation = $state<StyleValidationResult>({ layerErrors: {}, styleErrors: [] });
 	$effect(() => {
@@ -261,15 +281,15 @@
 
 			<ControlPanel class="flex-1" />
 
-			{#if flyoutVisible && expressionFlyout.target && expressionFlyout.anchor}
+			{#if flyoutVisible && expressionFlyout.target && flyoutPositionAnchor}
 				<Popover.Root open={true}>
 					<Popover.Portal>
 						<Popover.Content
 							class="pointer-events-auto z-50 w-[24rem] max-w-[calc(100vw-1rem)]"
-							customAnchor={expressionFlyout.anchor}
+							customAnchor={flyoutPositionAnchor}
 							side="left"
 							align="start"
-							sideOffset={8}
+							sideOffset={12}
 							collisionPadding={8}
 							interactOutsideBehavior="ignore"
 							escapeKeydownBehavior="ignore"

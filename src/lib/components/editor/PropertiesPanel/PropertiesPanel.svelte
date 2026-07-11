@@ -43,6 +43,7 @@
 
 <div
 	{...props}
+	data-properties-panel=""
 	class={cn(
 		'pointer-events-auto overflow-y-auto rounded-lg border border-gray-300/80 bg-white/95 py-4 shadow-lg shadow-gray-950/10 backdrop-blur',
 		className
