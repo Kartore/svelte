@@ -24,7 +24,10 @@
 
 <div
 	{...props}
-	class={cn('flex flex-row flex-wrap items-center rounded bg-black/5 px-0.5 py-0.5', className)}
+	class={cn(
+		'flex min-w-0 flex-row flex-wrap items-center gap-1 rounded bg-black/5 px-2 py-2',
+		className
+	)}
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	{@render children?.()}

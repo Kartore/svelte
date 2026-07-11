@@ -26,13 +26,13 @@
 <div
 	{...props}
 	class={cn(
-		'flex flex-row flex-wrap items-center gap-2 rounded bg-black/5 px-0.5 py-0.5',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
 		className
 	)}
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
-	<div class="flex flex-row px-0.5 py-0.5">(</div>
+	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">(</div>
 	<ExpressionArgInputField parentValue={expression} index={1} {onChange} />
-	<div class="flex flex-row px-0.5 py-0.5">)</div>
+	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">)</div>
 	{@render children?.()}
 </div>

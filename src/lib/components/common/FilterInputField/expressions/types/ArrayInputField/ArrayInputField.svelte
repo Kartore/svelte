@@ -36,9 +36,9 @@
 
 <div
 	{...props}
-	class={cn('flex flex-row items-center gap-2 rounded bg-black/5 px-0.5 py-0.5', className)}
+	class={cn('flex min-w-0 flex-row items-center gap-2 rounded bg-black/5 px-2 py-2', className)}
 >
-	<div class="flex flex-row px-0.5 py-0.5">typecheck</div>
+	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">typecheck</div>
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	<ExpressionArgInputField parentValue={expression} index={1} {onChange} />
 	{#if value.length > 2}

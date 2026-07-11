@@ -41,9 +41,9 @@
 	<div
 		class="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] gap-1 px-0.5 font-mono text-[10px] text-gray-400"
 	>
-		<span>subject</span>
-		<span class="text-center">operator</span>
-		<span>value</span>
+		<span class="min-w-0 truncate">subject</span>
+		<span class="min-w-0 truncate text-center" title="operator">op</span>
+		<span class="min-w-0 truncate">value</span>
 	</div>
 	<div
 		class="grid min-w-0 grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"

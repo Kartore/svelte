@@ -28,7 +28,7 @@
 <div
 	{...props}
 	class={cn(
-		'flex flex-row flex-wrap items-center gap-2 rounded bg-black/5 px-0.5 py-0.5',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
 		className
 	)}
 >
@@ -36,7 +36,9 @@
 	{#if isExpression(object)}
 		<ExpressionInputField value={object} {onChange} />
 	{:else}
-		<div class="flex flex-row px-0.5 py-0.5">{JSON.stringify(object)}</div>
+		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
+			{JSON.stringify(object)}
+		</div>
 	{/if}
 	{@render children?.()}
 </div>

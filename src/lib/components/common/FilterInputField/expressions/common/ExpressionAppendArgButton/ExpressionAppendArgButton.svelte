@@ -20,7 +20,7 @@
 		value,
 		onChange,
 		class: className,
-		label = '+',
+		label = '+ Add argument',
 		ariaLabel = 'Add argument'
 	}: ExpressionAppendArgButtonProps = $props();
 

@@ -29,10 +29,13 @@
 
 <div
 	{...props}
-	class={cn('flex flex-row flex-wrap items-center rounded bg-black/5 px-0.5 py-0.5', className)}
+	class={cn(
+		'flex min-w-0 flex-row flex-wrap items-center gap-1 rounded bg-black/5 px-2 py-2',
+		className
+	)}
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
-	<div class="flex flex-row px-0.5 py-0.5">(</div>
+	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">(</div>
 	{#each Array.from({ length: argCount }, (_, i) => i + 1) as index (index)}
 		<ExpressionArgInputField
 			parentValue={expression}
@@ -43,10 +46,10 @@
 				: undefined}
 		/>
 		{#if index < argCount}
-			<div class="flex flex-row px-0.5 py-0.5">,</div>
+			<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">,</div>
 		{/if}
 	{/each}
 	<ExpressionAppendArgButton value={expression} {onChange} />
-	<div class="flex flex-row px-0.5 py-0.5">)</div>
+	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">)</div>
 	{@render children?.()}
 </div>
