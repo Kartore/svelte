@@ -19,6 +19,11 @@ export type StylePropertySpec = {
 export type LayerPropertyEntry = { key: string; spec: StylePropertySpec };
 export type LayerPropertyGroup = 'paint' | 'layout';
 
+export const getLayerZoomRange = (layer: LayerSpecification): [number, number] => [
+	layer.minzoom ?? 0,
+	layer.maxzoom ?? 24
+];
+
 export const getLayerProperties = (
 	type: LayerSpecification['type'],
 	group: LayerPropertyGroup

@@ -3,6 +3,7 @@
 
 	export type CurveStopsCanvasProps = {
 		value: ExpressionSpecification;
+		zoomRange?: [number, number];
 		onChange?: (value: ExpressionSpecification) => void;
 		selectedStopIndex?: number | null;
 		onSelectStop?: (index: number) => void;
@@ -48,6 +49,7 @@
 
 	let {
 		value,
+		zoomRange,
 		onChange,
 		selectedStopIndex = null,
 		onSelectStop,
@@ -59,7 +61,7 @@
 	let dragState = $state.raw<DragState | null>(null);
 
 	const displayExpression = $derived(draftExpression ?? value);
-	const result = $derived(sampleCurveExpression(displayExpression, 64));
+	const result = $derived(sampleCurveExpression(displayExpression, 64, zoomRange));
 
 	const toPercent = (input: number, domain: [number, number]): number => {
 		const span = domain[1] - domain[0] || 1;
@@ -232,6 +234,7 @@
 	<div class={cn('relative min-w-0', className)} data-curve-stops-canvas>
 		<CurvePreview
 			value={displayExpression}
+			{zoomRange}
 			outputRange={dragState?.outputRange ?? undefined}
 			class="pointer-events-none px-0"
 		/>

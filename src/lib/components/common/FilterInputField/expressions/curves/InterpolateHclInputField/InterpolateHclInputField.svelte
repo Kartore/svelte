@@ -13,6 +13,7 @@
 		class: className,
 		children,
 		value,
+		zoomRange,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -24,10 +25,18 @@
 			number | ExpressionSpecification,
 			...(number | ColorSpecification | ExpressionSpecification)[]
 		];
+		zoomRange?: [number, number];
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
 	const expression = $derived(value as ExpressionSpecification);
 </script>
 
-<CurveStopsEditor {...props} class={className} value={expression} {onChange} {children} />
+<CurveStopsEditor
+	{...props}
+	class={className}
+	value={expression}
+	{zoomRange}
+	{onChange}
+	{children}
+/>

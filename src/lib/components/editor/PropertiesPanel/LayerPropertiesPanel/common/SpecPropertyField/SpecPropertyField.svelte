@@ -18,7 +18,11 @@
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { parseColor, tryParseColor } from '$lib/utils/color.ts';
-	import { labelFromPropertyKey, type LayerPropertyEntry } from '$lib/utils/layerSpec.ts';
+	import {
+		getLayerZoomRange,
+		labelFromPropertyKey,
+		type LayerPropertyEntry
+	} from '$lib/utils/layerSpec.ts';
 
 	let {
 		layer,
@@ -91,7 +95,7 @@
 		spec.units === undefined ? undefined : (unitLabels[spec.units] ?? spec.units)
 	);
 
-	const layerZoomRange = $derived<[number, number]>([layer.minzoom ?? 0, layer.maxzoom ?? 24]);
+	const layerZoomRange = $derived(getLayerZoomRange(layer));
 
 	const isDefault = (value: unknown) => JSON.stringify(value) === JSON.stringify(spec.default);
 	const commit = (value: unknown) => {

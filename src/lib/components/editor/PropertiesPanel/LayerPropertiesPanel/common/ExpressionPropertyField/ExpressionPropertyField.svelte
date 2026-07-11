@@ -151,7 +151,12 @@
 				</button>
 			{/if}
 		{:else}
-			<ExpressionInputField class="text-sm" value={value as ExpressionSpecification} {onChange} />
+			<ExpressionInputField
+				class="text-sm"
+				value={value as ExpressionSpecification}
+				{zoomRange}
+				{onChange}
+			/>
 		{/if}
 		{#if propertyKey}
 			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />

@@ -7,6 +7,7 @@
 		class?: string;
 		children?: Snippet;
 		value: ExpressionSpecification;
+		zoomRange?: [number, number];
 		onChange?: (value: ExpressionSpecification) => void;
 	};
 </script>
@@ -30,6 +31,7 @@
 		class: className,
 		children,
 		value: expression,
+		zoomRange,
 		onChange,
 		...props
 	}: CurveStopsEditorProps = $props();
@@ -103,6 +105,7 @@
 
 	<CurveStopsCanvas
 		value={expression}
+		{zoomRange}
 		{onChange}
 		{selectedStopIndex}
 		onSelectStop={(index) => (selectedStopIndex = index)}

@@ -7,6 +7,7 @@
 		class?: string;
 		children?: Snippet;
 		value: ExpressionSpecification;
+		zoomRange?: [number, number];
 		onChange?: (value: ExpressionSpecification) => void;
 	};
 </script>
@@ -349,9 +350,9 @@
 
 	type ExpressionFieldDispatchEntry = {
 		guard: (value: ExpressionSpecification) => boolean;
+		acceptsZoomRange?: boolean;
 		// each field narrows `value` further; the guard guarantees the match at runtime
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		component: Component<any>;
+		component: unknown;
 	};
 
 	// the order MUST match the React version's if-chain (first match wins)
@@ -359,10 +360,22 @@
 		{ guard: isRgbaExpressionSpecification, component: RgbaInputField },
 		{ guard: isRgbExpressionSpecification, component: RgbInputField },
 		{ guard: isToRgbaExpressionSpecification, component: ToRgbaInputField },
-		{ guard: isInterpolateHclExpressionSpecification, component: InterpolateHclInputField },
-		{ guard: isInterpolateExpressionSpecification, component: InterpolateInputField },
-		{ guard: isInterpolateLabExpressionSpecification, component: InterpolateLabInputField },
-		{ guard: isStepExpressionSpecification, component: StepInputField },
+		{
+			guard: isInterpolateHclExpressionSpecification,
+			component: InterpolateHclInputField,
+			acceptsZoomRange: true
+		},
+		{
+			guard: isInterpolateExpressionSpecification,
+			component: InterpolateInputField,
+			acceptsZoomRange: true
+		},
+		{
+			guard: isInterpolateLabExpressionSpecification,
+			component: InterpolateLabInputField,
+			acceptsZoomRange: true
+		},
+		{ guard: isStepExpressionSpecification, component: StepInputField, acceptsZoomRange: true },
 		{ guard: isAllExpressionSpecification, component: AllInputField },
 		{ guard: isAnyExpressionSpecification, component: AnyInputField },
 		{ guard: isCaseExpressionSpecification, component: CaseInputField },
@@ -451,6 +464,7 @@
 		class: className,
 		children,
 		value,
+		zoomRange,
 		onChange,
 		...props
 	}: ExpressionInputFieldProps = $props();
@@ -458,12 +472,13 @@
 	const entry = $derived(
 		value ? dispatchers.find((dispatcher) => dispatcher.guard(value)) : undefined
 	);
+	const fieldProps = $derived(entry?.acceptsZoomRange ? { zoomRange } : {});
 </script>
 
 {#if value}
 	{#if entry}
-		{@const Field = entry.component}
-		<Field {...props} class={className} {value} {onChange}>
+		{@const Field = entry.component as Component<ExpressionInputFieldProps>}
+		<Field {...props} {...fieldProps} class={className} {value} {onChange}>
 			{@render children?.()}
 		</Field>
 	{:else}
