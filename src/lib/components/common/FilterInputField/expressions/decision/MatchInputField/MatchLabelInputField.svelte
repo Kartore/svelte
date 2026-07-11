@@ -30,43 +30,44 @@
 
 {#if !Array.isArray(label)}
 	<ExpressionInputTypeInputField
+		class="min-w-0 [&>input]:max-w-full"
 		value={label}
 		onChange={onChange ? (next) => onChange(replaceArgAt(expression, labelIndex, next)) : undefined}
 		{suggestions}
 	/>
 {:else}
-	<div class="flex flex-row items-center gap-0.5">
+	<div class="flex min-w-0 flex-wrap items-center gap-1 rounded bg-gray-100 px-1 py-0.5">
 		{#each label as element, elementIndex (elementIndex)}
-			<ExpressionInputTypeInputField
-				value={element}
-				onChange={onChange
-					? (next) =>
-							replaceLabelArray(label.map((current, i) => (i === elementIndex ? next : current)))
-					: undefined}
-				{suggestions}
-			/>
-			{#if onChange && label.length > 1}
-				<Button
-					aria-label="Remove label"
-					title="Remove label"
-					class="rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
-					onclick={() => replaceLabelArray(label.filter((_, i) => i !== elementIndex))}
-				>
-					×
-				</Button>
-			{/if}
-			{#if elementIndex < label.length - 1}
-				<div class="flex flex-row px-0.5 py-0.5">OR</div>
-			{/if}
+			<div class="flex min-w-0 max-w-full items-center rounded bg-white px-0.5 ring-1 ring-black/5">
+				<ExpressionInputTypeInputField
+					class="min-w-0 px-0 [&>input]:max-w-full"
+					value={element}
+					onChange={onChange
+						? (next) =>
+								replaceLabelArray(label.map((current, i) => (i === elementIndex ? next : current)))
+						: undefined}
+					{suggestions}
+				/>
+				{#if onChange && label.length > 1}
+					<Button
+						aria-label="Remove label"
+						title="Remove label"
+						class="rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
+						onclick={() => replaceLabelArray(label.filter((_, i) => i !== elementIndex))}
+					>
+						×
+					</Button>
+				{/if}
+			</div>
 		{/each}
 		{#if onChange}
 			<Button
 				aria-label="Add label"
 				title="Add label"
-				class="rounded px-1 py-0.5 text-xs font-semibold text-gray-400 hover:text-gray-600"
+				class="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-400 hover:text-gray-600"
 				onclick={() => replaceLabelArray([...label, ''])}
 			>
-				+
+				+ Value
 			</Button>
 		{/if}
 	</div>
