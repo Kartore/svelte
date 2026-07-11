@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type {
 		BackgroundLayerSpecification,
-		ExpressionFilterSpecification,
 		ExpressionSpecification,
+		FilterSpecification,
 		LayerSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { Button } from '$lib/components/common/Button';
-	import { FilterInputField } from '$lib/components/common/FilterInputField';
 	import { ExpressionInputField } from '$lib/components/common/FilterInputField/expressions';
+	import { FilterQueryBuilder } from '$lib/components/common/FilterQueryBuilder';
 	import { provideLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
@@ -75,8 +75,8 @@
 	</div>
 	<div class="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
 		{#if isFilter}
-			<FilterInputField
-				value={value as ExpressionFilterSpecification}
+			<FilterQueryBuilder
+				value={value as FilterSpecification | undefined}
 				onChange={(next) =>
 					onChange?.(
 						// filter フライアウトは background 以外からしか開かれない

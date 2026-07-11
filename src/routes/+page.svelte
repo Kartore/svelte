@@ -10,7 +10,6 @@
 	import { NavigationPanel } from '$lib/components/editor/NavigationPanel';
 	import { PropertiesPanel } from '$lib/components/editor/PropertiesPanel';
 	import { ExpressionFlyoutPanel } from '$lib/components/editor/PropertiesPanel/ExpressionFlyoutPanel';
-	import { isExpressionFilter } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties/utils/isExpressionFilter.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { replaceLayerData } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { SourcesDialog } from '$lib/components/editor/SourcesDialog';
@@ -172,7 +171,7 @@
 		const target = expressionFlyout.target;
 		if (target === null) return false;
 		if (target.group === 'filter') {
-			return flyoutValue !== undefined && isExpressionFilter(flyoutValue);
+			return flyoutValue !== undefined;
 		}
 		return isExpression(flyoutValue);
 	});

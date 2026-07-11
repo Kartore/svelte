@@ -8,11 +8,8 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { Button } from '$lib/components/common/Button';
-	import { FilterInputField } from '$lib/components/common/FilterInputField';
-	import { MonacoEditor } from '$lib/components/common/MonacoEditor';
-	import { isExpressionFilter } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties/utils/isExpressionFilter.ts';
+	import { FilterQueryBuilder } from '$lib/components/common/FilterQueryBuilder';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
-	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
@@ -58,7 +55,7 @@
 			</Button>
 		{:else}
 			<div class="flex flex-row items-center gap-1">
-				{#if flyout !== undefined && isExpressionFilter(layer.filter)}
+				{#if flyout !== undefined}
 					<Button
 						aria-label="Edit filter expression"
 						aria-pressed={isFlyoutOpen}
@@ -89,52 +86,11 @@
 	</div>
 	{#if layer.filter === undefined}
 		<!-- no filter -->
-	{:else if isExpressionFilter(layer.filter)}
-		{#if flyout === undefined}
-			<FilterInputField
-				value={layer.filter}
-				onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
-			/>
-		{/if}
-	{:else}
-		<summary>
-			<details>
-				<MonacoEditor
-					class={cn('min-h-16', className)}
-					value={JSON.stringify({ filter: layer.filter ? layer.filter : [] }, undefined, 2)}
-					onChange={(value) => {
-						if (onChange && value) {
-							const filterValue = JSON.parse(value).filter;
-							onChange(
-								layer,
-								undefined,
-								'filter',
-								filterValue.length === 0 ? undefined : filterValue
-							);
-						}
-					}}
-					onMount={(_, monaco) => {
-						// monaco-editor 0.55: `monaco.languages.json` is a deprecated type stub — the
-						// typed equivalent of `monaco.languages.json.jsonDefaults` is `monaco.json.jsonDefaults`
-						monaco.json.jsonDefaults.setDiagnosticsOptions({
-							validate: true,
-							schemas: [
-								{
-									fileMatch: ['*'],
-									uri: 'kartore://FilterSpecification.json',
-									schema: {
-										type: 'object',
-										properties: {
-											filter: getStyleJSONSchemaDefinition('FilterSpecification')
-										}
-									}
-								}
-							]
-						});
-					}}
-				/>
-			</details>
-		</summary>
+	{:else if flyout === undefined}
+		<FilterQueryBuilder
+			value={layer.filter}
+			onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
+		/>
 	{/if}
 	<PropertyErrorMessage group="filter" />
 	{@render children?.()}

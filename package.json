@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
 		"deploy": "vite build && wrangler deploy",
+		"test": "vitest run",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "wrangler types --check || svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -35,6 +36,7 @@
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.0.16",
+		"vitest": "^4.1.10",
 		"wrangler": "^4.97.0"
 	},
 	"dependencies": {

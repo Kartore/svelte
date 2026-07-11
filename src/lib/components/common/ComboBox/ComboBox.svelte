@@ -7,6 +7,7 @@
 
 	let {
 		class: className,
+		triggerClass,
 		label,
 		items = [],
 		value = $bindable(),
@@ -14,10 +15,12 @@
 		allowsCustomValue = false,
 		inputValue,
 		onInputChange,
+		onCommit,
 		disabled,
 		'aria-label': ariaLabel
 	}: {
 		class?: string;
+		triggerClass?: string;
 		label?: string;
 		items?: SelectItem[];
 		value?: string;
@@ -28,11 +31,15 @@
 		inputValue?: string;
 		/** 入力テキストが変わるたびに発火（allowsCustomValue と併用） */
 		onInputChange?: (value: string) => void;
+		/** 自由入力テキストを blur / Enter で確定する */
+		onCommit?: (value: string) => void;
 		disabled?: boolean;
 		'aria-label'?: string;
 	} = $props();
 
 	let searchValue = $state('');
+	let isOpen = $state(false);
+	let pendingCommit = $state<string>();
 
 	const filteredItems = $derived(
 		searchValue === ''
@@ -46,6 +53,20 @@
 	// bits-ui の inputValue は read-only prop（プログラム的な入力欄更新用）で、
 	// ユーザー入力・選択時のラベル反映は bits-ui が内部で処理する。
 	const comboInputValue = $derived(inputValue ?? selectedLabel);
+	const commitInput = (value: string) => {
+		pendingCommit = undefined;
+		onCommit?.(value);
+	};
+	const handleOpenChange = (open: boolean) => {
+		isOpen = open;
+		if (open) return;
+		searchValue = '';
+		if (pendingCommit !== undefined) commitInput(pendingCommit);
+	};
+	const handleValueChange = (next: string) => {
+		pendingCommit = undefined;
+		onValueChange?.(next);
+	};
 
 	// 外枠 (h-5 w-5 = 20px) から border 1px ×2 を引いた内容領域に収める。
 	// これを超えると flex に押し潰されてスプライトの端が欠ける。
@@ -97,16 +118,17 @@
 		type="single"
 		bind:value
 		inputValue={comboInputValue}
-		{onValueChange}
+		onValueChange={handleValueChange}
 		{disabled}
 		items={filteredItems}
 		allowDeselect={false}
-		onOpenChange={(open) => {
-			if (!open) searchValue = '';
-		}}
+		onOpenChange={handleOpenChange}
 	>
 		<div
-			class="flex w-1/2 cursor-pointer flex-row items-center gap-1 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200"
+			class={cn(
+				'flex w-1/2 cursor-pointer flex-row items-center gap-1 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200',
+				triggerClass
+			)}
 		>
 			{#if selectedItem?.preview}
 				{@render preview(selectedItem)}
@@ -117,6 +139,16 @@
 					searchValue = event.currentTarget.value;
 					if (allowsCustomValue) {
 						onInputChange?.(event.currentTarget.value);
+					}
+				}}
+				onblur={(event) => {
+					if (!allowsCustomValue || !onCommit) return;
+					if (isOpen) pendingCommit = event.currentTarget.value;
+					else commitInput(event.currentTarget.value);
+				}}
+				onkeydown={(event) => {
+					if (event.key === 'Enter' && allowsCustomValue && onCommit) {
+						event.currentTarget.blur();
 					}
 				}}
 				class="w-full flex-1 border-none focus-visible:outline-0"
