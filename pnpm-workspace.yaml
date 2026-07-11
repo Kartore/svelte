@@ -12,8 +12,8 @@ allowBuilds:
 configDependencies:
   '@pnpm/pacquet': 0.11.12
 minimumReleaseAgeExclude:
-  - '@kartore-internal/github-adapter@0.1.0'
-  - '@kartore/file-adapter@0.1.0'
+  - '@kartore-internal/github-adapter'
+  - '@kartore/file-adapter'
 onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - workerd
