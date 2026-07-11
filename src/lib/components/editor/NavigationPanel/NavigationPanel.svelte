@@ -7,6 +7,12 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '$lib/components/common/Button';
+	import {
+		MenuItem,
+		MenuRoot,
+		MenuSeparator,
+		MenuTrigger
+	} from '$lib/components/common/HeaderMenu';
 	import { TextField } from '$lib/components/common/TextField';
 	import { LayerGroupHeader } from '$lib/components/editor/NavigationPanel/LayerGroupHeader';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
@@ -271,12 +277,18 @@
 		className
 	)}
 >
-	<div class="flex flex-col gap-3 border-b border-b-gray-200 px-3 py-3">
-		<div class="flex items-start justify-between gap-3">
-			<div class="min-w-0">
-				<h1 class="font-[Montserrat] text-sm font-bold tracking-normal text-gray-950">Kartore</h1>
+	<div class="flex flex-col gap-2 border-b border-b-gray-200 px-3 py-2.5">
+		<div class="flex items-center justify-between gap-3">
+			<div class="flex min-w-0 items-center gap-2">
+				<h1
+					class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-gray-950 font-[Montserrat] text-[10px] font-bold text-white"
+					aria-label="Kartore"
+					title="Kartore"
+				>
+					K
+				</h1>
 				<p
-					class="mt-0.5 truncate text-xs font-semibold text-gray-500"
+					class="truncate text-xs font-semibold text-gray-700"
 					title={mapStyle.name ?? 'Untitled style'}
 				>
 					{mapStyle.name ?? 'Untitled style'}
@@ -303,26 +315,24 @@
 				</Button>
 			</div>
 		</div>
-		<div class="grid grid-cols-3 gap-1.5">
-			<Button
-				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
-				onclick={onClickExport}
-			>
-				Export
-			</Button>
-			<Button
-				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
-				onclick={onClickImport}
-			>
-				Import
-			</Button>
-			<Button
-				class="h-8 rounded-md border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-white"
-				onclick={onClickSettings}
-			>
-				Settings
-			</Button>
-			<div class="col-span-3 flex min-w-0 flex-wrap items-center gap-1.5 empty:hidden">
+		<div class="flex min-h-7 items-center justify-between gap-2">
+			<MenuRoot>
+				<MenuTrigger value="file" label="File">
+					<MenuItem onSelect={() => onClickImport?.()}>Import style…</MenuItem>
+					<MenuItem onSelect={() => onClickExport?.()}>Export style…</MenuItem>
+					<MenuSeparator />
+					<MenuItem onSelect={() => onClickSettings?.()}>Style settings…</MenuItem>
+				</MenuTrigger>
+				<MenuTrigger value="edit" label="Edit">
+					<MenuItem disabled={!canUndo} shortcut="⌘Z" onSelect={() => onClickUndo?.()}>
+						Undo
+					</MenuItem>
+					<MenuItem disabled={!canRedo} shortcut="⇧⌘Z" onSelect={() => onClickRedo?.()}>
+						Redo
+					</MenuItem>
+				</MenuTrigger>
+			</MenuRoot>
+			<div class="flex min-w-0 flex-wrap items-center justify-end gap-1.5 empty:hidden">
 				{@render headerActions?.()}
 			</div>
 		</div>
