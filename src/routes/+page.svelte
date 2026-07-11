@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
+	import { Popover } from 'bits-ui';
 	import { onDestroy, setContext } from 'svelte';
 
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
@@ -179,7 +180,7 @@
 	// レイヤーを切り替えたら編集中プロパティとの対応が切れるため閉じる
 	$effect(() => {
 		void effectiveSelectedLayerId;
-		expressionFlyout.target = null;
+		expressionFlyout.close();
 	});
 
 	// 保存は 500ms デバウンスされるため、SPA 遷移によるアンマウント時に
@@ -249,15 +250,33 @@
 
 			<ControlPanel class="flex-1" />
 
-			{#if flyoutVisible && expressionFlyout.target}
-				<ExpressionFlyoutPanel
-					class="w-[24rem] min-w-[22rem]"
-					layer={selectedLayer}
-					target={expressionFlyout.target}
-					errors={validation.layerErrors[selectedLayer.id]}
-					onChange={handleChangeLayerData}
-					onClose={() => expressionFlyout.close()}
-				/>
+			{#if flyoutVisible && expressionFlyout.target && expressionFlyout.anchor}
+				<Popover.Root open={true}>
+					<Popover.Portal>
+						<Popover.Content
+							class="pointer-events-auto z-50 w-[24rem] max-w-[calc(100vw-1rem)]"
+							customAnchor={expressionFlyout.anchor}
+							side="left"
+							align="start"
+							sideOffset={8}
+							collisionPadding={8}
+							interactOutsideBehavior="ignore"
+							escapeKeydownBehavior="ignore"
+							preventScroll={false}
+							onOpenAutoFocus={(event) => event.preventDefault()}
+							onCloseAutoFocus={(event) => event.preventDefault()}
+						>
+							<ExpressionFlyoutPanel
+								class="max-h-[calc(100vh-2rem)] w-full shadow-xl shadow-gray-950/15"
+								layer={selectedLayer}
+								target={expressionFlyout.target}
+								errors={validation.layerErrors[selectedLayer.id]}
+								onChange={handleChangeLayerData}
+								onClose={() => expressionFlyout.close()}
+							/>
+						</Popover.Content>
+					</Popover.Portal>
+				</Popover.Root>
 			{/if}
 
 			{#key selectedLayer.id}

@@ -65,9 +65,18 @@
 			? flyout.isOpen(propertyGroup, propertyKey)
 			: false
 	);
-	const openFlyout = () => {
+	const openFlyout = (anchorElement: HTMLElement) => {
 		if (!canUseFlyout || flyout === undefined || propertyKey === undefined) return;
-		flyout.open({ group: propertyGroup, key: propertyKey, label });
+		flyout.open({ group: propertyGroup, key: propertyKey, label }, anchorElement);
+	};
+	const toggleFlyout = (anchorElement: HTMLElement) => {
+		if (isFlyoutOpen) flyout?.close();
+		else openFlyout(anchorElement);
+	};
+	// literal → expression では押したボタンが置き換わるため、新しい fx ボタンへ付け替える。
+	const handleExpressionButtonRef = (anchorElement: HTMLButtonElement | null) => {
+		if (!anchorElement || propertyKey === undefined) return;
+		flyout?.reanchor(propertyGroup, propertyKey, anchorElement);
 	};
 	const expressionSummary = $derived(
 		Array.isArray(value) && typeof value[0] === 'string' ? value[0] : 'expression'
@@ -112,6 +121,7 @@
 				<div class="flex min-w-0 flex-row items-center gap-1">
 					{#if canUseFlyout}
 						<Button
+							bind:ref={() => null, handleExpressionButtonRef}
 							aria-label={`Edit expression for ${label}`}
 							aria-pressed={isFlyoutOpen}
 							class={cn(
@@ -120,7 +130,7 @@
 									? 'border-blue-300 bg-blue-50 text-blue-600'
 									: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
 							)}
-							onclick={openFlyout}
+							onclick={(event) => toggleFlyout(event.currentTarget)}
 						>
 							<span class="shrink-0 font-mono font-semibold italic">fx</span>
 							<span class="truncate font-mono">{expressionSummary}</span>
@@ -145,7 +155,7 @@
 					class="w-full cursor-pointer text-left"
 					aria-label={`Open ${label} expression editor`}
 					title={`Open ${label} expression editor`}
-					onclick={openFlyout}
+					onclick={(event) => toggleFlyout(event.currentTarget)}
 				>
 					<CurvePreview value={value as ExpressionSpecification} {zoomRange} />
 				</button>
@@ -177,9 +187,9 @@
 							aria-label={`Interpolate ${label} by zoom`}
 							title={`Interpolate ${label} by zoom`}
 							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 hover:text-gray-600"
-							onclick={() => {
+							onclick={(event) => {
 								onChange?.(literalToZoomInterpolate(value ?? defaultLiteral));
-								openFlyout();
+								openFlyout(event.currentTarget);
 							}}
 						>
 							∿
@@ -190,9 +200,9 @@
 							aria-label={`Use expression for ${label}`}
 							title={`Use expression for ${label}`}
 							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
-							onclick={() => {
+							onclick={(event) => {
 								onChange?.(literalToExpression(value ?? defaultLiteral));
-								openFlyout();
+								openFlyout(event.currentTarget);
 							}}
 						>
 							fx

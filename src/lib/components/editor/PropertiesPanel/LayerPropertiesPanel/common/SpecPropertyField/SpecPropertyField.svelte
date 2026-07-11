@@ -186,9 +186,9 @@
 				<Button
 					aria-label={`Add ${label} expression`}
 					class="rounded bg-gray-100 px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-200"
-					onclick={() => {
+					onclick={(event) => {
 						expressionChange(spec.default);
-						flyout?.open({ group, key, label });
+						flyout?.open({ group, key, label }, event.currentTarget);
 					}}
 				>
 					+ Add

@@ -31,7 +31,16 @@
 
 	const flyout = useExpressionFlyout();
 	const isFlyoutOpen = $derived(flyout?.isOpen('filter', 'filter') ?? false);
-	const openFlyout = () => flyout?.open({ group: 'filter', key: 'filter', label: 'Filter' });
+	const openFlyout = (anchorElement: HTMLElement) =>
+		flyout?.open({ group: 'filter', key: 'filter', label: 'Filter' }, anchorElement);
+	const toggleFlyout = (anchorElement: HTMLElement) => {
+		if (isFlyoutOpen) flyout?.close();
+		else openFlyout(anchorElement);
+	};
+	const handleEditButtonRef = (anchorElement: HTMLButtonElement | null) => {
+		if (!anchorElement) return;
+		flyout?.reanchor('filter', 'filter', anchorElement);
+	};
 	const filterSummary = $derived(
 		Array.isArray(layer.filter) && typeof layer.filter[0] === 'string'
 			? layer.filter[0]
@@ -46,9 +55,9 @@
 			<Button
 				aria-label="Add filter"
 				class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
-				onclick={() => {
+				onclick={(event) => {
 					onChange?.(layer, undefined, 'filter', defaultFilter);
-					openFlyout();
+					openFlyout(event.currentTarget);
 				}}
 			>
 				+ Add
@@ -57,6 +66,7 @@
 			<div class="flex flex-row items-center gap-1">
 				{#if flyout !== undefined}
 					<Button
+						bind:ref={() => null, handleEditButtonRef}
 						aria-label="Edit filter expression"
 						aria-pressed={isFlyoutOpen}
 						class={cn(
@@ -65,7 +75,7 @@
 								? 'border-blue-300 bg-blue-50 text-blue-600'
 								: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
 						)}
-						onclick={openFlyout}
+						onclick={(event) => toggleFlyout(event.currentTarget)}
 					>
 						<span class="shrink-0 font-mono font-semibold italic">fx</span>
 						<span class="truncate font-mono">{filterSummary}</span>

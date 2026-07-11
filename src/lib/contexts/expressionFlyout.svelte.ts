@@ -10,18 +10,25 @@ export type ExpressionFlyoutTarget = {
 };
 
 /**
- * PropertiesPanel の横に飛び出す expression 編集パネルの開閉状態。
- * どのプロパティを編集中かだけを持ち、値の解決は表示側 (+page) が行う。
+ * プロパティ行にアンカーされた expression 編集パネルの開閉状態。
+ * 値の解決は表示側 (+page) が行う。
  */
 export class ExpressionFlyoutContext {
 	target = $state<ExpressionFlyoutTarget | null>(null);
+	anchor = $state<HTMLElement | null>(null);
 
-	open(target: ExpressionFlyoutTarget) {
+	open(target: ExpressionFlyoutTarget, anchorElement: HTMLElement) {
+		this.anchor = anchorElement;
 		this.target = target;
 	}
 
 	close() {
 		this.target = null;
+		this.anchor = null;
+	}
+
+	reanchor(group: string, key: string, anchorElement: HTMLElement) {
+		if (this.isOpen(group, key)) this.anchor = anchorElement;
 	}
 
 	isOpen(group: string, key: string): boolean {
