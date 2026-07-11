@@ -2,12 +2,14 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 
 	export type ExpressionInputFieldProps = Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
 		class?: string;
 		children?: Snippet;
 		value: ExpressionSpecification;
 		zoomRange?: [number, number];
+		propertySpec?: StylePropertySpec;
 		onChange?: (value: ExpressionSpecification) => void;
 	};
 </script>
@@ -351,6 +353,7 @@
 	type ExpressionFieldDispatchEntry = {
 		guard: (value: ExpressionSpecification) => boolean;
 		acceptsZoomRange?: boolean;
+		acceptsPropertySpec?: boolean;
 		// each field narrows `value` further; the guard guarantees the match at runtime
 		component: unknown;
 	};
@@ -363,19 +366,27 @@
 		{
 			guard: isInterpolateHclExpressionSpecification,
 			component: InterpolateHclInputField,
-			acceptsZoomRange: true
+			acceptsZoomRange: true,
+			acceptsPropertySpec: true
 		},
 		{
 			guard: isInterpolateExpressionSpecification,
 			component: InterpolateInputField,
-			acceptsZoomRange: true
+			acceptsZoomRange: true,
+			acceptsPropertySpec: true
 		},
 		{
 			guard: isInterpolateLabExpressionSpecification,
 			component: InterpolateLabInputField,
-			acceptsZoomRange: true
+			acceptsZoomRange: true,
+			acceptsPropertySpec: true
 		},
-		{ guard: isStepExpressionSpecification, component: StepInputField, acceptsZoomRange: true },
+		{
+			guard: isStepExpressionSpecification,
+			component: StepInputField,
+			acceptsZoomRange: true,
+			acceptsPropertySpec: true
+		},
 		{ guard: isAllExpressionSpecification, component: AllInputField },
 		{ guard: isAnyExpressionSpecification, component: AnyInputField },
 		{ guard: isCaseExpressionSpecification, component: CaseInputField },
@@ -465,6 +476,7 @@
 		children,
 		value,
 		zoomRange,
+		propertySpec,
 		onChange,
 		...props
 	}: ExpressionInputFieldProps = $props();
@@ -472,7 +484,10 @@
 	const entry = $derived(
 		value ? dispatchers.find((dispatcher) => dispatcher.guard(value)) : undefined
 	);
-	const fieldProps = $derived(entry?.acceptsZoomRange ? { zoomRange } : {});
+	const fieldProps = $derived({
+		...(entry?.acceptsZoomRange ? { zoomRange } : {}),
+		...(entry?.acceptsPropertySpec ? { propertySpec } : {})
+	});
 </script>
 
 {#if value}

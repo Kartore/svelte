@@ -2,6 +2,7 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 
 	export type ExpressionArgSuggestionHint = 'propertyKey' | { kind: 'propertyValue'; key: string };
 
@@ -24,6 +25,8 @@
 		suggestion?: ExpressionArgSuggestionHint;
 		/** renders a color picker next to string literals holding a color */
 		literalType?: 'color';
+		/** selects the same literal input component used by the sidebar property */
+		propertySpec?: StylePropertySpec;
 	};
 </script>
 
@@ -37,6 +40,12 @@
 		replaceArgAt
 	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+	import {
+		SpecLiteralField,
+		getEditableExpressionLiteral,
+		getSpecLiteralFieldKind,
+		replaceEditableExpressionLiteral
+	} from '$lib/components/common/SpecLiteralField';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -50,10 +59,19 @@
 		disableConvert,
 		suggestion,
 		literalType,
+		propertySpec,
 		...props
 	}: ExpressionArgInputFieldProps = $props();
 
+	let editAsExpression = $state(false);
+
 	const arg = $derived(parentValue[index]);
+	const editableLiteral = $derived(getEditableExpressionLiteral(arg));
+	const specLiteralFieldKind = $derived(
+		propertySpec !== undefined && editableLiteral !== undefined
+			? getSpecLiteralFieldKind(propertySpec, editableLiteral.value)
+			: undefined
+	);
 	const getSuggestionsContext = useExpressionSuggestions();
 	const suggestionsContext = $derived(getSuggestionsContext());
 	const suggestions = $derived.by(() => {
@@ -66,10 +84,28 @@
 	const handleChildChange = $derived(
 		onChange ? (next: unknown) => onChange?.(replaceArgAt(parentValue, index, next)) : undefined
 	);
+	const handleSpecLiteralChange = (next: unknown | undefined) => {
+		if (next === undefined || editableLiteral === undefined) return;
+		handleChildChange?.(replaceEditableExpressionLiteral(editableLiteral, next));
+	};
+	const editSpecLiteralAsExpression = () => {
+		if (editableLiteral === undefined) return;
+		editAsExpression = true;
+		if (!isExpression(arg)) handleChildChange?.(literalToExpression(editableLiteral.value));
+	};
 </script>
 
 <div {...props} class={cn('group/arg flex flex-row items-center gap-0.5', className)}>
-	{#if isExpression(arg)}
+	{#if propertySpec !== undefined && specLiteralFieldKind !== undefined && editableLiteral !== undefined && !editAsExpression}
+		<SpecLiteralField
+			class="min-w-0 flex-1"
+			compact
+			label="Value"
+			spec={propertySpec}
+			value={editableLiteral.value}
+			onChange={handleChildChange ? handleSpecLiteralChange : undefined}
+		/>
+	{:else if isExpression(arg)}
 		<ExpressionInputField value={arg} onChange={handleChildChange} />
 	{:else}
 		<ExpressionInputTypeInputField
@@ -78,16 +114,27 @@
 			{suggestions}
 			{literalType}
 		/>
-		{#if handleChildChange && !disableConvert}
-			<Button
-				aria-label="Convert to expression"
-				title="Convert to expression"
-				class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
-				onclick={() => handleChildChange?.(literalToExpression(arg))}
-			>
-				fx
-			</Button>
-		{/if}
+	{/if}
+	{#if handleChildChange && !disableConvert && !editAsExpression && !isExpression(arg)}
+		<Button
+			aria-label="Convert to expression"
+			title="Convert to expression"
+			class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			onclick={specLiteralFieldKind !== undefined
+				? editSpecLiteralAsExpression
+				: () => handleChildChange?.(literalToExpression(arg))}
+		>
+			fx
+		</Button>
+	{:else if handleChildChange && !disableConvert && specLiteralFieldKind !== undefined && !editAsExpression}
+		<Button
+			aria-label="Edit as expression"
+			title="Edit as expression"
+			class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			onclick={editSpecLiteralAsExpression}
+		>
+			fx
+		</Button>
 	{/if}
 	{#if onRemove && onChange}
 		<Button

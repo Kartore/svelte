@@ -173,13 +173,19 @@
 </script>
 
 <div class={cn('flex flex-row items-center justify-between', className)}>
-	<label for={`${id}-input`} class={cn('font-semibold text-gray-600 text-sm')}>
-		{label}
-	</label>
+	{#if label}
+		<label for={`${id}-input`} class={cn('font-semibold text-gray-600 text-sm')}>
+			{label}
+		</label>
+	{/if}
 	<div
 		class="flex w-1/2 flex-row items-center gap-2 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
 	>
-		<ColorPicker value={colorValue ?? undefined} onChange={(color) => onChange?.(color)} />
+		<ColorPicker
+			value={colorValue ?? undefined}
+			aria-label={label ?? 'Color'}
+			onChange={(color) => onChange?.(color)}
+		/>
 		<input
 			id={`${id}-input`}
 			type="text"

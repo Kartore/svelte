@@ -1,7 +1,16 @@
-import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
+import {
+	createExpression,
+	latest,
+	type ExpressionSpecification
+} from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { literalToExpression, removeArgsOrCollapse, valueToExpression } from './expressionEdit.ts';
+import {
+	literalToExpression,
+	literalToZoomInterpolate,
+	removeArgsOrCollapse,
+	valueToExpression
+} from './expressionEdit.ts';
 
 const expression = (value: unknown[]): ExpressionSpecification => value as ExpressionSpecification;
 
@@ -16,6 +25,22 @@ describe('expressionEdit', () => {
 	it('keeps an existing expression when converting a value', () => {
 		const child = expression(['get', 'name']);
 		expect(valueToExpression(child)).toBe(child);
+	});
+
+	it('preserves array literals when converting a property to zoom interpolation', () => {
+		const interpolate = literalToZoomInterpolate([4, 8]);
+		expect(interpolate).toEqual([
+			'interpolate',
+			['linear'],
+			['zoom'],
+			0,
+			['literal', [4, 8]],
+			22,
+			['literal', [4, 8]]
+		]);
+		expect(createExpression(interpolate, latest.layout_symbol['icon-offset']).result).toBe(
+			'success'
+		);
 	});
 
 	it('removes arguments while the operator remains above its minimum arity', () => {

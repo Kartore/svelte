@@ -15,7 +15,7 @@
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { CloseIcon } from '$lib/components/icons';
 	import type { ExpressionFlyoutTarget } from '$lib/contexts/expressionFlyout.svelte.ts';
-	import { getLayerZoomRange } from '$lib/utils/layerSpec.ts';
+	import { getLayerProperties, getLayerZoomRange } from '$lib/utils/layerSpec.ts';
 	import type { LayerValidationError } from '$lib/utils/styleValidation.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
@@ -40,6 +40,13 @@
 
 	const isFilter = $derived(target.group === 'filter');
 	const zoomRange = $derived(getLayerZoomRange(layer));
+	const propertySpec = $derived(
+		isFilter
+			? undefined
+			: getLayerProperties(layer.type, target.group as 'paint' | 'layout').find(
+					(entry) => entry.key === target.key
+				)?.spec
+	);
 	const value = $derived(
 		isFilter
 			? 'filter' in layer
@@ -95,6 +102,7 @@
 			<ExpressionInputField
 				class="text-sm"
 				value={value as ExpressionSpecification}
+				{propertySpec}
 				{zoomRange}
 				onChange={(next) =>
 					onChange?.(layer, target.group as never, target.key as never, next as never)}

@@ -2,12 +2,14 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 
 	export type CurveStopsEditorProps = Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
 		class?: string;
 		children?: Snippet;
 		value: ExpressionSpecification;
 		zoomRange?: [number, number];
+		propertySpec?: StylePropertySpec;
 		onChange?: (value: ExpressionSpecification) => void;
 	};
 </script>
@@ -32,6 +34,7 @@
 		children,
 		value: expression,
 		zoomRange,
+		propertySpec,
 		onChange,
 		...props
 	}: CurveStopsEditorProps = $props();
@@ -130,6 +133,7 @@
 					parentValue={expression}
 					index={2}
 					{onChange}
+					{propertySpec}
 					literalType={outputLiteralType}
 				/>
 			</div>
@@ -155,6 +159,7 @@
 						parentValue={expression}
 						index={stopStartIndex + 1}
 						{onChange}
+						{propertySpec}
 						literalType={outputLiteralType}
 						onRemove={onChange ? () => removeStop(stopStartIndex, stopIndex) : undefined}
 						removeLabel="Remove stop"

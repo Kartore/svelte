@@ -85,8 +85,20 @@ export const removeArgsOrCollapse = (
  * user then edits the stops to shape the ramp.
  */
 export const literalToZoomInterpolate = (value: unknown): ExpressionSpecification => {
-	const output = typeof value === 'number' || typeof value === 'string' ? value : 0;
-	return ['interpolate', ['linear'], ['zoom'], 0, output, 22, output] as ExpressionSpecification;
+	const output = value === undefined ? 0 : value;
+	const expressionOutput =
+		typeof output === 'number' || typeof output === 'string'
+			? output
+			: (['literal', output] as ExpressionSpecification);
+	return [
+		'interpolate',
+		['linear'],
+		['zoom'],
+		0,
+		expressionOutput,
+		22,
+		expressionOutput
+	] as ExpressionSpecification;
 };
 
 /**

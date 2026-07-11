@@ -14,6 +14,7 @@
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
+	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -25,6 +26,7 @@
 		showExpressionButton = true,
 		propertyKey,
 		propertyGroup = 'paint',
+		propertySpec,
 		zoomRange,
 		children,
 		class: className,
@@ -46,6 +48,8 @@
 		propertyKey?: string;
 		/** property group the validation errors are looked up in */
 		propertyGroup?: 'paint' | 'layout';
+		/** style-spec metadata used to select the same literal editor as the sidebar */
+		propertySpec?: StylePropertySpec;
 		/** zoom curve preview のドメインをレイヤーの表示範囲に合わせる */
 		zoomRange?: [number, number];
 		/** the literal editor, rendered while the value is not an expression */
@@ -164,6 +168,7 @@
 			<ExpressionInputField
 				class="text-sm"
 				value={value as ExpressionSpecification}
+				{propertySpec}
 				{zoomRange}
 				{onChange}
 			/>

@@ -5,13 +5,18 @@
 	import { NumberArrayInnerField } from '$lib/components/common/NumberArrayField/NumberArrayInnerField';
 	import { Select } from '$lib/components/common/Select';
 	import { CloseIcon } from '$lib/components/icons';
+	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
-		label,
+		class: className,
+		label = 'Value',
+		compact = false,
 		value,
 		onChange
 	}: {
-		label: string;
+		class?: string;
+		label?: string;
+		compact?: boolean;
 		value?: unknown;
 		onChange?: (value: (string | [number, number])[] | undefined) => void;
 	} = $props();
@@ -68,21 +73,25 @@
 	};
 </script>
 
-<div class="flex flex-col gap-1">
-	<div class="flex flex-row items-center justify-between">
-		<span class="text-sm font-semibold text-gray-600">{label}</span>
-		{#if nextAnchor !== undefined}
-			<Button
-				aria-label={`Add ${label} entry`}
-				class="rounded bg-gray-100 px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-200"
-				onclick={() => commit([...pairs, { anchor: nextAnchor, offset: [0, 0] }])}
-			>
-				+ Add
-			</Button>
-		{/if}
-	</div>
+<div class={cn('flex min-w-0 flex-col gap-1', className)}>
+	{#if !compact || nextAnchor !== undefined}
+		<div class={cn('flex flex-row items-center justify-between', compact && 'justify-end')}>
+			{#if !compact}
+				<span class="text-sm font-semibold text-gray-600">{label}</span>
+			{/if}
+			{#if nextAnchor !== undefined}
+				<Button
+					aria-label={`Add ${label} entry`}
+					class="rounded bg-gray-100 px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-200"
+					onclick={() => commit([...pairs, { anchor: nextAnchor, offset: [0, 0] }])}
+				>
+					+ Add
+				</Button>
+			{/if}
+		</div>
+	{/if}
 	{#each pairs as pair, index (index)}
-		<div class="flex flex-row items-center gap-1">
+		<div class="flex min-w-0 flex-row items-center gap-1">
 			<Select
 				class="min-w-0 flex-1"
 				triggerClass="w-full"

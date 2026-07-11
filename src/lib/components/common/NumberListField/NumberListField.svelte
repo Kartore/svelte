@@ -7,14 +7,16 @@
 		values,
 		onChange,
 		minLength,
-		maxLength
+		maxLength,
+		'aria-label': ariaLabel
 	}: {
 		class?: string;
-		label: string;
+		label?: string;
 		values?: number[];
 		onChange?: (values: number[] | undefined) => void;
 		minLength?: number;
 		maxLength?: number;
+		'aria-label'?: string;
 	} = $props();
 
 	const id = $props.id();
@@ -57,9 +59,12 @@
 </script>
 
 <div class={cn('flex flex-row items-center justify-between', className)}>
-	<label for={id} class="text-sm font-semibold text-gray-600">{label}</label>
+	{#if label}
+		<label for={id} class="text-sm font-semibold text-gray-600">{label}</label>
+	{/if}
 	<input
 		{id}
+		aria-label={label ? undefined : ariaLabel}
 		type="text"
 		inputmode="decimal"
 		autocomplete="off"

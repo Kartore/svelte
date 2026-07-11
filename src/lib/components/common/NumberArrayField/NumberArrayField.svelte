@@ -10,15 +10,17 @@
 		onChange
 	}: {
 		class?: string;
-		label: string;
+		label?: string;
 		arrayLabels: string[];
 		values: number[];
-		onChange: (values: number[]) => void;
+		onChange?: (values: number[]) => void;
 	} = $props();
 </script>
 
 <div class={cn('flex flex-row items-center justify-between', className)}>
-	<span class="text-sm font-semibold text-gray-600">{label}</span>
+	{#if label}
+		<span class="text-sm font-semibold text-gray-600">{label}</span>
+	{/if}
 	<div class="flex w-1/2 flex-row gap-1">
 		{#each arrayLabels as arrayLabel, index (arrayLabel)}
 			<NumberArrayInnerField
@@ -27,7 +29,7 @@
 				onValueChange={(value) => {
 					const next = [...values];
 					next[index] = value;
-					onChange(next);
+					onChange?.(next);
 				}}
 			/>
 		{/each}

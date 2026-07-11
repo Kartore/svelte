@@ -1,1 +1,1 @@
-export { default as VariableAnchorOffsetField } from './VariableAnchorOffsetField.svelte';
+export { VariableAnchorOffsetField } from '$lib/components/common/VariableAnchorOffsetField';

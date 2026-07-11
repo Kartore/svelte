@@ -7,12 +7,14 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { CurveStopsEditor } from '$lib/components/common/FilterInputField/expressions/curves/common/CurveStopsEditor';
+	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 
 	let {
 		class: className,
 		children,
 		value,
 		zoomRange,
+		propertySpec,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -25,6 +27,7 @@
 			...(number | ExpressionInputType | ExpressionSpecification)[]
 		];
 		zoomRange?: [number, number];
+		propertySpec?: StylePropertySpec;
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
@@ -36,6 +39,7 @@
 	class={className}
 	value={expression}
 	{zoomRange}
+	{propertySpec}
 	{onChange}
 	{children}
 />
