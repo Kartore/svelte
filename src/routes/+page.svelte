@@ -22,6 +22,7 @@
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
+	import { createStyleExport } from '$lib/utils/styleExport.ts';
 	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
@@ -116,13 +117,19 @@
 
 	const handleExport = () => {
 		const style = $state.snapshot(store.mapStyle as object) as StyleSpecification;
-		const blob = new Blob([JSON.stringify(style, null, '\t')], { type: 'application/json' });
+		const styleExport = createStyleExport(style);
+		const blob = new Blob([styleExport.contents], { type: 'application/json' });
 		const url = URL.createObjectURL(blob);
 		const anchor = document.createElement('a');
 		anchor.href = url;
-		anchor.download = `${(style.name ?? 'style').replace(/[\\/:*?"<>|]/g, '_')}.json`;
+		anchor.download = styleExport.fileName;
 		anchor.click();
 		URL.revokeObjectURL(url);
+	};
+
+	const handleRenameStyle = (name: string) => {
+		if (previewState || name.trim() === '' || name === (store.mapStyle.name ?? '')) return;
+		store.setMapStyle((currentStyle) => ({ ...currentStyle, name }));
 	};
 
 	const handleSelectLayer = (layer: LayerSpecification) => {
@@ -263,6 +270,7 @@
 				onClickExport={handleExport}
 				onClickImport={() => (importDialogOpen = true)}
 				onClickSettings={() => (settingsDialogOpen = true)}
+				onRenameStyle={previewState ? undefined : handleRenameStyle}
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
 				canGroupLayersByPrefix={!previewState}

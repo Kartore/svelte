@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
 	import type { HTMLAttributes } from 'svelte/elements';
@@ -44,6 +44,7 @@
 		onClickExport,
 		onClickImport,
 		onClickSettings,
+		onRenameStyle,
 		onClickAddLayer,
 		onClickSources,
 		canGroupLayersByPrefix = true,
@@ -63,6 +64,7 @@
 		onClickExport?: () => void;
 		onClickImport?: () => void;
 		onClickSettings?: () => void;
+		onRenameStyle?: (name: string) => void;
 		onClickAddLayer?: () => void;
 		onClickSources?: () => void;
 		canGroupLayersByPrefix?: boolean;
@@ -71,6 +73,36 @@
 	} = $props();
 
 	const backgroundMap = useBackgroundMap();
+	const styleName = $derived(mapStyle.name ?? 'Untitled style');
+	let isRenamingStyle = $state(false);
+	let renameValue = $state('');
+	let renameInput = $state<HTMLInputElement | null>(null);
+
+	const startRenamingStyle = async () => {
+		if (!onRenameStyle) return;
+		renameValue = mapStyle.name ?? '';
+		isRenamingStyle = true;
+		await tick();
+		renameInput?.focus();
+		renameInput?.select();
+	};
+
+	const handleRenameKeyDown = (event: KeyboardEvent) => {
+		if (event.key !== 'Enter' || event.isComposing) return;
+		event.preventDefault();
+		void startRenamingStyle();
+	};
+
+	const commitStyleName = (name: string) => {
+		isRenamingStyle = false;
+		if (name.trim() === '' || name === (mapStyle.name ?? '')) return;
+		onRenameStyle?.(name);
+	};
+
+	const cancelStyleName = () => {
+		renameValue = mapStyle.name ?? '';
+		isRenamingStyle = false;
+	};
 
 	const errorMessages = (layerId: string): string[] | undefined =>
 		layerErrors?.[layerId]?.map(formatLayerValidationError);
@@ -287,12 +319,29 @@
 				>
 					K
 				</h1>
-				<p
-					class="truncate text-xs font-semibold text-gray-700"
-					title={mapStyle.name ?? 'Untitled style'}
-				>
-					{mapStyle.name ?? 'Untitled style'}
-				</p>
+				{#if isRenamingStyle}
+					<TextField
+						bind:ref={renameInput}
+						class="min-w-0 flex-1 [&>input]:h-7 [&>input]:w-full [&>input]:rounded-md [&>input]:px-2 [&>input]:text-xs [&>input]:text-gray-800"
+						aria-label="Style name"
+						value={renameValue}
+						onValueChange={(value) => (renameValue = value)}
+						onCommit={commitStyleName}
+						onCancel={cancelStyleName}
+					/>
+				{:else if onRenameStyle}
+					<Button
+						class="min-w-0 flex-1 justify-start rounded px-0 text-left text-xs font-semibold text-gray-700 underline-offset-2 hover:bg-transparent hover:underline active:bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+						aria-label={`Rename style “${styleName}”`}
+						title={styleName}
+						onclick={startRenamingStyle}
+						onkeydown={handleRenameKeyDown}
+					>
+						<span class="truncate">{styleName}</span>
+					</Button>
+				{:else}
+					<p class="truncate text-xs font-semibold text-gray-700" title={styleName}>{styleName}</p>
+				{/if}
 			</div>
 			<div class="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
 				<Button
