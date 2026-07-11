@@ -21,6 +21,7 @@
 	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
+	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
@@ -68,6 +69,14 @@
 	const handleChangeLayerOrder = (layers: LayerSpecification[]) => {
 		if (previewState) return;
 		store.setMapStyle((currentStyle) => ({ ...currentStyle, layers }));
+	};
+
+	const handleGroupLayersByPrefix = (): number => {
+		if (previewState) return 0;
+		const grouping = groupLayersByIdPrefix(store.mapStyle.layers);
+		if (grouping.groupCount === 0) return 0;
+		store.setMapStyle((currentStyle) => ({ ...currentStyle, layers: grouping.layers }));
+		return grouping.groupCount;
 	};
 
 	const handleChangeLayerData: onChangeType = (layer, group, key, value) => {
@@ -236,6 +245,8 @@
 				onClickSettings={() => (settingsDialogOpen = true)}
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
+				canGroupLayersByPrefix={!previewState}
+				onGroupLayersByPrefix={handleGroupLayersByPrefix}
 				onClickLayer={handleSelectLayer}
 			>
 				{#snippet headerActions()}

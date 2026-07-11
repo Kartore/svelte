@@ -1,7 +1,15 @@
 import type { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { buildLayerTreeRows, filterLayerTreeRowsById, GROUP_METADATA_KEY } from './layerGroup.ts';
+import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
+
+import {
+	buildLayerTreeRows,
+	filterLayerTreeRowsById,
+	getLayerGroup,
+	GROUP_METADATA_KEY,
+	groupLayersByIdPrefix
+} from './layerGroup.ts';
 
 const layer = (id: string, group?: string): LayerSpecification => ({
 	id,
@@ -35,5 +43,15 @@ describe('filterLayerTreeRowsById', () => {
 
 	it('leaves the row model unchanged for an empty search', () => {
 		expect(filterLayerTreeRowsById(layers, rows, '  ')).toBe(rows);
+	});
+});
+
+describe('groupLayersByIdPrefix', () => {
+	it('creates collapsible groups for the bundled OSM Liberty style', () => {
+		const grouping = groupLayersByIdPrefix(osmLibertyMigrated.layers);
+
+		expect(grouping.groupCount).toBeGreaterThan(0);
+		expect(grouping.layers.some((item) => getLayerGroup(item) !== undefined)).toBe(true);
+		expect(buildLayerTreeRows(grouping.layers).some((row) => row.kind === 'group')).toBe(true);
 	});
 });

@@ -39,6 +39,8 @@
 		onClickSettings,
 		onClickAddLayer,
 		onClickSources,
+		canGroupLayersByPrefix = true,
+		onGroupLayersByPrefix,
 		headerActions,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -56,6 +58,8 @@
 		onClickSettings?: () => void;
 		onClickAddLayer?: () => void;
 		onClickSources?: () => void;
+		canGroupLayersByPrefix?: boolean;
+		onGroupLayersByPrefix?: () => number;
 		headerActions?: Snippet;
 	} = $props();
 
@@ -73,6 +77,7 @@
 	const selectedLayer = $derived(mapStyle.layers.find((layer) => layer.id === selectedLayerId));
 	const selectedGroup = $derived(selectedLayer ? getLayerGroup(selectedLayer) : undefined);
 	let layerSearch = $state('');
+	let groupingMessage = $state('');
 	const normalizedLayerSearch = $derived(layerSearch.trim());
 	const isSearching = $derived(normalizedLayerSearch !== '');
 	const searchedRows = $derived(filterLayerTreeRowsById(mapStyle.layers, rows, layerSearch));
@@ -246,6 +251,14 @@
 		}
 		return `transform: translate3d(0, ${y}px, 0); transition: transform 200ms ease;`;
 	};
+
+	const groupLayersByPrefix = () => {
+		const groupCount = onGroupLayersByPrefix?.() ?? 0;
+		groupingMessage =
+			groupCount === 0
+				? 'No ungrouped layer prefixes can be grouped.'
+				: `Created ${groupCount} layer group${groupCount === 1 ? '' : 's'}. Undo to restore.`;
+	};
 </script>
 
 <div
@@ -322,6 +335,15 @@
 		</div>
 		<div class="flex items-center gap-1.5">
 			<Button
+				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 disabled:cursor-default disabled:text-gray-300 disabled:hover:border-gray-200 disabled:hover:bg-transparent"
+				aria-label="Group layers by prefix"
+				title="Group layers by prefix"
+				disabled={!canGroupLayersByPrefix || onGroupLayersByPrefix === undefined}
+				onclick={groupLayersByPrefix}
+			>
+				Group
+			</Button>
+			<Button
 				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
 				onclick={onClickSources}
 			>
@@ -359,6 +381,11 @@
 				</Button>
 			{/if}
 		</div>
+		{#if groupingMessage !== ''}
+			<p class="mt-1.5 text-[11px] font-medium text-gray-500" role="status" aria-live="polite">
+				{groupingMessage}
+			</p>
+		{/if}
 	</div>
 	<div class="flex-1 overflow-auto" {@attach setListElement}>
 		{#if isSearching && matchingLayerCount === 0}
