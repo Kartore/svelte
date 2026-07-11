@@ -162,6 +162,7 @@
 				class="z-50 m-0 max-h-40 min-w-32 list-none overflow-auto rounded border border-gray-500 bg-white p-0"
 				sideOffset={4}
 				align="start"
+				collisionPadding={8}
 			>
 				<Combobox.Viewport>
 					{#each filteredItems as item (item.value)}

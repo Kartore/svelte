@@ -42,7 +42,9 @@
 		{#snippet trigger()}
 			<ColorSwatch color={value ? value : undefined} class="block h-full w-full" />
 		{/snippet}
-		<div class={cn('mr-2 flex w-64 flex-col border border-gray-300 bg-white shadow-xl')}>
+		<div
+			class="flex w-64 max-w-[calc(100vw-1rem)] flex-col border border-gray-300 bg-white shadow-xl"
+		>
 			<div class="flex flex-row items-center justify-end border-b border-b-gray-300 p-1">
 				<Button
 					class="rounded p-1"
@@ -76,10 +78,10 @@
 					/>
 				</div>
 			</div>
-			<div class="flex flex-row px-3 pt-2 pb-4">
+			<div class="flex min-w-0 flex-row px-3 pt-2 pb-4">
 				<Select
-					class="text-xs"
-					triggerClass="h-8 bg-gray-100 hover:bg-gray-200 rounded-none"
+					class="w-14 shrink-0 text-xs"
+					triggerClass="h-8 w-full bg-gray-100 hover:bg-gray-200 rounded-none"
 					aria-label="Color format"
 					items={[
 						// { value: 'Hex', label: 'Hex' },
@@ -93,21 +95,21 @@
 					}}
 				/>
 				{#if colorFormat === 'RGB'}
-					<div class="flex flex-1 flex-row">
+					<div class="flex min-w-0 flex-1 flex-row">
 						<ColorChannelField
-							class="h-8 w-10 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="red"
 							value={value?.toFormat('rgb')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-10 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="green"
 							value={value?.toFormat('rgb')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-10 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="blue"
 							value={value?.toFormat('rgb')}
 							onChange={handleChange}
@@ -115,21 +117,21 @@
 					</div>
 				{/if}
 				{#if colorFormat === 'HSL'}
-					<div class="flex flex-1 flex-row">
+					<div class="flex min-w-0 flex-1 flex-row">
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="hue"
 							value={value?.toFormat('hsl')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="saturation"
 							value={value?.toFormat('hsl')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="lightness"
 							value={value?.toFormat('hsl')}
 							onChange={handleChange}
@@ -137,21 +139,21 @@
 					</div>
 				{/if}
 				{#if colorFormat === 'HSB'}
-					<div class="flex flex-1 flex-row">
+					<div class="flex min-w-0 flex-1 flex-row">
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="hue"
 							value={value?.toFormat('hsb')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="saturation"
 							value={value?.toFormat('hsb')}
 							onChange={handleChange}
 						/>
 						<ColorChannelField
-							class="h-8 w-11 flex-1"
+							class="h-8 min-w-0 flex-1"
 							channel="brightness"
 							value={value?.toFormat('hsb')}
 							onChange={handleChange}
@@ -159,7 +161,7 @@
 					</div>
 				{/if}
 				<ColorChannelField
-					class="h-8 w-12"
+					class="h-8 w-12 shrink-0"
 					channel="alpha"
 					value={value?.toFormat('rgb')}
 					onChange={handleChange}

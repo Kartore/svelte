@@ -28,7 +28,12 @@
 		{@render trigger()}
 	</Popover.Trigger>
 	<Popover.Portal>
-		<Popover.Content class={cn('z-50', contentClass)} sideOffset={4} align="start">
+		<Popover.Content
+			class={cn('z-50', contentClass)}
+			sideOffset={4}
+			align="start"
+			collisionPadding={8}
+		>
 			{@render children()}
 		</Popover.Content>
 	</Popover.Portal>
