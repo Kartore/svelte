@@ -11,6 +11,7 @@
 		indicator?: boolean;
 		clone?: boolean;
 		disableInteraction?: boolean;
+		dragDisabled?: boolean;
 		indent?: boolean;
 		layer: LayerSpecification;
 		isSelected?: boolean;

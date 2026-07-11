@@ -9,6 +9,7 @@
 		layer,
 		indicator,
 		disableInteraction,
+		dragDisabled,
 		indent,
 		clone,
 		class: className,
@@ -19,6 +20,7 @@
 		indicator?: boolean;
 		clone?: boolean;
 		disableInteraction?: boolean;
+		dragDisabled?: boolean;
 		indent?: boolean;
 		layer: LayerSpecification;
 		isSelected?: boolean;
@@ -38,7 +40,10 @@
 		className
 	)}
 >
-	<LayerIcon type={layer.type} class="h-3 w-3 min-w-3 cursor-grab" />
+	<LayerIcon
+		type={layer.type}
+		class={cn('h-3 w-3 min-w-3', dragDisabled ? 'cursor-default' : 'cursor-grab')}
+	/>
 	<p class="flex-1 overflow-hidden text-ellipsis">{layer.id}</p>
 	{#if errors && errors.length > 0}
 		<span class="flex items-center" title={errors.join('\n')}>

@@ -7,10 +7,16 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '$lib/components/common/Button';
+	import { TextField } from '$lib/components/common/TextField';
 	import { LayerGroupHeader } from '$lib/components/editor/NavigationPanel/LayerGroupHeader';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
-	import { PlusIcon } from '$lib/components/icons';
-	import { buildLayerTreeRows, getLayerGroup, resolveLayerDrop } from '$lib/utils/layerGroup.ts';
+	import { CloseIcon, PlusIcon } from '$lib/components/icons';
+	import {
+		buildLayerTreeRows,
+		filterLayerTreeRowsById,
+		getLayerGroup,
+		resolveLayerDrop
+	} from '$lib/utils/layerGroup.ts';
 	import {
 		formatLayerValidationError,
 		type LayerValidationError
@@ -66,15 +72,23 @@
 	const collapsedGroups = new SvelteSet<string>();
 	const selectedLayer = $derived(mapStyle.layers.find((layer) => layer.id === selectedLayerId));
 	const selectedGroup = $derived(selectedLayer ? getLayerGroup(selectedLayer) : undefined);
-	const visibleRows = $derived(
-		rows.filter(
+	let layerSearch = $state('');
+	const normalizedLayerSearch = $derived(layerSearch.trim());
+	const isSearching = $derived(normalizedLayerSearch !== '');
+	const searchedRows = $derived(filterLayerTreeRowsById(mapStyle.layers, rows, layerSearch));
+	const matchingLayerCount = $derived(
+		isSearching ? searchedRows.filter((row) => row.kind === 'layer').length : mapStyle.layers.length
+	);
+	const visibleRows = $derived.by(() => {
+		if (isSearching) return searchedRows;
+		return rows.filter(
 			(row) =>
 				row.kind === 'group' ||
 				row.group === undefined ||
 				row.group === selectedGroup ||
 				!collapsedGroups.has(row.group)
-		)
-	);
+		);
+	});
 
 	// dnd-kit (MouseSensor + verticalListSortingStrategy + DragOverlay) 相当を
 	// ネイティブ Pointer Events で実装している。
@@ -104,7 +118,7 @@
 	};
 
 	const handleItemPointerDown = (event: PointerEvent, layer: LayerSpecification) => {
-		if (event.button !== 0) return;
+		if (isSearching || event.button !== 0) return;
 		pendingLayer = layer;
 		pointerStart = { x: event.clientX, y: event.clientY };
 		suppressClick = false;
@@ -114,7 +128,7 @@
 	};
 
 	const startDrag = () => {
-		if (!pendingLayer || !listElement) return;
+		if (isSearching || !pendingLayer || !listElement) return;
 		itemRects = Array.from(listElement.children).map((child) => child.getBoundingClientRect());
 		const layerIndex = mapStyle.layers.findIndex((layer) => layer.id === pendingLayer?.id);
 		const rowIndex = visibleRows.findIndex(
@@ -300,7 +314,11 @@
 	<div class="flex items-center justify-between border-b border-b-gray-200 px-3 py-2.5">
 		<div>
 			<h2 class="font-[Montserrat] text-sm font-semibold text-gray-800">Layers</h2>
-			<p class="text-[11px] font-semibold text-gray-400">{mapStyle.layers.length} items</p>
+			<p class="text-[11px] font-semibold text-gray-400">
+				{isSearching
+					? `${matchingLayerCount} of ${mapStyle.layers.length} items`
+					: `${mapStyle.layers.length} items`}
+			</p>
 		</div>
 		<div class="flex items-center gap-1.5">
 			<Button
@@ -319,36 +337,68 @@
 			</Button>
 		</div>
 	</div>
-	<div class="flex-1 overflow-auto" {@attach setListElement}>
-		{#each visibleRows as row, rowIndex (row.kind === 'group' ? `group-${row.name}-${row.startIndex}` : (mapStyle.layers[row.layerIndex]?.id ?? row.layerIndex))}
-			{#if row.kind === 'group'}
-				<LayerGroupHeader
-					name={row.name}
-					count={row.layerIndexes.length}
-					collapsed={isCollapsed(row.name)}
-					errors={groupErrorMessages(row.layerIndexes)}
-					style={itemStyle(rowIndex)}
-					onToggle={() => toggleGroup(row.name)}
-				/>
-			{:else}
-				{@const layer = mapStyle.layers[row.layerIndex]}
-				<SortableLayerTreeItem
-					isSelected={layer.id === selectedLayerId}
-					{layer}
-					indent={row.group !== undefined}
-					errors={errorMessages(layer.id)}
-					indicator={layer.id === activeLayer?.id}
-					disableInteraction={activeLayer !== null}
-					style={itemStyle(rowIndex)}
-					onclick={() => {
-						handleItemClick(layer);
-					}}
-					onpointerdown={(event) => {
-						handleItemPointerDown(event, layer);
-					}}
-				/>
+	<div class="border-b border-b-gray-200 px-3 py-2">
+		<div class="relative">
+			<TextField
+				class="w-full [&>input]:h-8 [&>input]:w-full [&>input]:rounded-md [&>input]:pr-8 [&>input]:text-xs"
+				aria-label="Search layers"
+				placeholder="Search layer IDs"
+				value={layerSearch}
+				onValueChange={(value) => {
+					layerSearch = value;
+				}}
+			/>
+			{#if layerSearch !== ''}
+				<Button
+					aria-label="Clear layer search"
+					title="Clear search"
+					class="absolute top-1/2 right-1 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-700"
+					onclick={() => (layerSearch = '')}
+				>
+					<CloseIcon class="h-3.5 w-3.5 fill-current" />
+				</Button>
 			{/if}
-		{/each}
+		</div>
+	</div>
+	<div class="flex-1 overflow-auto" {@attach setListElement}>
+		{#if isSearching && matchingLayerCount === 0}
+			<p class="px-4 py-6 text-center text-xs font-medium text-gray-400">
+				No layers match “{normalizedLayerSearch}”.
+			</p>
+		{:else}
+			{#each visibleRows as row, rowIndex (row.kind === 'group' ? `group-${row.name}-${row.startIndex}` : (mapStyle.layers[row.layerIndex]?.id ?? row.layerIndex))}
+				{#if row.kind === 'group'}
+					<LayerGroupHeader
+						name={row.name}
+						count={row.layerIndexes.length}
+						collapsed={isSearching ? false : isCollapsed(row.name)}
+						errors={groupErrorMessages(row.layerIndexes)}
+						style={itemStyle(rowIndex)}
+						onToggle={isSearching ? undefined : () => toggleGroup(row.name)}
+					/>
+				{:else}
+					{@const layer = mapStyle.layers[row.layerIndex]}
+					<SortableLayerTreeItem
+						isSelected={layer.id === selectedLayerId}
+						{layer}
+						indent={row.group !== undefined}
+						errors={errorMessages(layer.id)}
+						indicator={layer.id === activeLayer?.id}
+						disableInteraction={activeLayer !== null}
+						dragDisabled={isSearching}
+						style={itemStyle(rowIndex)}
+						onclick={() => {
+							handleItemClick(layer);
+						}}
+						onpointerdown={isSearching
+							? undefined
+							: (event) => {
+									handleItemPointerDown(event, layer);
+								}}
+					/>
+				{/if}
+			{/each}
+		{/if}
 	</div>
 </div>
 

@@ -92,6 +92,29 @@ export const buildLayerTreeRows = (layers: LayerSpecification[]): LayerTreeRow[]
 	return rows;
 };
 
+/** レイヤー id の部分一致検索。グループ内に一致があればヘッダーも残す。 */
+export const filterLayerTreeRowsById = (
+	layers: LayerSpecification[],
+	rows: LayerTreeRow[],
+	query: string
+): LayerTreeRow[] => {
+	const normalizedQuery = query.trim().toLowerCase();
+	if (normalizedQuery === '') return rows;
+
+	const matchingLayerIndexes = new Set<number>();
+	for (let layerIndex = 0; layerIndex < layers.length; layerIndex += 1) {
+		if (layers[layerIndex].id.toLowerCase().includes(normalizedQuery)) {
+			matchingLayerIndexes.add(layerIndex);
+		}
+	}
+
+	return rows.filter((row) =>
+		row.kind === 'group'
+			? row.layerIndexes.some((layerIndex) => matchingLayerIndexes.has(layerIndex))
+			: matchingLayerIndexes.has(row.layerIndex)
+	);
+};
+
 const setLayerGroup = (layer: LayerSpecification, group: string | undefined): void => {
 	if (group !== undefined) {
 		layer.metadata = {
