@@ -276,16 +276,8 @@
 				canGroupLayersByPrefix={!previewState}
 				onGroupLayersByPrefix={handleGroupLayersByPrefix}
 				onClickLayer={handleSelectLayer}
-			>
-				{#snippet headerActions()}
-					{#each adapterModules as module (module.id)}
-						{#if module.headerAction}
-							{@const HeaderAction = module.headerAction}
-							<HeaderAction />
-						{/if}
-					{/each}
-				{/snippet}
-			</NavigationPanel>
+				{adapterModules}
+			/>
 
 			<ControlPanel class="flex-1" />
 

@@ -23,8 +23,15 @@ export type EditorModulePage = {
 // この型を変更したら、すべてのアダプタの types/host-app.d.ts も更新すること。
 export type EditorModule = {
 	id: string;
-	/** NavigationPanel ヘッダー右端 (Import ボタンの隣) に並ぶボタン */
+	/**
+	 * @deprecated `menuSection` / `headerStatus` へ移行すること。`menuSection` が無い場合は
+	 * File メニュー末尾のフォールバックセクションに描画される。
+	 */
 	headerAction?: Component;
+	/** File メニューに差し込まれる項目群 */
+	menuSection?: Component;
+	/** NavigationPanel のメニュー行右端に並ぶ小さな状態表示 */
+	headerStatus?: Component;
 	/** +page.svelte 直下にマウントされるダイアログ・オーバーレイ */
 	overlays?: Component[];
 	/** エディタ外のスタンドアロンページ (diff ビューア等)。setup は呼ばれない */

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 	import { onDestroy, tick } from 'svelte';
-	import type { Snippet } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -18,6 +17,7 @@
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
 	import { CloseIcon, PlusIcon } from '$lib/components/icons';
 	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
+	import type { EditorModule } from '$lib/editor/EditorModule.ts';
 	import {
 		buildLayerTreeRows,
 		filterLayerTreeRowsById,
@@ -49,7 +49,7 @@
 		onClickSources,
 		canGroupLayersByPrefix = true,
 		onGroupLayersByPrefix,
-		headerActions,
+		adapterModules = [],
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
@@ -69,10 +69,14 @@
 		onClickSources?: () => void;
 		canGroupLayersByPrefix?: boolean;
 		onGroupLayersByPrefix?: () => number;
-		headerActions?: Snippet;
+		adapterModules?: EditorModule[];
 	} = $props();
 
 	const backgroundMap = useBackgroundMap();
+	const hasMenuSections = $derived(adapterModules.some((module) => module.menuSection));
+	const hasHeaderActionFallbacks = $derived(
+		adapterModules.some((module) => !module.menuSection && module.headerAction)
+	);
 	const styleName = $derived(mapStyle.name ?? 'Untitled style');
 	let isRenamingStyle = $state(false);
 	let renameValue = $state('');
@@ -369,6 +373,24 @@
 				<MenuTrigger value="file" label="File">
 					<MenuItem onSelect={() => onClickImport?.()}>Import style…</MenuItem>
 					<MenuItem onSelect={() => onClickExport?.()}>Export style…</MenuItem>
+					{#if hasMenuSections}
+						<MenuSeparator />
+						{#each adapterModules as module (module.id)}
+							{#if module.menuSection}
+								{@const MenuSection = module.menuSection}
+								<MenuSection />
+							{/if}
+						{/each}
+					{/if}
+					{#if hasHeaderActionFallbacks}
+						<MenuSeparator />
+						{#each adapterModules as module (module.id)}
+							{#if !module.menuSection && module.headerAction}
+								{@const HeaderAction = module.headerAction}
+								<HeaderAction />
+							{/if}
+						{/each}
+					{/if}
 					<MenuSeparator />
 					<MenuItem onSelect={() => onClickSettings?.()}>Style settings…</MenuItem>
 				</MenuTrigger>
@@ -381,8 +403,13 @@
 					</MenuItem>
 				</MenuTrigger>
 			</MenuRoot>
-			<div class="flex min-w-0 flex-wrap items-center justify-end gap-1.5 empty:hidden">
-				{@render headerActions?.()}
+			<div class="flex min-w-0 items-center justify-end gap-1.5 overflow-hidden empty:hidden">
+				{#each adapterModules as module (module.id)}
+					{#if module.headerStatus}
+						{@const HeaderStatus = module.headerStatus}
+						<HeaderStatus />
+					{/if}
+				{/each}
 			</div>
 		</div>
 	</div>
