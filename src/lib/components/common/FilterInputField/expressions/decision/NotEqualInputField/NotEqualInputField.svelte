@@ -37,25 +37,45 @@
 	const rightKey = $derived(getGetExpressionKey(value[2]));
 </script>
 
-<div
-	{...props}
-	class={cn('flex flex-row items-center gap-2 rounded bg-black/5 px-0.5 py-0.5', className)}
->
-	<ExpressionArgInputField
-		parentValue={expression}
-		index={1}
-		{onChange}
-		suggestion={rightKey ? { kind: 'propertyValue', key: rightKey } : undefined}
-	/>
-	<ExpressionOperatorSelect value={expression} {onChange} />
-	<ExpressionArgInputField
-		parentValue={expression}
-		index={2}
-		{onChange}
-		suggestion={leftKey ? { kind: 'propertyValue', key: leftKey } : undefined}
-	/>
+<div {...props} class={cn('flex min-w-0 flex-col gap-1 rounded bg-black/5 px-2 py-2', className)}>
+	<div
+		class="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] gap-1 px-0.5 font-mono text-[10px] text-gray-400"
+	>
+		<span>subject</span>
+		<span class="text-center">operator</span>
+		<span>value</span>
+	</div>
+	<div
+		class="grid min-w-0 grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+	>
+		<ExpressionArgInputField
+			class="min-w-0 [&>:first-child]:w-full"
+			parentValue={expression}
+			index={1}
+			{onChange}
+			suggestion={rightKey ? { kind: 'propertyValue', key: rightKey } : undefined}
+		/>
+		<ExpressionOperatorSelect class="min-w-0 justify-self-center" value={expression} {onChange} />
+		<ExpressionArgInputField
+			class="min-w-0 [&>:first-child]:w-full"
+			parentValue={expression}
+			index={2}
+			{onChange}
+			suggestion={leftKey ? { kind: 'propertyValue', key: leftKey } : undefined}
+		/>
+	</div>
 	{#if collator}
-		<ExpressionArgInputField parentValue={expression} index={3} {onChange} />
+		<div class="flex min-w-0 items-start gap-2 border-t border-gray-200 px-0.5 pt-1">
+			<span class="pt-1 text-[10px] font-semibold tracking-wide text-gray-400 uppercase"
+				>collator</span
+			>
+			<ExpressionArgInputField
+				class="min-w-0 flex-1"
+				parentValue={expression}
+				index={3}
+				{onChange}
+			/>
+		</div>
 	{/if}
 	{@render children?.()}
 </div>

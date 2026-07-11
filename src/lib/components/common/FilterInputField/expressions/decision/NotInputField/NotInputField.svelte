@@ -23,11 +23,18 @@
 	const expression = $derived(value as ExpressionSpecification);
 </script>
 
-<div
-	{...props}
-	class={cn('flex flex-row items-center gap-2 rounded bg-black/5 px-0.5 py-0.5', className)}
->
-	<ExpressionOperatorSelect value={expression} {onChange} />
-	<ExpressionArgInputField parentValue={expression} index={1} {onChange} />
+<div {...props} class={cn('flex min-w-0 flex-col gap-2 rounded bg-black/5 px-2 py-2', className)}>
+	<div class="flex min-w-0 items-center gap-1">
+		<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">logic</span>
+		<ExpressionOperatorSelect value={expression} {onChange} />
+	</div>
+	<div class="min-w-0 border-l border-gray-200 pl-2">
+		<ExpressionArgInputField
+			class="min-w-0 rounded px-0.5 py-1 hover:bg-white/60 [&>:first-child]:min-w-0 [&>:first-child]:flex-1"
+			parentValue={expression}
+			index={1}
+			{onChange}
+		/>
+	</div>
 	{@render children?.()}
 </div>
