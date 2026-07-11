@@ -12,6 +12,7 @@
 		clone?: boolean;
 		disableInteraction?: boolean;
 		dragDisabled?: boolean;
+		currentZoom?: number;
 		indent?: boolean;
 		layer: LayerSpecification;
 		isSelected?: boolean;

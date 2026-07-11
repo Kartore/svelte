@@ -24,6 +24,24 @@ export const getLayerZoomRange = (layer: LayerSpecification): [number, number] =
 	layer.maxzoom ?? 24
 ];
 
+export const getLayerZoomRangeLabel = (layer: LayerSpecification): string | undefined => {
+	if (layer.minzoom === undefined && layer.maxzoom === undefined) return undefined;
+	const [minZoom, maxZoom] = getLayerZoomRange(layer);
+	return `z${minZoom}–${maxZoom}`;
+};
+
+/** MapLibre の maxzoom は排他的。範囲指定がないレイヤーは淡色表示しない。 */
+export const isLayerOutsideZoomRange = (
+	layer: LayerSpecification,
+	zoom: number | undefined
+): boolean => {
+	if (zoom === undefined || (layer.minzoom === undefined && layer.maxzoom === undefined)) {
+		return false;
+	}
+	const [minZoom, maxZoom] = getLayerZoomRange(layer);
+	return zoom < minZoom || zoom >= maxZoom;
+};
+
 export const getLayerProperties = (
 	type: LayerSpecification['type'],
 	group: LayerPropertyGroup

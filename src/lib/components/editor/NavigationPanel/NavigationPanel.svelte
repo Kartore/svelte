@@ -11,6 +11,7 @@
 	import { LayerGroupHeader } from '$lib/components/editor/NavigationPanel/LayerGroupHeader';
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
 	import { CloseIcon, PlusIcon } from '$lib/components/icons';
+	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import {
 		buildLayerTreeRows,
 		filterLayerTreeRowsById,
@@ -62,6 +63,8 @@
 		onGroupLayersByPrefix?: () => number;
 		headerActions?: Snippet;
 	} = $props();
+
+	const backgroundMap = useBackgroundMap();
 
 	const errorMessages = (layerId: string): string[] | undefined =>
 		layerErrors?.[layerId]?.map(formatLayerValidationError);
@@ -413,6 +416,7 @@
 						indicator={layer.id === activeLayer?.id}
 						disableInteraction={activeLayer !== null}
 						dragDisabled={isSearching}
+						currentZoom={backgroundMap.zoom}
 						style={itemStyle(rowIndex)}
 						onclick={() => {
 							handleItemClick(layer);
@@ -434,6 +438,6 @@
 		class="pointer-events-none fixed z-50 select-none"
 		style={`left: ${overlayLeft}px; top: ${overlayTop}px; width: ${overlayWidth}px;`}
 	>
-		<SortableLayerTreeItem layer={activeLayer} clone />
+		<SortableLayerTreeItem layer={activeLayer} currentZoom={backgroundMap.zoom} clone />
 	</div>
 {/if}
