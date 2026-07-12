@@ -81,24 +81,26 @@
 </script>
 
 <div {...props} class={cn('flex min-w-0 flex-col gap-2 rounded bg-black/5 px-2 py-2', className)}>
-	<div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-		<div class="flex items-center gap-1">
-			<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">curve</span>
-			<ExpressionOperatorSelect value={expression} {onChange} />
-		</div>
-		{#if interpolation}
+	<div class="flex min-w-0 flex-col gap-1.5">
+		<div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
 			<div class="flex min-w-0 items-center gap-1">
-				<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">mode</span>
-				<InterpolationsInputField
-					value={interpolation}
-					onChange={onChange ? (next) => onChange(replaceArgAt(expression, 1, next)) : undefined}
-				/>
+				<span class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">curve</span>
+				<ExpressionOperatorSelect value={expression} {onChange} />
 			</div>
-		{/if}
-		<div class="flex min-w-0 flex-1 items-center justify-end gap-1">
-			<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">input</span>
+			{#if interpolation}
+				<div class="flex min-w-0 items-center gap-1">
+					<span class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">mode</span>
+					<InterpolationsInputField
+						value={interpolation}
+						onChange={onChange ? (next) => onChange(replaceArgAt(expression, 1, next)) : undefined}
+					/>
+				</div>
+			{/if}
+		</div>
+		<div class="flex min-w-0 flex-wrap items-center gap-2 border-t border-gray-200 pt-1.5">
+			<span class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">input</span>
 			<ExpressionArgInputField
-				class="min-w-0"
+				class="min-w-0 flex-1 justify-end"
 				parentValue={expression}
 				index={inputIndex}
 				{onChange}
@@ -116,7 +118,7 @@
 
 	<div class="flex min-w-0 flex-col gap-1">
 		<div
-			class="grid grid-cols-[56px_minmax(0,1fr)_24px] gap-1 border-b border-gray-200 px-0.5 pb-1 font-mono text-[10px] text-gray-400"
+			class="grid grid-cols-[56px_minmax(0,1fr)_24px] gap-1 border-b border-gray-200 px-0.5 pb-1 font-mono text-[10px] text-gray-500"
 		>
 			<span>{inputLabel}</span>
 			<span>value</span>
@@ -127,7 +129,7 @@
 			<div
 				class="grid min-w-0 grid-cols-[56px_minmax(0,1fr)_24px] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
 			>
-				<span class="pt-1 font-mono text-xs text-gray-400">default</span>
+				<span class="pt-1 font-mono text-xs text-gray-500">default</span>
 				<ExpressionArgInputField
 					class="col-span-2 min-w-0 justify-between"
 					parentValue={expression}

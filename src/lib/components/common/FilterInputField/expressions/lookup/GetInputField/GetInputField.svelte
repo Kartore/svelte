@@ -61,39 +61,39 @@
 			{onChange}
 			suggestion="propertyKey"
 		/>
-		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">from</div>
+		<div class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">from</div>
 		{#if items !== undefined}
 			<ExpressionArgInputField parentValue={expression} index={2} {onChange} />
 		{:else}
-			<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
+			<div class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
 				current feature
 			</div>
 		{/if}
 	</div>
 	{#if propertyKey && propertySuggestion}
-		<div class="flex min-w-0 flex-wrap items-center gap-1 border-t border-black/5 pt-1">
+		<div class="flex min-w-0 flex-wrap items-center gap-1 border-t border-gray-200 pt-1.5">
 			{#if sourceLabel}
-				<span class="text-[9px] font-semibold tracking-wide text-gray-400 uppercase">
+				<span class="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
 					{sourceLabel}
 				</span>
 			{/if}
 			{#if propertySuggestion.type}
-				<span class="rounded bg-white/80 px-1 py-0.5 font-mono text-[9px] text-gray-500">
+				<span class="rounded bg-gray-200 px-1 py-0.5 font-mono text-[10px] text-gray-700">
 					{propertySuggestion.type}
 				</span>
 			{/if}
 			{#if sampledValues.length > 0}
-				<span class="ml-1 text-[9px] text-gray-400">sample</span>
+				<span class="ml-1 text-[10px] text-gray-500">sample</span>
 				{#each sampledValues as sample (`${typeof sample}:${String(sample)}`)}
 					<code
-						class="max-w-24 truncate rounded bg-white/80 px-1 py-0.5 text-[9px] text-gray-500"
+						class="max-w-24 truncate rounded bg-white px-1 py-0.5 text-[10px] text-gray-600"
 						title={String(sample)}>{String(sample)}</code
 					>
 				{/each}
 			{/if}
 		</div>
 	{:else if !propertyKey && suggestions && suggestions.propertyKeys.length > 0}
-		<div class="border-t border-black/5 pt-1 text-[9px] text-gray-400">
+		<div class="border-t border-gray-200 pt-1.5 text-[10px] text-gray-500">
 			{suggestions.propertyKeys.length} source fields available
 		</div>
 	{/if}

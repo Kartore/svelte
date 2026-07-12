@@ -41,8 +41,8 @@
 {#snippet typeSelect()}
 	<Select
 		aria-label="interpolation type"
-		class="inline-flex"
-		triggerClass="flex w-auto flex-row items-center gap-1 rounded border-none bg-transparent px-1 py-0.5 font-semibold text-sm transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 aria-expanded:bg-gray-200"
+		class="inline-flex min-w-0 max-w-full font-mono"
+		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
 		items={interpolationTypes.map((type) => ({ value: type, label: type }))}
 		value={value[0]}
 		onValueChange={(key) => {

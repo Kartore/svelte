@@ -44,7 +44,7 @@
 
 	<div class="flex min-w-0 flex-col gap-1">
 		<div
-			class="grid grid-cols-[minmax(184px,2fr)_16px_minmax(72px,1fr)] gap-1 border-b border-gray-200 px-0.5 pb-1 font-mono text-[10px] text-gray-400"
+			class="grid grid-cols-[minmax(0,2fr)_16px_minmax(0,1fr)] gap-1 border-b border-gray-200 px-0.5 pb-1 font-mono text-[10px] text-gray-500"
 		>
 			<span>condition</span>
 			<span aria-hidden="true"></span>
@@ -53,7 +53,7 @@
 
 		{#each Array.from({ length: pairCount }, (_, pair) => pair) as pair (pair)}
 			<div
-				class="grid min-w-0 grid-cols-[minmax(184px,2fr)_16px_minmax(72px,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+				class="grid min-w-0 grid-cols-[minmax(0,2fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
 			>
 				<ExpressionArgInputField
 					class="min-w-0"
@@ -79,9 +79,9 @@
 		{/each}
 
 		<div
-			class="grid min-w-0 grid-cols-[minmax(184px,2fr)_16px_minmax(72px,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+			class="grid min-w-0 grid-cols-[minmax(0,2fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
 		>
-			<span class="pt-1 font-mono text-xs text-gray-400">default</span>
+			<span class="pt-1 font-mono text-xs text-gray-500">default</span>
 			<span class="pt-1 text-center font-mono text-xs text-gray-300" aria-hidden="true">→</span>
 			<ExpressionArgInputField
 				class="min-w-0"

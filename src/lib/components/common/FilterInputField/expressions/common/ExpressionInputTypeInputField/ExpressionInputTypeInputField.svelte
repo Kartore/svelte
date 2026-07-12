@@ -64,7 +64,13 @@
 	);
 </script>
 
-<div {...props} class={cn('flex flex-row items-center gap-1 px-0.5 py-0.5', className)}>
+<div
+	{...props}
+	class={cn(
+		'flex min-w-0 max-w-full flex-row flex-wrap items-center gap-1 px-0.5 py-0.5',
+		className
+	)}
+>
 	{#if color}
 		<ColorPicker
 			value={color}

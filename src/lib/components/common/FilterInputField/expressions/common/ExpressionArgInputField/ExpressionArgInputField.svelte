@@ -103,7 +103,10 @@
 	};
 </script>
 
-<div {...props} class={cn('group/arg flex flex-row items-center gap-0.5', className)}>
+<div
+	{...props}
+	class={cn('group/arg flex min-w-0 max-w-full flex-row flex-wrap items-center gap-1', className)}
+>
 	{#if propertySpec !== undefined && specLiteralFieldKind !== undefined && editableLiteral !== undefined && !editAsExpression}
 		<SpecLiteralField
 			class="min-w-0 flex-1"
@@ -114,9 +117,10 @@
 			onChange={handleChildChange ? handleSpecLiteralChange : undefined}
 		/>
 	{:else if isExpression(arg)}
-		<ExpressionInputField value={arg} onChange={handleChildChange} />
+		<ExpressionInputField class="min-w-0 flex-1" value={arg} onChange={handleChildChange} nested />
 	{:else}
 		<ExpressionInputTypeInputField
+			class="min-w-0 max-w-full"
 			value={arg}
 			onChange={handleChildChange}
 			{suggestions}
@@ -127,7 +131,7 @@
 		<Button
 			aria-label="Convert to expression"
 			title="Convert to expression"
-			class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			class="rounded px-1 py-0.5 font-mono text-xs text-gray-500 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
 			onclick={specLiteralFieldKind !== undefined
 				? editSpecLiteralAsExpression
 				: () => handleChildChange?.(literalToExpression(arg))}
@@ -138,7 +142,7 @@
 		<Button
 			aria-label="Edit as expression"
 			title="Edit as expression"
-			class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			class="rounded px-1 py-0.5 font-mono text-xs text-gray-500 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
 			onclick={editSpecLiteralAsExpression}
 		>
 			fx
@@ -148,7 +152,7 @@
 		<Button
 			aria-label={removeLabel}
 			title={removeLabel}
-			class="shrink-0 rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
+			class="shrink-0 rounded px-1 py-0.5 text-xs text-gray-500 transition-colors hover:text-red-500"
 			onclick={onRemove}
 		>
 			×

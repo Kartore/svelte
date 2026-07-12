@@ -55,8 +55,8 @@
 		/>
 	</div>
 
-	<div class="flex min-h-8 items-start justify-between gap-3">
-		<div class="min-w-0 flex-1">
+	<div class="flex min-h-8 flex-wrap items-start gap-x-3 gap-y-1">
+		<div class="min-w-0 flex-1 basis-48">
 			{#if validation.ok}
 				<p class="text-xs text-emerald-600">
 					{isDirty ? 'Valid expression — ready to apply.' : 'Expression is valid.'}
@@ -65,7 +65,7 @@
 				<p class="text-xs break-words text-red-600" role="alert">{validation.error}</p>
 			{/if}
 		</div>
-		<div class="flex shrink-0 items-center gap-1">
+		<div class="ml-auto flex shrink-0 items-center gap-1">
 			<Button
 				class="h-7 rounded px-2 text-xs font-semibold text-gray-500 disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
 				disabled={!isDirty}
@@ -74,7 +74,7 @@
 				Revert
 			</Button>
 			<Button
-				class="h-7 rounded bg-gray-900 px-2.5 text-xs font-semibold text-white hover:bg-gray-700 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400"
+				class="h-7 rounded bg-gray-700 px-2.5 text-xs font-semibold text-white hover:bg-gray-600 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400"
 				disabled={!isDirty || !validation.ok}
 				title="Apply JSON (⌘/Ctrl+Enter)"
 				onclick={apply}

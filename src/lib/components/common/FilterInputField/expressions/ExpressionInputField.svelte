@@ -10,12 +10,15 @@
 		value: ExpressionSpecification;
 		zoomRange?: [number, number];
 		propertySpec?: StylePropertySpec;
+		/** nested expressions use the same left-rule hierarchy as nested filter groups */
+		nested?: boolean;
 		onChange?: (value: ExpressionSpecification) => void;
 	};
 </script>
 
 <script lang="ts">
 	import type { Component } from 'svelte';
+	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	import {
 		RgbaInputField,
@@ -477,6 +480,7 @@
 		value,
 		zoomRange,
 		propertySpec,
+		nested = false,
 		onChange,
 		...props
 	}: ExpressionInputFieldProps = $props();
@@ -488,16 +492,24 @@
 		...(entry?.acceptsZoomRange ? { zoomRange } : {}),
 		...(entry?.acceptsPropertySpec ? { propertySpec } : {})
 	});
+	const fieldClass = $derived(cn('max-w-full text-gray-700', className));
 </script>
 
 {#if value}
 	{#if entry}
 		{@const Field = entry.component as Component<ExpressionInputFieldProps>}
-		<Field {...props} {...fieldProps} class={className} {value} {onChange}>
+		<Field
+			{...props}
+			{...fieldProps}
+			class={fieldClass}
+			data-expression-node={nested ? 'nested' : 'root'}
+			{value}
+			{onChange}
+		>
 			{@render children?.()}
 		</Field>
 	{:else}
-		<div {...props} class={className}>
+		<div {...props} class={fieldClass} data-expression-node={nested ? 'nested' : 'root'}>
 			{JSON.stringify(value)}
 			{@render children?.()}
 		</div>

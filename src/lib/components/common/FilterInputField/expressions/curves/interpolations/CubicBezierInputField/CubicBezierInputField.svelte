@@ -61,7 +61,12 @@
 	{#each controlValues as controlValue, i (i + 1)}
 		{@const index = i + 1}
 		{#if isExpression(controlValue)}
-			<ExpressionInputField value={controlValue} onChange={handleControlValueChange(index)} />
+			<ExpressionInputField
+				class="min-w-0 flex-1"
+				value={controlValue}
+				onChange={handleControlValueChange(index)}
+				nested
+			/>
 		{:else}
 			<ExpressionInputTypeInputField
 				value={controlValue}

@@ -39,12 +39,19 @@
 </script>
 
 {#if !meta || !onChange}
-	<div class={cn('flex flex-row px-0.5 py-0.5', className)}>{displayLabel}</div>
+	<div
+		class={cn(
+			'flex min-w-0 max-w-full flex-row rounded bg-gray-100 px-2 py-1 font-mono text-sm font-normal text-gray-700',
+			className
+		)}
+	>
+		<span class="truncate">{displayLabel}</span>
+	</div>
 {:else}
 	<Select
 		aria-label="expression operator"
-		class={cn('inline-flex', className)}
-		triggerClass="flex w-auto flex-row items-center gap-1 rounded border-none bg-transparent px-1 py-0.5 font-semibold text-sm transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 aria-expanded:bg-gray-200"
+		class={cn('inline-flex min-w-0 max-w-full font-mono', className)}
+		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
 		sections={operatorSections}
 		value={String(operator)}
 		onValueChange={(key) => {

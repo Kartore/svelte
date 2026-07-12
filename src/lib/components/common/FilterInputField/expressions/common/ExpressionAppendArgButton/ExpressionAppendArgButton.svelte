@@ -32,7 +32,7 @@
 		aria-label={ariaLabel}
 		title={ariaLabel}
 		class={cn(
-			'rounded px-1.5 py-0.5 font-semibold text-gray-400 text-xs hover:text-gray-600',
+			'rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 hover:text-gray-700',
 			className
 		)}
 		onclick={() => {

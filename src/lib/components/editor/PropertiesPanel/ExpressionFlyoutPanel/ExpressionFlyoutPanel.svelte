@@ -77,13 +77,13 @@
 	>
 		<div class="flex min-w-0 flex-col">
 			<h3 class="font-montserrat truncate text-sm font-semibold">{target.label}</h3>
-			<span class="truncate font-mono text-xs text-gray-400" title={`${layer.id} · ${target.key}`}>
+			<span class="truncate font-mono text-xs text-gray-500" title={`${layer.id} · ${target.key}`}>
 				{layer.id} · {target.key}
 			</span>
 		</div>
 		<Button
 			aria-label="Close expression editor"
-			class="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+			class="shrink-0 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
 			onclick={onClose}
 		>
 			<CloseIcon class="h-4 w-4 fill-current" />
@@ -96,8 +96,8 @@
 				class={cn(
 					'rounded px-2 py-1 text-xs font-semibold',
 					editorMode === 'builder'
-						? 'bg-gray-900 text-white hover:bg-gray-700'
-						: 'text-gray-500 hover:bg-gray-100'
+						? 'bg-gray-200 text-gray-800 hover:bg-gray-200'
+						: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
 				)}
 				onclick={() => (editorMode = 'builder')}
 			>
@@ -108,8 +108,8 @@
 				class={cn(
 					'rounded px-2 py-1 text-xs font-semibold',
 					editorMode === 'json'
-						? 'bg-gray-900 text-white hover:bg-gray-700'
-						: 'text-gray-500 hover:bg-gray-100'
+						? 'bg-gray-200 text-gray-800 hover:bg-gray-200'
+						: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
 				)}
 				onclick={() => (editorMode = 'json')}
 			>
@@ -117,7 +117,7 @@
 			</Button>
 		</div>
 	{/if}
-	<div class="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
+	<div class="flex min-w-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-3">
 		{#if isFilter}
 			<FilterQueryBuilder
 				value={value as FilterSpecification | undefined}
@@ -142,14 +142,49 @@
 			{/key}
 			<PropertyErrorMessage group={target.group} property={target.key} />
 		{:else}
-			<ExpressionInputField
-				class="text-sm"
-				value={value as ExpressionSpecification}
-				{propertySpec}
-				{zoomRange}
-				onChange={handleExpressionChange}
-			/>
+			<div class="expression-builder min-w-0 max-w-full">
+				<ExpressionInputField
+					class="w-full text-sm"
+					value={value as ExpressionSpecification}
+					{propertySpec}
+					{zoomRange}
+					onChange={handleExpressionChange}
+				/>
+			</div>
 			<PropertyErrorMessage group={target.group} property={target.key} />
 		{/if}
 	</div>
 </div>
+
+<style>
+	/* Filter groups use a quiet left rule for hierarchy. Expressions mirror that
+	   structure while keeping the existing neutral palette. */
+	.expression-builder :global([data-expression-node]) {
+		max-width: 100%;
+		min-width: 0;
+		flex-wrap: wrap;
+		color: #374151;
+		overflow-wrap: anywhere;
+	}
+
+	.expression-builder :global([data-expression-node='root']) {
+		width: 100%;
+		background-color: #f9fafb;
+		box-shadow: inset 0 0 0 1px #e5e7eb;
+	}
+
+	.expression-builder :global([data-expression-node='nested']) {
+		flex: 1 1 12rem;
+		border-left: 1px solid #d1d5db;
+		border-radius: 0;
+		background-color: transparent;
+		box-shadow: none;
+		padding-right: 0;
+		padding-left: 0.5rem;
+	}
+
+	.expression-builder :global([data-expression-node] .text-gray-400),
+	.expression-builder :global([data-expression-node].text-gray-400) {
+		color: #6b7280;
+	}
+</style>

@@ -34,7 +34,7 @@
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	{#if isExpression(object)}
-		<ExpressionInputField value={object} {onChange} />
+		<ExpressionInputField class="min-w-0 flex-1" value={object} {onChange} nested />
 	{:else}
 		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
 			{JSON.stringify(object)}

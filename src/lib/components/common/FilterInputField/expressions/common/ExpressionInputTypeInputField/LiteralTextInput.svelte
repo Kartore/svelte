@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export const literalInputClassName =
-		'rounded border-none bg-gray-100 px-1 py-0.5 text-center font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0';
+		'min-w-0 max-w-full rounded border-none bg-gray-100 px-1 py-0.5 text-center font-semibold text-gray-700 transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0';
 </script>
 
 <script lang="ts">

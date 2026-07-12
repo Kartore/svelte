@@ -49,7 +49,7 @@
 	{/if}
 	<div class="flex flex-row px-0.5 py-0.5">(</div>
 	{#if isExpression(num)}
-		<ExpressionInputField value={num} onChange={handleBaseChange} />
+		<ExpressionInputField class="min-w-0 flex-1" value={num} onChange={handleBaseChange} nested />
 	{:else}
 		<ExpressionInputTypeInputField value={num} onChange={handleBaseChange} />
 	{/if}
