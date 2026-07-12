@@ -1,9 +1,18 @@
 import { getContext, setContext } from 'svelte';
 
 export type ExpressionSuggestionValue = string | number | boolean;
+export type ExpressionPropertySuggestion = {
+	name: string;
+	/** TileJSON field type, or a type inferred from sampled tile features. */
+	type?: string;
+	/** Where the key was discovered. */
+	origin?: 'tilejson' | 'features' | 'both';
+	/** Number of distinct values sampled from currently loaded tiles. */
+	sampleCount?: number;
+};
 export type ExpressionSuggestions = {
 	/** feature property keys available on the layer's source-layer */
-	propertyKeys: { name: string; type?: string }[];
+	propertyKeys: ExpressionPropertySuggestion[];
 	/** distinct values observed for a property key (from loaded tiles — not exhaustive) */
 	getValueSuggestions: (key: string) => ExpressionSuggestionValue[];
 };

@@ -14,6 +14,14 @@ import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 const MAX_FEATURES = 2000;
 const MAX_VALUES_PER_KEY = 50;
 
+const inferFieldType = (values: Set<ExpressionSuggestionValue> | undefined): string | undefined => {
+	if (!values || values.size === 0) return undefined;
+	const types = new Set([...values].map((value) => typeof value));
+	if (types.size !== 1) return undefined;
+	const [type] = types;
+	return type === 'string' ? 'String' : type === 'number' ? 'Number' : 'Boolean';
+};
+
 /**
  * Collects feature property keys and observed values for a layer's
  * source/source-layer: keys come from the TileJSON `vector_layers[].fields`
@@ -89,7 +97,16 @@ export const createLayerFeatureSuggestions = (
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- 非リアクティブな一時コレクション
 		const names = [...new Set([...Object.keys(fields), ...valuesByKey.keys()])].sort();
 		return {
-			propertyKeys: names.map((name) => ({ name, type: fields[name] })),
+			propertyKeys: names.map((name) => {
+				const hasTileJsonField = Object.hasOwn(fields, name);
+				const sampledValues = valuesByKey.get(name);
+				return {
+					name,
+					type: fields[name] ?? inferFieldType(sampledValues),
+					origin: hasTileJsonField ? (sampledValues ? 'both' : 'tilejson') : 'features',
+					sampleCount: sampledValues?.size ?? 0
+				};
+			}),
 			getValueSuggestions: (key: string) => {
 				return [...(valuesByKey.get(key) ?? [])].sort((a, b) => String(a).localeCompare(String(b)));
 			}

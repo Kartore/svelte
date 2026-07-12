@@ -6,10 +6,9 @@
 	import { Button } from '$lib/components/common/Button';
 	import { ExpressionInputField } from '$lib/components/common/FilterInputField/expressions';
 	import { CurvePreview } from '$lib/components/common/FilterInputField/expressions/common/CurvePreview';
-	import {
-		literalToExpression,
-		literalToZoomInterpolate
-	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { literalToZoomInterpolate } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { literalToSuggestedExpression } from '$lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
 	import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
@@ -59,6 +58,8 @@
 	let confirmingRemove = $state(false);
 
 	const flyout = useExpressionFlyout();
+	const getExpressionSuggestions = useExpressionSuggestions();
+	const expressionSuggestions = $derived(getExpressionSuggestions());
 	// フライアウトは paint/layout プロパティ (propertyKey あり) でのみ使える。
 	// context 未提供の場面 (単体利用など) ではインライン編集にフォールバックする
 	const canUseFlyout = $derived(
@@ -89,6 +90,13 @@
 	const hasCurvePreview = $derived(
 		isExpression(value) && sampleCurveExpression(value as ExpressionSpecification) !== null
 	);
+	const convertLiteralToExpression = () => {
+		return literalToSuggestedExpression(value ?? defaultLiteral, {
+			propertyKey,
+			propertySpec,
+			suggestions: expressionSuggestions
+		});
+	};
 </script>
 
 <!--
@@ -206,7 +214,7 @@
 							title={`Use expression for ${label}`}
 							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
 							onclick={(event) => {
-								onChange?.(literalToExpression(value ?? defaultLiteral));
+								onChange?.(convertLiteralToExpression());
 								openFlyout(event.currentTarget);
 							}}
 						>

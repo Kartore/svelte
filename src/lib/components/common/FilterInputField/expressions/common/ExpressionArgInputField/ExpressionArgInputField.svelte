@@ -39,6 +39,7 @@
 		literalToExpression,
 		replaceArgAt
 	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { literalToSuggestedExpression } from '$lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import {
 		SpecLiteralField,
@@ -91,7 +92,14 @@
 	const editSpecLiteralAsExpression = () => {
 		if (editableLiteral === undefined) return;
 		editAsExpression = true;
-		if (!isExpression(arg)) handleChildChange?.(literalToExpression(editableLiteral.value));
+		if (!isExpression(arg)) {
+			handleChildChange?.(
+				literalToSuggestedExpression(editableLiteral.value, {
+					propertySpec,
+					suggestions: suggestionsContext
+				})
+			);
+		}
 	};
 </script>
 
