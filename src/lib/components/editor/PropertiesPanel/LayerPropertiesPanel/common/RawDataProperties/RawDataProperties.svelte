@@ -29,6 +29,7 @@
 	<MonacoEditor
 		class={cn('min-h-40', className)}
 		value={JSON.stringify(layer, undefined, 2)}
+		modelUri={`kartore://layer/${encodeURIComponent(layer.id)}.json`}
 		onChange={(value) => {
 			if (onChange && value) onChange(layer, 'all', undefined, JSON.parse(value));
 		}}
@@ -39,7 +40,7 @@
 				validate: true,
 				schemas: [
 					{
-						fileMatch: ['*'],
+						fileMatch: ['kartore://layer/*.json'],
 						uri: 'kartore://schema.json',
 						schema: schema
 					}

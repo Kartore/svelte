@@ -9,6 +9,7 @@
 
 	import { Button } from '$lib/components/common/Button';
 	import { ExpressionInputField } from '$lib/components/common/FilterInputField/expressions';
+	import { ExpressionJsonEditor } from '$lib/components/common/FilterInputField/expressions/common/ExpressionJsonEditor';
 	import { FilterQueryBuilder } from '$lib/components/common/FilterQueryBuilder';
 	import { provideLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
@@ -37,6 +38,7 @@
 	} = $props();
 
 	provideLayerErrors(() => errors ?? []);
+	let editorMode = $state<'builder' | 'json'>('builder');
 
 	const isFilter = $derived(target.group === 'filter');
 	const zoomRange = $derived(getLayerZoomRange(layer));
@@ -56,6 +58,9 @@
 					target.key
 				]
 	);
+	const handleExpressionChange = (next: ExpressionSpecification) => {
+		onChange?.(layer, target.group as never, target.key as never, next as never);
+	};
 </script>
 
 <div
@@ -84,6 +89,34 @@
 			<CloseIcon class="h-4 w-4 fill-current" />
 		</Button>
 	</div>
+	{#if !isFilter}
+		<div class="flex shrink-0 items-center gap-1 border-b border-gray-200 px-4 py-1.5">
+			<Button
+				aria-pressed={editorMode === 'builder'}
+				class={cn(
+					'rounded px-2 py-1 text-xs font-semibold',
+					editorMode === 'builder'
+						? 'bg-gray-900 text-white hover:bg-gray-700'
+						: 'text-gray-500 hover:bg-gray-100'
+				)}
+				onclick={() => (editorMode = 'builder')}
+			>
+				Builder
+			</Button>
+			<Button
+				aria-pressed={editorMode === 'json'}
+				class={cn(
+					'rounded px-2 py-1 text-xs font-semibold',
+					editorMode === 'json'
+						? 'bg-gray-900 text-white hover:bg-gray-700'
+						: 'text-gray-500 hover:bg-gray-100'
+				)}
+				onclick={() => (editorMode = 'json')}
+			>
+				Advanced JSON
+			</Button>
+		</div>
+	{/if}
 	<div class="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
 		{#if isFilter}
 			<FilterQueryBuilder
@@ -98,14 +131,23 @@
 					)}
 			/>
 			<PropertyErrorMessage group="filter" />
+		{:else if editorMode === 'json'}
+			{#key `${layer.id}:${target.group}:${target.key}`}
+				<ExpressionJsonEditor
+					value={value as ExpressionSpecification}
+					{propertySpec}
+					modelUri={`kartore://expression/${encodeURIComponent(layer.id)}-${encodeURIComponent(target.key)}.json`}
+					onChange={handleExpressionChange}
+				/>
+			{/key}
+			<PropertyErrorMessage group={target.group} property={target.key} />
 		{:else}
 			<ExpressionInputField
 				class="text-sm"
 				value={value as ExpressionSpecification}
 				{propertySpec}
 				{zoomRange}
-				onChange={(next) =>
-					onChange?.(layer, target.group as never, target.key as never, next as never)}
+				onChange={handleExpressionChange}
 			/>
 			<PropertyErrorMessage group={target.group} property={target.key} />
 		{/if}
