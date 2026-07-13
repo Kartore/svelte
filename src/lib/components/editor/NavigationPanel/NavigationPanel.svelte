@@ -309,7 +309,7 @@
 <div
 	{...props}
 	class={cn(
-		'pointer-events-auto flex h-auto w-auto flex-col overflow-hidden rounded-lg border border-gray-300/80 bg-white/95 shadow-lg shadow-gray-950/10 backdrop-blur',
+		'pointer-events-auto flex h-auto w-auto flex-col overflow-hidden rounded-lg border border-gray-300/80 bg-white shadow-lg shadow-gray-950/10 backdrop-blur',
 		className
 	)}
 >
