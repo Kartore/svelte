@@ -1,21 +1,18 @@
-packages:
-  - '.'
-
 engineStrict: true
 registries:
   '@kartore-internal': https://npm.pkg.github.com/
 
-allowBuilds:
-  esbuild: true
-  sharp: true
-  workerd: true
-configDependencies:
-  '@pnpm/pacquet': 0.11.12
+enableGlobalVirtualStore: true
+
+packageExtensions:
+  '@sveltejs/kit@3.0.0-next.8':
+    dependencies:
+      rolldown: ^1.1.2
+
 minimumReleaseAgeExclude:
   - '@kartore-internal/github-adapter'
   - '@kartore/file-adapter'
-onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - workerd
-  - sharp
-  - esbuild
+allowBuilds:
+  esbuild: false
+  sharp: false
+  workerd: false

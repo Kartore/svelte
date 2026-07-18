@@ -23,7 +23,6 @@ export default defineConfig({
 			adapter: adapter(),
 			experimental: {
 				remoteFunctions: true,
-				handleRenderingErrors: true,
 				forkPreloads: true
 			}
 		})
