@@ -54,5 +54,12 @@
 		"svelte-maplibre-gl": "^2.1.0",
 		"tailwind-merge": "^3.6.0"
 	},
-	"packageManager": "pnpm@12.0.0-alpha.14"
+	"packageManager": "pnpm@11.13.1",
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": "26.5.0",
+			"onFail": "download"
+		}
+	}
 }

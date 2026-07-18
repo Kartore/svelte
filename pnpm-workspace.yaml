@@ -4,6 +4,9 @@ registries:
 
 enableGlobalVirtualStore: true
 
+configDependencies:
+  '@pnpm/pacquet': 0.11.12
+
 packageExtensions:
   '@sveltejs/kit@3.0.0-next.8':
     dependencies:
