@@ -2,6 +2,7 @@
 	import type {
 		BackgroundLayerSpecification,
 		ExpressionFilterSpecification,
+		FilterSpecification,
 		LayerSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
@@ -10,8 +11,10 @@
 	import { Button } from '$lib/components/common/Button';
 	import { FilterQueryBuilder } from '$lib/components/common/FilterQueryBuilder';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
+	import { PropertyHistoryPopover } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
+	import { useStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -30,6 +33,8 @@
 	const defaultFilter: ExpressionFilterSpecification = ['==', ['get', ''], ''];
 
 	const flyout = useExpressionFlyout();
+	const history = useStyleHistory();
+	const canShowHistory = $derived(history !== undefined && history.provider !== null);
 	const isFlyoutOpen = $derived(flyout?.isOpen('filter', 'filter') ?? false);
 	const openFlyout = (anchorElement: HTMLElement) =>
 		flyout?.open({ group: 'filter', key: 'filter', label: 'Filter' }, anchorElement);
@@ -41,6 +46,10 @@
 		if (!anchorElement) return;
 		flyout?.reanchor('filter', 'filter', anchorElement);
 	};
+	const restoreFilter = (value: unknown | undefined) => {
+		if (value === undefined && isFlyoutOpen) flyout?.close();
+		onChange?.(layer, undefined, 'filter', value as FilterSpecification | undefined);
+	};
 	const filterSummary = $derived(
 		Array.isArray(layer.filter) && typeof layer.filter[0] === 'string'
 			? layer.filter[0]
@@ -51,19 +60,29 @@
 <div {...props} class={cn('flex flex-col gap-2 px-4', className)}>
 	<div class="flex flex-row items-center justify-between">
 		<h3 class="font-montserrat text-sm font-semibold">Filter</h3>
-		{#if layer.filter === undefined}
-			<Button
-				aria-label="Add filter"
-				class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
-				onclick={(event) => {
-					onChange?.(layer, undefined, 'filter', defaultFilter);
-					openFlyout(event.currentTarget);
-				}}
-			>
-				+ Add
-			</Button>
-		{:else}
-			<div class="flex flex-row items-center gap-1">
+		<div class="flex flex-row items-center gap-1">
+			{#if canShowHistory}
+				<PropertyHistoryPopover
+					layerId={layer.id}
+					group="filter"
+					key="filter"
+					label="Filter"
+					currentValue={layer.filter}
+					onRestore={restoreFilter}
+				/>
+			{/if}
+			{#if layer.filter === undefined}
+				<Button
+					aria-label="Add filter"
+					class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
+					onclick={(event) => {
+						onChange?.(layer, undefined, 'filter', defaultFilter);
+						openFlyout(event.currentTarget);
+					}}
+				>
+					+ Add
+				</Button>
+			{:else}
 				{#if flyout !== undefined}
 					<Button
 						bind:ref={() => null, handleEditButtonRef}
@@ -91,8 +110,8 @@
 				>
 					Delete
 				</Button>
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 	{#if layer.filter === undefined}
 		<!-- no filter -->

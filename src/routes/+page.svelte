@@ -17,6 +17,7 @@
 	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
+	import { provideStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
 	import type { EditorApi, EditorPreview } from '$lib/editor/EditorModule.ts';
 	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
@@ -32,6 +33,7 @@
 
 	provideBackgroundMap();
 	const expressionFlyout = provideExpressionFlyout();
+	const styleHistory = provideStyleHistory();
 	type FlyoutPositionAnchor = {
 		contextElement: HTMLElement;
 		getBoundingClientRect: () => DOMRect;
@@ -81,7 +83,8 @@
 		getStyle: () => store.mapStyle,
 		setStyle: (style) => store.setMapStyle(style),
 		setPreview: (preview) => (previewState = preview),
-		getPreview: () => previewState
+		getPreview: () => previewState,
+		registerStyleHistoryProvider: (provider) => styleHistory.register(provider)
 	};
 	for (const module of adapterModules) {
 		setContext(`module:${module.id}`, module.setup?.(editorApi));

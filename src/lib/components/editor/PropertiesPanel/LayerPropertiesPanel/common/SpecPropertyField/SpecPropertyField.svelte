@@ -128,12 +128,14 @@
 <div class="flex flex-col gap-1">
 	<ExpressionPropertyField
 		{label}
+		layerId={layer.id}
 		value={rawValue}
 		propertyKey={key}
 		propertyGroup={group}
 		propertySpec={spec}
 		zoomRange={layerZoomRange}
 		defaultLiteral={isColorRamp ? '' : (spec.default ?? '')}
+		styleDefaultValue={spec.default}
 		rampable={spec.expression?.interpolated === true && spec['property-type'] !== 'color-ramp'}
 		showExpressionButton={!isColorRamp && key !== 'visibility'}
 		onChange={expressionChange}

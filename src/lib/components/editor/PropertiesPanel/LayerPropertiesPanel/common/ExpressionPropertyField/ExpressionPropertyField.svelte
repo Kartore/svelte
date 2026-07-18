@@ -12,7 +12,9 @@
 	import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
+	import { PropertyHistoryPopover } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
+	import { useStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
 	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
@@ -20,9 +22,11 @@
 		label,
 		value,
 		defaultLiteral,
+		styleDefaultValue,
 		onChange,
 		rampable,
 		showExpressionButton = true,
+		layerId,
 		propertyKey,
 		propertyGroup = 'paint',
 		propertySpec,
@@ -37,12 +41,16 @@
 		value: unknown;
 		/** literal used as conversion seed when the property is unset */
 		defaultLiteral: unknown;
+		/** effective style-spec value shown in history when the raw property is unset */
+		styleDefaultValue?: unknown;
 		/** property-level setter — receives an expression, or undefined to reset */
 		onChange?: (value: unknown | undefined) => void;
 		/** offers the zoom-interpolate shortcut — only for interpolatable (number/color) properties */
 		rampable?: boolean;
 		/** shows the literal-to-expression button */
 		showExpressionButton?: boolean;
+		/** layer id used to resolve property history */
+		layerId?: string;
 		/** style-spec property name (e.g. 'fill-color') — enables inline validation errors */
 		propertyKey?: string;
 		/** property group the validation errors are looked up in */
@@ -58,12 +66,19 @@
 	let confirmingRemove = $state(false);
 
 	const flyout = useExpressionFlyout();
+	const history = useStyleHistory();
 	const getExpressionSuggestions = useExpressionSuggestions();
 	const expressionSuggestions = $derived(getExpressionSuggestions());
 	// フライアウトは paint/layout プロパティ (propertyKey あり) でのみ使える。
 	// context 未提供の場面 (単体利用など) ではインライン編集にフォールバックする
 	const canUseFlyout = $derived(
 		flyout !== undefined && propertyKey !== undefined && propertyGroup !== undefined
+	);
+	const canShowHistory = $derived(
+		history !== undefined &&
+			history.provider !== null &&
+			layerId !== undefined &&
+			propertyKey !== undefined
 	);
 	const isFlyoutOpen = $derived(
 		canUseFlyout && flyout !== undefined && propertyKey !== undefined
@@ -108,8 +123,19 @@
 	<div {...props} class={cn('flex flex-col gap-1', className)}>
 		<div class="flex flex-row items-center justify-between gap-2">
 			<span class="shrink-0 text-sm font-semibold text-gray-600">{label}</span>
-			{#if confirmingRemove}
-				<div class="flex flex-row items-center gap-1">
+			<div class="flex min-w-0 flex-row items-center gap-1">
+				{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
+					<PropertyHistoryPopover
+						{layerId}
+						group={propertyGroup}
+						key={propertyKey}
+						{label}
+						currentValue={value}
+						defaultValue={styleDefaultValue}
+						onRestore={(restoredValue) => onChange?.(restoredValue)}
+					/>
+				{/if}
+				{#if confirmingRemove}
 					<Button
 						aria-label={`Confirm removing expression for ${label}`}
 						class="rounded px-2 py-0.5 text-xs font-semibold text-red-500"
@@ -128,9 +154,7 @@
 					>
 						Cancel
 					</Button>
-				</div>
-			{:else}
-				<div class="flex min-w-0 flex-row items-center gap-1">
+				{:else}
 					{#if canUseFlyout}
 						<Button
 							bind:ref={() => null, handleExpressionButtonRef}
@@ -155,8 +179,8 @@
 					>
 						Remove
 					</Button>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		</div>
 		{#if canUseFlyout}
 			<!-- curve 式ならサイドバーでも値の分布が見えるようにプレビューを出す。
@@ -189,12 +213,23 @@
 	<div {...props} class={cn('flex flex-col gap-1', className)}>
 		<div class="group/property relative flex flex-row items-center">
 			<div class="w-full min-w-0">{@render children()}</div>
-			{#if rampable || showExpressionButton}
+			{#if rampable || showExpressionButton || canShowHistory}
 				<!-- ボタンをフロー外に置きラベルとコントロールの間の余白へ重ねる。
 					フロー内に置くとボタン数 (0〜2) の分だけコントロールの右端がずれるため -->
 				<div
 					class="pointer-events-none absolute top-1/2 right-1/2 mr-1 flex -translate-y-1/2 flex-row items-center gap-0.5 rounded bg-white/90 opacity-0 transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/property:pointer-events-auto group-hover/property:opacity-100"
 				>
+					{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
+						<PropertyHistoryPopover
+							{layerId}
+							group={propertyGroup}
+							key={propertyKey}
+							{label}
+							currentValue={value}
+							defaultValue={styleDefaultValue}
+							onRestore={(restoredValue) => onChange?.(restoredValue)}
+						/>
+					{/if}
 					{#if rampable}
 						<Button
 							aria-label={`Interpolate ${label} by zoom`}
