@@ -43,6 +43,7 @@
 		"@internationalized/number": "^3.6.7",
 		"@kartore-internal/github-adapter": "0.3.0",
 		"@kartore/file-adapter": "0.2.0",
+		"@kartore/spritore": "^0.0.2",
 		"@maplibre/maplibre-gl-style-spec": "^25.0.2",
 		"@shikijs/monaco": "^4.3.1",
 		"@tanstack/svelte-query": "^6.1.36",

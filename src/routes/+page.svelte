@@ -1,7 +1,13 @@
 <script lang="ts">
-	import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
+	import type {
+		LayerSpecification,
+		Map as MaplibreMap,
+		MapStyleImageMissingEvent,
+		StyleSpecification
+	} from 'maplibre-gl';
 	import { Popover } from 'bits-ui';
 	import { onDestroy, setContext } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { AddLayerDialog } from '$lib/components/editor/AddLayerDialog';
@@ -13,7 +19,9 @@
 	import { ExpressionFlyoutPanel } from '$lib/components/editor/PropertiesPanel/ExpressionFlyoutPanel';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 	import { replaceLayerData } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { provideLocalSpriteImages } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/localSpriteImages.ts';
 	import { SourcesDialog } from '$lib/components/editor/SourcesDialog';
+	import { SpritesDialog } from '$lib/components/editor/SpritesDialog';
 	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
@@ -21,7 +29,10 @@
 	import type { EditorApi, EditorPreview } from '$lib/editor/EditorModule.ts';
 	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
+	import { loadSpritore } from '$lib/sprites/spritore.ts';
+	import { spriteDimensionsFromSvg, svgDataUrl } from '$lib/sprites/spriteSvg.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
+	import { localStorageSpriteIconsStoreAdapter, SpriteIconsStore } from '$lib/stores/spriteIcons';
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { createStyleExport } from '$lib/utils/styleExport.ts';
 	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
@@ -30,10 +41,39 @@
 		adapter: localStorageMapStyleStoreAdapter,
 		initialStyle: osmLibertyMigrated
 	});
+	const spriteIconsStore = new SpriteIconsStore({
+		adapter: localStorageSpriteIconsStoreAdapter
+	});
 
-	provideBackgroundMap();
+	const backgroundMap = provideBackgroundMap();
 	const expressionFlyout = provideExpressionFlyout();
 	const styleHistory = provideStyleHistory();
+	type LocalSpriteDimensions = {
+		svg: string;
+		width: number;
+		height: number;
+	};
+	type RenderedLocalSprite = LocalSpriteDimensions & {
+		id: string;
+		pixels: Uint8Array;
+	};
+	const localSpriteDimensions = new SvelteMap<string, LocalSpriteDimensions>();
+	provideLocalSpriteImages(() =>
+		Object.entries(spriteIconsStore.icons).map(([id, svg]) => {
+			const fallback = spriteDimensionsFromSvg(svg);
+			const rendered = localSpriteDimensions.get(id);
+			const dimensions = rendered?.svg === svg ? rendered : fallback;
+			return {
+				id,
+				src: svgDataUrl(svg),
+				x: 0,
+				y: 0,
+				width: dimensions.width,
+				height: dimensions.height,
+				pixelRatio: 1
+			};
+		})
+	);
 	type FlyoutPositionAnchor = {
 		contextElement: HTMLElement;
 		getBoundingClientRect: () => DOMRect;
@@ -44,6 +84,7 @@
 	let settingsDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
+	let spritesDialogOpen = $state(false);
 	let previewState = $state<EditorPreview | null>(null);
 	const effectiveStyle = $derived(previewState?.style ?? store.mapStyle);
 	const selectedLayer = $derived(
@@ -77,6 +118,132 @@
 			);
 		}, 200);
 		return () => clearTimeout(timer);
+	});
+
+	let spriteSyncGeneration = 0;
+	let synchronizedMap: MaplibreMap | null = null;
+	let synchronizedIconSvgs = new SvelteMap<string, string>();
+	let renderedLocalSprites = new SvelteMap<string, RenderedLocalSprite>();
+
+	const removeLocalSprite = (map: MaplibreMap, id: string) => {
+		if (map.hasImage(id)) map.removeImage(id);
+	};
+
+	const addLocalSprite = (map: MaplibreMap, sprite: RenderedLocalSprite) => {
+		removeLocalSprite(map, sprite.id);
+		map.addImage(
+			sprite.id,
+			{ width: sprite.width, height: sprite.height, data: sprite.pixels },
+			{ pixelRatio: 2 }
+		);
+	};
+
+	$effect(() => {
+		const map = backgroundMap.map;
+		const iconEntries = Object.entries(spriteIconsStore.icons);
+		const iconSvgs = new SvelteMap(iconEntries);
+		const generation = ++spriteSyncGeneration;
+
+		if (map !== synchronizedMap) {
+			synchronizedMap = map;
+			synchronizedIconSvgs = new SvelteMap();
+		}
+
+		if (map) {
+			for (const [id, svg] of synchronizedIconSvgs) {
+				if (iconSvgs.get(id) === svg) continue;
+				removeLocalSprite(map, id);
+				synchronizedIconSvgs.delete(id);
+			}
+		}
+
+		if (iconEntries.length === 0) {
+			renderedLocalSprites = new SvelteMap();
+			localSpriteDimensions.clear();
+			return;
+		}
+
+		void (async () => {
+			try {
+				const { renderIcon } = await loadSpritore();
+				const nextRenderedSprites = new SvelteMap<string, RenderedLocalSprite>();
+				const nextDimensions: Record<string, LocalSpriteDimensions> = {};
+
+				for (const [id, svg] of iconEntries) {
+					const svgDimensions = spriteDimensionsFromSvg(svg);
+					nextDimensions[id] = { svg, width: svgDimensions.width, height: svgDimensions.height };
+					try {
+						const cached = renderedLocalSprites.get(id);
+						const rendered = cached?.svg === svg ? cached : { ...renderIcon(id, svg, 2), svg };
+						nextRenderedSprites.set(id, rendered);
+
+						if (!svgDimensions.hasIntegerSizeAttributes) {
+							const oneX = renderIcon(id, svg, 1);
+							nextDimensions[id] = { svg, width: oneX.width, height: oneX.height };
+						}
+					} catch {
+						// SpritesDialog reports invalid SVG details. Invalid icons are not added to the map.
+					}
+				}
+
+				if (generation !== spriteSyncGeneration) return;
+				renderedLocalSprites = nextRenderedSprites;
+				localSpriteDimensions.clear();
+				for (const [id, dimensions] of Object.entries(nextDimensions)) {
+					localSpriteDimensions.set(id, dimensions);
+				}
+
+				if (!map || backgroundMap.map !== map) return;
+				for (const [id, sprite] of nextRenderedSprites) {
+					if (synchronizedIconSvgs.get(id) === sprite.svg && map.hasImage(id)) continue;
+					try {
+						addLocalSprite(map, sprite);
+						synchronizedIconSvgs.set(id, sprite.svg);
+					} catch {
+						synchronizedIconSvgs.delete(id);
+					}
+				}
+			} catch {
+				// The dialog surfaces initialization errors; the editor remains usable without local sprites.
+			}
+		})();
+
+		return () => {
+			if (generation === spriteSyncGeneration) spriteSyncGeneration += 1;
+		};
+	});
+
+	$effect(() => {
+		const map = backgroundMap.map;
+		if (!map) return;
+
+		const handleStyleImageMissing = (event: MapStyleImageMissingEvent) => {
+			const svg = spriteIconsStore.icons[event.id];
+			if (svg === undefined) return;
+			const cached = renderedLocalSprites.get(event.id);
+			if (cached?.svg === svg) {
+				try {
+					addLocalSprite(map, cached);
+					synchronizedIconSvgs.set(event.id, svg);
+				} catch {
+					// A later styleimagemissing event retries the registration.
+				}
+				return;
+			}
+
+			void loadSpritore()
+				.then(({ renderIcon }) => {
+					if (backgroundMap.map !== map || spriteIconsStore.icons[event.id] !== svg) return;
+					const rendered = { ...renderIcon(event.id, svg, 2), svg };
+					renderedLocalSprites.set(event.id, rendered);
+					addLocalSprite(map, rendered);
+					synchronizedIconSvgs.set(event.id, svg);
+				})
+				.catch(() => undefined);
+		};
+
+		map.on('styleimagemissing', handleStyleImageMissing);
+		return () => map.off('styleimagemissing', handleStyleImageMissing);
 	});
 
 	const editorApi: EditorApi = {
@@ -128,6 +295,11 @@
 		anchor.download = styleExport.fileName;
 		anchor.click();
 		URL.revokeObjectURL(url);
+	};
+
+	const handleOpenSprites = () => {
+		spritesDialogOpen = true;
+		void loadSpritore().catch(() => undefined);
 	};
 
 	const handleRenameStyle = (name: string) => {
@@ -238,7 +410,7 @@
 	onpagehide={() => store.flushSave()}
 />
 
-{#if store.isLoading}
+{#if store.isLoading || spriteIconsStore.isLoading}
 	<div class="flex min-h-screen items-center justify-center text-sm text-gray-600">
 		Loading map style...
 	</div>
@@ -276,6 +448,7 @@
 				onRenameStyle={previewState ? undefined : handleRenameStyle}
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
+				onClickSprites={handleOpenSprites}
 				canGroupLayersByPrefix={!previewState}
 				onGroupLayersByPrefix={handleGroupLayersByPrefix}
 				onClickLayer={handleSelectLayer}
@@ -347,6 +520,14 @@
 				bind:open={sourcesDialogOpen}
 				mapStyle={effectiveStyle}
 				onApply={handleApplyStyle}
+			/>
+		{/if}
+		{#if spritesDialogOpen}
+			<SpritesDialog
+				bind:open={spritesDialogOpen}
+				icons={spriteIconsStore.icons}
+				onSetIcon={spriteIconsStore.setIcon}
+				onRemoveIcon={spriteIconsStore.removeIcon}
 			/>
 		{/if}
 		{#each adapterModules as module (module.id)}

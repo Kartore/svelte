@@ -47,6 +47,7 @@
 		onRenameStyle,
 		onClickAddLayer,
 		onClickSources,
+		onClickSprites,
 		canGroupLayersByPrefix = true,
 		onGroupLayersByPrefix,
 		adapterModules = [],
@@ -67,6 +68,7 @@
 		onRenameStyle?: (name: string) => void;
 		onClickAddLayer?: () => void;
 		onClickSources?: () => void;
+		onClickSprites?: () => void;
 		canGroupLayersByPrefix?: boolean;
 		onGroupLayersByPrefix?: () => number;
 		adapterModules?: EditorModule[];
@@ -437,6 +439,12 @@
 				onclick={onClickSources}
 			>
 				Sources
+			</Button>
+			<Button
+				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+				onclick={onClickSprites}
+			>
+				Sprites
 			</Button>
 			<Button
 				class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-900 text-white shadow-sm hover:bg-gray-700"

@@ -1,6 +1,8 @@
 import type { SpriteSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { createQuery } from '@tanstack/svelte-query';
 
+import { mergeLocalSpriteImages, useLocalSpriteImages } from './localSpriteImages.ts';
+
 export type SpriteImage = {
 	id: string;
 	src: string;
@@ -70,6 +72,7 @@ const fetchSpriteImages = async (url: SpriteSpecification | undefined): Promise<
 };
 
 export const createSpriteIds = (getSprite: () => SpriteSpecification | undefined) => {
+	const getLocalSpriteImages = useLocalSpriteImages();
 	const spriteKey = $derived.by(() => {
 		const sprite = getSprite();
 		if (!sprite) return [];
@@ -86,13 +89,20 @@ export const createSpriteIds = (getSprite: () => SpriteSpecification | undefined
 			);
 		}
 	}));
+	const spriteImages = $derived.by(() => {
+		const localImages = getLocalSpriteImages();
+		const fetchedImages = query.data;
+		if (localImages.length === 0 && fetchedImages === undefined) return undefined;
+
+		return mergeLocalSpriteImages(localImages, fetchedImages ?? []);
+	});
 
 	return {
 		get spriteIds(): string[] | undefined {
-			return query.data?.map((image) => image.id);
+			return spriteImages?.map((image) => image.id);
 		},
 		get spriteImages(): SpriteImage[] | undefined {
-			return query.data;
+			return spriteImages;
 		}
 	};
 };

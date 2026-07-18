@@ -224,6 +224,9 @@ importers:
       '@kartore/file-adapter':
         specifier: 0.2.0
         version: 0.2.0(maplibre-gl@5.24.0)(svelte@5.56.4(@typescript-eslint/types@8.63.0))
+      '@kartore/spritore':
+        specifier: ^0.0.2
+        version: 0.0.2
       '@maplibre/maplibre-gl-style-spec':
         specifier: ^25.0.2
         version: 25.0.2
@@ -803,6 +806,9 @@ packages:
     peerDependencies:
       maplibre-gl: ^5.0.0
       svelte: ^5.0.0
+
+  '@kartore/spritore@0.0.2':
+    resolution: {integrity: sha512-WqunVlePXW2bod68iZgyGGg3kiKC1Y01nVgQLl7wFTrFBY1YLFLbmmgg/lSrta9f5PyYP3jyrkKnZHiconxRcQ==}
 
   '@lucide/svelte@1.25.0':
     resolution: {integrity: sha512-v9m+dD68jxVnqkU3K59mG/RSRFlPGzmKCGSyMfnXcaGv9jODDQMyQkcp1CGvk3Y/cUj9v7f8rw1n//K0B53xGQ==}
@@ -2911,6 +2917,8 @@ snapshots:
     dependencies:
       maplibre-gl: 5.24.0
       svelte: 5.56.4(@typescript-eslint/types@8.63.0)
+
+  '@kartore/spritore@0.0.2': {}
 
   '@lucide/svelte@1.25.0(svelte@5.56.4(@typescript-eslint/types@8.63.0))':
     dependencies:
