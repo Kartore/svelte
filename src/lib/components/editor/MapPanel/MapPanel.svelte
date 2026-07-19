@@ -11,6 +11,7 @@
 
 	import { Button } from '$lib/components/common/Button';
 	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte';
+	import { createDisplayStyle } from '$lib/fonts/displayStyle.ts';
 	import { getLayerGroup } from '$lib/utils/layerGroup.ts';
 	import { cn } from '$lib/utils/tailwindUtil';
 
@@ -22,10 +23,12 @@
 	let {
 		class: className,
 		mapStyle,
+		hasLocalFonts = false,
 		onClickLayer
 	}: {
 		class?: string;
 		mapStyle: StyleSpecification;
+		hasLocalFonts?: boolean;
 		onClickLayer?: (layer: LayerSpecification) => void;
 	} = $props();
 
@@ -47,12 +50,16 @@
 	// 初期描画用の値であり、以後の更新は下の effect で反映する。
 	// svelte-ignore state_referenced_locally
 	let style = $state.raw<StyleSpecification>(
-		$state.snapshot(mapStyle as object) as StyleSpecification
+		createDisplayStyle($state.snapshot(mapStyle as object) as StyleSpecification, hasLocalFonts)
 	);
 	$effect(() => {
 		void mapStyle;
+		void hasLocalFonts;
 		const id = requestAnimationFrame(() => {
-			style = $state.snapshot(mapStyle as object) as StyleSpecification;
+			style = createDisplayStyle(
+				$state.snapshot(mapStyle as object) as StyleSpecification,
+				hasLocalFonts
+			);
 		});
 		return () => cancelAnimationFrame(id);
 	});
@@ -139,6 +146,7 @@
 		center={{ lng: 139.767, lat: 35.681 }}
 		maplibreLogo={false}
 		attributionControl={false}
+		localIdeographFontFamily={false}
 		autoloadGlobalCss={false}
 		onclick={handleMapClick}
 		onmousemove={handleMapMouseMove}

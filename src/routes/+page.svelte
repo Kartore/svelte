@@ -12,6 +12,7 @@
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { AddLayerDialog } from '$lib/components/editor/AddLayerDialog';
 	import { ControlPanel } from '$lib/components/editor/ControlPanel';
+	import { FontsDialog } from '$lib/components/editor/FontsDialog';
 	import { ImportStyleDialog } from '$lib/components/editor/ImportStyleDialog';
 	import { MapPanel } from '$lib/components/editor/MapPanel';
 	import { NavigationPanel } from '$lib/components/editor/NavigationPanel';
@@ -27,11 +28,14 @@
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { provideStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
 	import type { EditorApi, EditorPreview } from '$lib/editor/EditorModule.ts';
+	import { registerGlyphProtocol } from '$lib/fonts/glyphProtocol.ts';
+	import { loadGlyphore } from '$lib/fonts/glyphore.ts';
 	import { adapterModules } from 'virtual:kartore-adapter';
 	import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
 	import { loadSpritore } from '$lib/sprites/spritore.ts';
 	import { spriteDimensionsFromSvg, svgDataUrl } from '$lib/sprites/spriteSvg.ts';
 	import { localStorageMapStyleStoreAdapter, MapStyleStore } from '$lib/stores/mapStyle';
+	import { FontsStore, indexedDbFontsStoreAdapter } from '$lib/stores/fonts';
 	import { localStorageSpriteIconsStoreAdapter, SpriteIconsStore } from '$lib/stores/spriteIcons';
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { createStyleExport } from '$lib/utils/styleExport.ts';
@@ -43,6 +47,9 @@
 	});
 	const spriteIconsStore = new SpriteIconsStore({
 		adapter: localStorageSpriteIconsStoreAdapter
+	});
+	const fontsStore = new FontsStore({
+		adapter: indexedDbFontsStoreAdapter
 	});
 
 	const backgroundMap = provideBackgroundMap();
@@ -85,8 +92,19 @@
 	let addLayerDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
 	let spritesDialogOpen = $state(false);
+	let fontsDialogOpen = $state(false);
 	let previewState = $state<EditorPreview | null>(null);
 	const effectiveStyle = $derived(previewState?.style ?? store.mapStyle);
+	registerGlyphProtocol({
+		hasLocalFont: (fontstack) => fontstack in fontsStore.fonts,
+		getOriginalGlyphsUrl: () => effectiveStyle.glyphs,
+		generateRange: async (fontstack, start) => {
+			const parsed = await fontsStore.getParsedFont(fontstack);
+			if (!parsed) throw new Error(`Local font “${fontstack}” is no longer available.`);
+			const { generateRange } = await loadGlyphore();
+			return generateRange(parsed.handle, start);
+		}
+	});
 	const selectedLayer = $derived(
 		effectiveStyle.layers.find((layer) => layer.id === selectedLayerId) ?? effectiveStyle.layers[0]
 	);
@@ -302,6 +320,11 @@
 		void loadSpritore().catch(() => undefined);
 	};
 
+	const handleOpenFonts = () => {
+		fontsDialogOpen = true;
+		void loadGlyphore().catch(() => undefined);
+	};
+
 	const handleRenameStyle = (name: string) => {
 		if (previewState || name.trim() === '' || name === (store.mapStyle.name ?? '')) return;
 		store.setMapStyle((currentStyle) => ({ ...currentStyle, name }));
@@ -397,6 +420,7 @@
 	// 保存は 500ms デバウンスされるため、SPA 遷移によるアンマウント時に
 	// 未保存の編集が落ちないよう flush する
 	onDestroy(() => store.flushSave());
+	onDestroy(fontsStore.destroy);
 </script>
 
 <svelte:head>
@@ -410,13 +434,17 @@
 	onpagehide={() => store.flushSave()}
 />
 
-{#if store.isLoading || spriteIconsStore.isLoading}
+{#if store.isLoading || spriteIconsStore.isLoading || fontsStore.isLoading}
 	<div class="flex min-h-screen items-center justify-center text-sm text-gray-600">
 		Loading map style...
 	</div>
 {:else}
 	<div class="relative flex max-h-screen min-h-screen w-full flex-row overflow-hidden">
-		<MapPanel mapStyle={effectiveStyle} onClickLayer={handleSelectLayer} />
+		<MapPanel
+			mapStyle={effectiveStyle}
+			hasLocalFonts={Object.keys(fontsStore.fonts).length > 0}
+			onClickLayer={handleSelectLayer}
+		/>
 		{#if previewState}
 			<div
 				class="pointer-events-auto absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-900 shadow-lg shadow-gray-950/10"
@@ -449,6 +477,7 @@
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
 				onClickSprites={handleOpenSprites}
+				onClickFonts={handleOpenFonts}
 				canGroupLayersByPrefix={!previewState}
 				onGroupLayersByPrefix={handleGroupLayersByPrefix}
 				onClickLayer={handleSelectLayer}
@@ -528,6 +557,15 @@
 				icons={spriteIconsStore.icons}
 				onSetIcon={spriteIconsStore.setIcon}
 				onRemoveIcon={spriteIconsStore.removeIcon}
+			/>
+		{/if}
+		{#if fontsDialogOpen}
+			<FontsDialog
+				bind:open={fontsDialogOpen}
+				fonts={fontsStore.fonts}
+				onAddFont={fontsStore.addFont}
+				onRemoveFont={fontsStore.removeFont}
+				getParsedFont={fontsStore.getParsedFont}
 			/>
 		{/if}
 		{#each adapterModules as module (module.id)}
