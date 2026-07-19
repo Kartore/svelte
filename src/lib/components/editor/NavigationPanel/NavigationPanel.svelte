@@ -41,6 +41,8 @@
 		canRedo,
 		onClickUndo,
 		onClickRedo,
+		styleJsonMode = false,
+		onToggleStyleJsonMode,
 		onClickExport,
 		onClickImport,
 		onClickSettings,
@@ -63,6 +65,8 @@
 		canRedo?: boolean;
 		onClickUndo?: () => void;
 		onClickRedo?: () => void;
+		styleJsonMode?: boolean;
+		onToggleStyleJsonMode?: () => void;
 		onClickExport?: () => void;
 		onClickImport?: () => void;
 		onClickSettings?: () => void;
@@ -351,24 +355,40 @@
 					<p class="truncate text-xs font-semibold text-gray-700" title={styleName}>{styleName}</p>
 				{/if}
 			</div>
-			<div class="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
+			<div class="flex items-center gap-1.5">
+				<div class="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
+					<Button
+						class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
+						aria-label="Undo"
+						title="Undo"
+						disabled={!canUndo}
+						onclick={onClickUndo}
+					>
+						↶
+					</Button>
+					<Button
+						class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
+						aria-label="Redo"
+						title="Redo"
+						disabled={!canRedo}
+						onclick={onClickRedo}
+					>
+						↷
+					</Button>
+				</div>
 				<Button
-					class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
-					aria-label="Undo"
-					title="Undo"
-					disabled={!canUndo}
-					onclick={onClickUndo}
+					class={cn(
+						'h-8 rounded-md border px-2 text-[11px] font-semibold',
+						styleJsonMode
+							? 'border-gray-900 bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-700'
+							: 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+					)}
+					aria-label="Toggle style JSON editor"
+					aria-pressed={styleJsonMode}
+					title="Edit complete style JSON"
+					onclick={onToggleStyleJsonMode}
 				>
-					↶
-				</Button>
-				<Button
-					class="flex h-7 w-7 items-center justify-center rounded-sm font-mono text-sm font-semibold text-gray-600 hover:bg-white disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
-					aria-label="Redo"
-					title="Redo"
-					disabled={!canRedo}
-					onclick={onClickRedo}
-				>
-					↷
+					JSON
 				</Button>
 			</div>
 		</div>

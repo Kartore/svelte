@@ -8,7 +8,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { Button } from '$lib/components/common/Button';
-	import { MonacoEditor } from '$lib/components/common/MonacoEditor';
+	import { CodeEditor } from '$lib/components/common/CodeEditor';
 	import { Select } from '$lib/components/common/Select';
 	import { TextField } from '$lib/components/common/TextField';
 	import { validateMapStyle } from '$lib/utils/styleValidation.ts';
@@ -259,10 +259,9 @@
 
 						{#if editingSourceIds.has(sourceId)}
 							<div class="flex flex-col gap-3 border-t border-gray-200 p-3">
-								<MonacoEditor
+								<CodeEditor
 									class="min-h-56 rounded-md border border-gray-200"
 									value={editValues[sourceId] ?? sourceJSON(source)}
-									options={{ fixedOverflowWidgets: true }}
 									onChange={(value) => {
 										editValues[sourceId] = value;
 										editErrors[sourceId] = undefined;

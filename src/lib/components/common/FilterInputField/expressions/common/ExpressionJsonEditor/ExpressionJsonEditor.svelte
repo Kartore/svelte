@@ -2,19 +2,17 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 	import { Button } from '$lib/components/common/Button';
-	import { MonacoEditor } from '$lib/components/common/MonacoEditor';
+	import { CodeEditor } from '$lib/components/common/CodeEditor';
 	import { parseExpressionJson } from '$lib/components/common/FilterInputField/expressions/utils/expressionJson.ts';
 	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
 
 	let {
 		value,
 		propertySpec,
-		modelUri,
 		onChange
 	}: {
 		value: ExpressionSpecification;
 		propertySpec?: StylePropertySpec;
-		modelUri?: string;
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
@@ -36,22 +34,11 @@
 
 <div class="flex min-h-0 flex-1 flex-col gap-2">
 	<div class="flex min-h-72 flex-1 overflow-hidden rounded-md border border-gray-200 bg-white">
-		<MonacoEditor
+		<CodeEditor
 			class="min-h-72"
 			value={draft}
-			{modelUri}
-			options={{
-				fontSize: 12,
-				lineHeight: 20,
-				lineNumbersMinChars: 3,
-				folding: false,
-				padding: { top: 10, bottom: 10 },
-				wordWrap: 'on'
-			}}
 			onChange={(next) => (draft = next)}
-			onMount={(editor, monaco) => {
-				editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, apply);
-			}}
+			onSubmit={apply}
 		/>
 	</div>
 

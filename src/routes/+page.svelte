@@ -23,6 +23,7 @@
 	import { provideLocalSpriteImages } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/localSpriteImages.ts';
 	import { SourcesDialog } from '$lib/components/editor/SourcesDialog';
 	import { SpritesDialog } from '$lib/components/editor/SpritesDialog';
+	import { StyleJsonPanel } from '$lib/components/editor/StyleJsonPanel';
 	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
@@ -87,12 +88,14 @@
 	};
 
 	let selectedLayerId = $state<string>(osmLibertyMigrated.layers[4].id);
+	let layerSelectionRequest = $state(0);
 	let importDialogOpen = $state(false);
 	let settingsDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
 	let spritesDialogOpen = $state(false);
 	let fontsDialogOpen = $state(false);
+	let styleJsonMode = $state(false);
 	let previewState = $state<EditorPreview | null>(null);
 	const effectiveStyle = $derived(previewState?.style ?? store.mapStyle);
 	registerGlyphProtocol({
@@ -303,6 +306,16 @@
 		store.setMapStyle(style);
 	};
 
+	const toggleStyleJsonMode = () => {
+		styleJsonMode = !styleJsonMode;
+		if (styleJsonMode) expressionFlyout.close();
+	};
+
+	const handleApplyStyleJson = (style: StyleSpecification) => {
+		if (previewState) return;
+		store.setMapStyle(style);
+	};
+
 	const handleExport = () => {
 		const style = $state.snapshot(store.mapStyle as object) as StyleSpecification;
 		const styleExport = createStyleExport(style);
@@ -332,6 +345,7 @@
 
 	const handleSelectLayer = (layer: LayerSpecification) => {
 		selectedLayerId = layer.id;
+		layerSelectionRequest += 1;
 	};
 
 	const duplicateId = (baseId: string, layers: LayerSpecification[]): string => {
@@ -382,7 +396,7 @@
 		const target = event.target;
 		if (
 			target instanceof HTMLElement &&
-			target.closest('input, textarea, select, [contenteditable="true"], .monaco-editor')
+			target.closest('input, textarea, select, [contenteditable="true"], .cm-editor')
 		) {
 			return;
 		}
@@ -470,6 +484,8 @@
 				canRedo={!previewState && store.canRedo}
 				onClickUndo={() => store.undo()}
 				onClickRedo={() => store.redo()}
+				{styleJsonMode}
+				onToggleStyleJsonMode={toggleStyleJsonMode}
 				onClickExport={handleExport}
 				onClickImport={() => (importDialogOpen = true)}
 				onClickSettings={() => (settingsDialogOpen = true)}
@@ -486,7 +502,7 @@
 
 			<ControlPanel class="flex-1" />
 
-			{#if flyoutVisible && expressionFlyout.target && flyoutPositionAnchor}
+			{#if !styleJsonMode && flyoutVisible && expressionFlyout.target && flyoutPositionAnchor}
 				<Popover.Root open={true}>
 					<Popover.Portal>
 						<Popover.Content
@@ -515,19 +531,30 @@
 				</Popover.Root>
 			{/if}
 
-			{#key selectedLayer.id}
-				<PropertiesPanel
+			{#if styleJsonMode}
+				<StyleJsonPanel
 					class="w-[min(42rem,42vw)] min-w-[25rem]"
-					sprite={effectiveStyle.sprite}
-					layer={selectedLayer}
-					sources={effectiveStyle.sources}
-					errors={validation.layerErrors[selectedLayer.id]}
-					onChange={handleChangeLayerData}
-					onDuplicateLayer={handleDuplicateLayer}
-					onDeleteLayer={handleDeleteLayer}
-					canDeleteLayer={!previewState && effectiveStyle.layers.length > 1}
+					mapStyle={effectiveStyle}
+					selectedLayerId={effectiveSelectedLayerId}
+					{layerSelectionRequest}
+					readOnly={previewState !== null}
+					onApply={handleApplyStyleJson}
 				/>
-			{/key}
+			{:else}
+				{#key selectedLayer.id}
+					<PropertiesPanel
+						class="w-[min(42rem,42vw)] min-w-[25rem]"
+						sprite={effectiveStyle.sprite}
+						layer={selectedLayer}
+						sources={effectiveStyle.sources}
+						errors={validation.layerErrors[selectedLayer.id]}
+						onChange={handleChangeLayerData}
+						onDuplicateLayer={handleDuplicateLayer}
+						onDeleteLayer={handleDeleteLayer}
+						canDeleteLayer={!previewState && effectiveStyle.layers.length > 1}
+					/>
+				{/key}
+			{/if}
 		</div>
 		<ImportStyleDialog bind:open={importDialogOpen} onImport={handleImport} />
 		{#if settingsDialogOpen}

@@ -8,7 +8,6 @@
 
 	import { RangeSlider } from '$lib/components/common/RangeSlider';
 	import { RawDataProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties';
-	import { getStyleJSONSchemaDefinition } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties/schema/StyleJSONSchemaBase.ts';
 	import { SpecPropertiesSection } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertiesSection';
 	import { createSpriteIds } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
@@ -69,10 +68,6 @@
 		{spriteImages}
 		{onChange}
 	/>
-	<RawDataProperties
-		{layer}
-		{onChange}
-		schema={getStyleJSONSchemaDefinition('BackgroundLayerSpecification')}
-	/>
+	<RawDataProperties {layer} {onChange} />
 	{@render children?.()}
 </div>

@@ -136,7 +136,6 @@
 				<ExpressionJsonEditor
 					value={value as ExpressionSpecification}
 					{propertySpec}
-					modelUri={`kartore://expression/${encodeURIComponent(layer.id)}-${encodeURIComponent(target.key)}.json`}
 					onChange={handleExpressionChange}
 				/>
 			{/key}
