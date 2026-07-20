@@ -240,11 +240,11 @@ importers:
         specifier: ^3.6.7
         version: 3.6.7
       '@kartore-internal/github-adapter':
-        specifier: 0.3.0
-        version: 0.3.0(bits-ui@2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@3.0.0-next.10(@sveltejs/vite-plugin-svelte@7.2.0(svelte@5.56.6(@typescript-eslint/types@8.64.0))(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0))(typescript@6.0.3)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0)))(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))
+        specifier: 0.4.0
+        version: 0.4.0(bits-ui@2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@3.0.0-next.10(@sveltejs/vite-plugin-svelte@7.2.0(svelte@5.56.6(@typescript-eslint/types@8.64.0))(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0))(typescript@6.0.3)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0)))(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))
       '@kartore/file-adapter':
-        specifier: 0.2.0
-        version: 0.2.0(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))
+        specifier: 0.3.0
+        version: 0.3.0(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))
       '@kartore/glyphore':
         specifier: ^0.2.0
         version: 0.2.0
@@ -830,15 +830,15 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@kartore-internal/github-adapter@0.3.0':
-    resolution: {integrity: sha512-jNIqJ64i25g7f6UgJpa3VISz+tthjXNlstZIP5hxl+aZT7klXaVemct7JmOp6nYwc7/CNTfdRCBfq01LvvZl9Q==, tarball: https://npm.pkg.github.com/download/@kartore-internal/github-adapter/0.3.0/eff0e060cd3bdbe9b6a5101adf5fc9466dd18557}
+  '@kartore-internal/github-adapter@0.4.0':
+    resolution: {integrity: sha512-zpkcw621o3Jyolb9QxTuocxTPwkgkLKeDuSr8qaLAbrtH6RxuXKo9eLB+HAhfiYC6grHHlXY2xm9VOhlhwDqmg==, tarball: https://npm.pkg.github.com/download/@kartore-internal/github-adapter/0.4.0/d3593f523dca5ee78e6fca3014d5a18d29cf2e9f}
     peerDependencies:
       bits-ui: ^2.18.0
       maplibre-gl: ^5.0.0
       svelte: ^5.0.0
 
-  '@kartore/file-adapter@0.2.0':
-    resolution: {integrity: sha512-U0lS4OkV8IIJPLweOaArBcOwK4quPD+UR5znXFZzXhnJK0eM6ikor9Cr7j0rLwvtqPd6tJzz9FMYBCrJQchmyw==}
+  '@kartore/file-adapter@0.3.0':
+    resolution: {integrity: sha512-oVFEXPWxxovJmU5obRpcvq6gPkC0UOYgWYamX+86lLPUEk6GjKUlSOuF4Tj3qACKoFnJoirDElZ4Q2xkwBCgEw==}
     peerDependencies:
       maplibre-gl: ^5.0.0
       svelte: ^5.0.0
@@ -2753,7 +2753,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@kartore-internal/github-adapter@0.3.0(bits-ui@2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@3.0.0-next.10(@sveltejs/vite-plugin-svelte@7.2.0(svelte@5.56.6(@typescript-eslint/types@8.64.0))(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0))(typescript@6.0.3)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0)))(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))':
+  '@kartore-internal/github-adapter@0.4.0(bits-ui@2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@3.0.0-next.10(@sveltejs/vite-plugin-svelte@7.2.0(svelte@5.56.6(@typescript-eslint/types@8.64.0))(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0))(typescript@6.0.3)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.6(@typescript-eslint/types@8.64.0)))(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))':
     dependencies:
       '@lucide/svelte': 1.25.0(svelte@5.56.6(@typescript-eslint/types@8.64.0))
       '@tanstack/svelte-query': 6.1.36(svelte@5.56.6(@typescript-eslint/types@8.64.0))
@@ -2762,7 +2762,7 @@ snapshots:
       maplibre-gl: 5.24.0
       svelte: 5.56.6(@typescript-eslint/types@8.64.0)
 
-  '@kartore/file-adapter@0.2.0(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))':
+  '@kartore/file-adapter@0.3.0(maplibre-gl@5.24.0)(svelte@5.56.6(@typescript-eslint/types@8.64.0))':
     dependencies:
       maplibre-gl: 5.24.0
       svelte: 5.56.6(@typescript-eslint/types@8.64.0)

@@ -15,8 +15,8 @@ packageExtensions:
 minimumReleaseAgeExclude:
   - '@kartore-internal/github-adapter'
   - '@kartore/file-adapter'
-  - '@kartore/spritore@0.2.0'
-  - '@kartore/glyphore@0.2.0'
+  - '@kartore/spritore'
+  - '@kartore/glyphore'
 allowBuilds:
   esbuild: false
   sharp: false
