@@ -87,8 +87,10 @@
 		getBoundingClientRect: () => DOMRect;
 	};
 
-	let selectedLayerId = $state<string>(osmLibertyMigrated.layers[4].id);
+	let selectedLayerId = $state<string | null>(osmLibertyMigrated.layers[4].id);
 	let layerSelectionRequest = $state(0);
+	let layerSearchInput = $state<HTMLInputElement | null>(null);
+	let layerDragActive = $state(false);
 	let importDialogOpen = $state(false);
 	let settingsDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
@@ -382,10 +384,10 @@
 	};
 
 	const handleDeleteLayer = () => {
-		if (previewState) return;
+		if (previewState || selectedLayerId === null) return;
 		if (store.mapStyle.layers.length <= 1) return;
 		store.setMapStyle((currentStyle) => {
-			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayer.id);
+			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayerId);
 			if (index === -1 || currentStyle.layers.length <= 1) return currentStyle;
 			const layers = currentStyle.layers.filter((_, i) => i !== index);
 			selectedLayerId = (layers[index] ?? layers[index - 1]).id;
@@ -394,14 +396,48 @@
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return;
 		const target = event.target;
 		if (
 			target instanceof HTMLElement &&
-			target.closest('input, textarea, select, [contenteditable="true"], .cm-editor')
+			target.closest(
+				'input, textarea, select, [contenteditable="true"], .cm-editor, [role="dialog"], [role="alertdialog"]'
+			)
 		) {
 			return;
 		}
+		if (
+			importDialogOpen ||
+			settingsDialogOpen ||
+			addLayerDialogOpen ||
+			sourcesDialogOpen ||
+			spritesDialogOpen ||
+			fontsDialogOpen ||
+			layerDragActive
+		) {
+			return;
+		}
+
+		const hasCommandModifier = event.metaKey || event.ctrlKey;
+		if (!hasCommandModifier && !event.altKey && event.key === '/') {
+			if (!layerSearchInput) return;
+			event.preventDefault();
+			layerSearchInput.focus();
+			return;
+		}
+
+		if (
+			!hasCommandModifier &&
+			!event.altKey &&
+			!event.shiftKey &&
+			(event.key === 'Backspace' || event.key === 'Delete')
+		) {
+			if (event.repeat) return;
+			event.preventDefault();
+			handleDeleteLayer();
+			return;
+		}
+
+		if (!hasCommandModifier || event.key.toLowerCase() !== 'z') return;
 		event.preventDefault();
 		if (event.shiftKey) store.redo();
 		else store.undo();
@@ -498,6 +534,8 @@
 				onClickFonts={handleOpenFonts}
 				canGroupLayersByPrefix={!previewState}
 				onGroupLayersByPrefix={handleGroupLayersByPrefix}
+				bind:layerSearchInput
+				onLayerDragActiveChange={(active) => (layerDragActive = active)}
 				onClickLayer={handleSelectLayer}
 				{adapterModules}
 			/>

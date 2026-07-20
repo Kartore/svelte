@@ -55,6 +55,8 @@
 		onClickFonts,
 		canGroupLayersByPrefix = true,
 		onGroupLayersByPrefix,
+		layerSearchInput = $bindable(null),
+		onLayerDragActiveChange,
 		adapterModules = [],
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -79,6 +81,8 @@
 		onClickFonts?: () => void;
 		canGroupLayersByPrefix?: boolean;
 		onGroupLayersByPrefix?: () => number;
+		layerSearchInput?: HTMLInputElement | null;
+		onLayerDragActiveChange?: (active: boolean) => void;
 		adapterModules?: EditorModule[];
 	} = $props();
 
@@ -202,6 +206,7 @@
 		overRowIndex = rowIndex;
 		overlayWidth = itemRects[rowIndex].width;
 		activeLayer = pendingLayer;
+		onLayerDragActiveChange?.(true);
 		suppressClick = true;
 
 		document.body.style.setProperty('cursor', 'grabbing');
@@ -258,6 +263,7 @@
 
 	const resetState = () => {
 		activeLayer = null;
+		onLayerDragActiveChange?.(false);
 		pendingLayer = null;
 		activeLayerIndex = -1;
 		activeRowIndex = -1;
@@ -488,12 +494,17 @@
 	<div class="border-b border-b-gray-200 px-3 py-2">
 		<div class="relative">
 			<TextField
+				bind:ref={layerSearchInput}
 				class="w-full [&>input]:h-8 [&>input]:w-full [&>input]:rounded-md [&>input]:pr-8 [&>input]:text-xs"
 				aria-label="Search layers"
-				placeholder="Search layer IDs"
+				placeholder="Search layer IDs ( / )"
 				value={layerSearch}
 				onValueChange={(value) => {
 					layerSearch = value;
+				}}
+				onCancel={() => {
+					layerSearch = '';
+					layerSearchInput?.blur();
 				}}
 			/>
 			{#if layerSearch !== ''}
