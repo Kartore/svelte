@@ -105,7 +105,7 @@
 
 <div
 	{...props}
-	class={cn('group/arg flex min-w-0 max-w-full flex-row flex-wrap items-center gap-1', className)}
+	class={cn('group/arg flex max-w-full min-w-0 flex-row flex-wrap items-center gap-1', className)}
 >
 	{#if propertySpec !== undefined && specLiteralFieldKind !== undefined && editableLiteral !== undefined && !editAsExpression}
 		<SpecLiteralField
@@ -120,7 +120,7 @@
 		<ExpressionInputField class="min-w-0 flex-1" value={arg} onChange={handleChildChange} nested />
 	{:else}
 		<ExpressionInputTypeInputField
-			class="min-w-0 max-w-full"
+			class="max-w-full min-w-0"
 			value={arg}
 			onChange={handleChildChange}
 			{suggestions}

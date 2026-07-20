@@ -477,7 +477,7 @@
 		{/if}
 		<div class="pointer-events-none absolute inset-3 flex gap-3">
 			<NavigationPanel
-				class="w-[20rem] min-w-[18rem] max-w-[22rem]"
+				class="w-[20rem] max-w-[22rem] min-w-[18rem]"
 				mapStyle={effectiveStyle}
 				layerErrors={validation.layerErrors}
 				onChangeLayerOrder={handleChangeLayerOrder}

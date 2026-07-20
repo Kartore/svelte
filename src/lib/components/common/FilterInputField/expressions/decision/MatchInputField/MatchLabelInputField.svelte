@@ -38,7 +38,7 @@
 {:else}
 	<div class="flex min-w-0 flex-wrap items-center gap-1 rounded bg-gray-100 px-1 py-0.5">
 		{#each label as element, elementIndex (elementIndex)}
-			<div class="flex min-w-0 max-w-full items-center rounded bg-white px-0.5 ring-1 ring-black/5">
+			<div class="flex max-w-full min-w-0 items-center rounded bg-white px-0.5 ring-1 ring-black/5">
 				<ExpressionInputTypeInputField
 					class="min-w-0 px-0 [&>input]:max-w-full"
 					value={element}

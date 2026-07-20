@@ -165,7 +165,7 @@
 				{@const width =
 					toPercent(edges[index + 1], result.domain) - toPercent(edges[index], result.domain)}
 				<div
-					class="flex min-w-0 items-center justify-center border-r border-white odd:bg-gray-200/70 last:border-r-0"
+					class="flex min-w-0 items-center justify-center border-r border-white last:border-r-0 odd:bg-gray-200/70"
 					style:width={`${width}%`}
 					title={label}
 				>

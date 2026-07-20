@@ -23,7 +23,7 @@
 	{disabled}
 	{onSelect}
 	class={cn(
-		'flex h-8 cursor-default select-none items-center gap-4 rounded px-2 text-xs font-medium text-gray-700 outline-none data-[disabled]:text-gray-300 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-950',
+		'flex h-8 cursor-default items-center gap-4 rounded px-2 text-xs font-medium text-gray-700 outline-none select-none data-[disabled]:text-gray-300 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-950',
 		className
 	)}
 >

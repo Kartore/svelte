@@ -217,7 +217,7 @@
 				<!-- ボタンをフロー外に置きラベルとコントロールの間の余白へ重ねる。
 					フロー内に置くとボタン数 (0〜2) の分だけコントロールの右端がずれるため -->
 				<div
-					class="pointer-events-none absolute top-1/2 right-1/2 mr-1 flex -translate-y-1/2 flex-row items-center gap-0.5 rounded bg-white/90 opacity-0 transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/property:pointer-events-auto group-hover/property:opacity-100"
+					class="pointer-events-none absolute top-1/2 right-1/2 mr-1 flex -translate-y-1/2 flex-row items-center gap-0.5 rounded bg-white/90 opacity-0 transition-opacity group-hover/property:pointer-events-auto group-hover/property:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100"
 				>
 					{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
 						<PropertyHistoryPopover

@@ -37,7 +37,7 @@
 			return;
 		}
 
-		const result = createExpression(expression);
+		const result = createExpression(expression, 'filter');
 		if (result.result === 'error') {
 			error = result.value.map(({ message }) => message).join(' ');
 			return;

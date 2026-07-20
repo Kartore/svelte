@@ -1,7 +1,8 @@
 import {
 	createExpression,
 	latest,
-	type ExpressionSpecification
+	type ExpressionSpecification,
+	type StylePropertySpecification
 } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
@@ -13,6 +14,8 @@ import {
 } from './expressionEdit.ts';
 
 const expression = (value: unknown[]): ExpressionSpecification => value as ExpressionSpecification;
+const stylePropertySpecification = (value: unknown): StylePropertySpecification =>
+	value as StylePropertySpecification;
 
 describe('expressionEdit', () => {
 	it('wraps primitive and null values without changing their resolved value', () => {
@@ -38,9 +41,13 @@ describe('expressionEdit', () => {
 			22,
 			['literal', [4, 8]]
 		]);
-		expect(createExpression(interpolate, latest.layout_symbol['icon-offset']).result).toBe(
-			'success'
-		);
+		expect(
+			createExpression(
+				interpolate,
+				'layout.icon-offset',
+				stylePropertySpecification(latest.layout_symbol['icon-offset'])
+			).result
+		).toBe('success');
 	});
 
 	it('removes arguments while the operator remains above its minimum arity', () => {

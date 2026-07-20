@@ -124,13 +124,13 @@ export const sampleCurveExpression = (
 	const probed = expression.map((part, index) =>
 		index === inputIndex ? ['to-number', ['get', PROBE_KEY]] : part
 	);
-	const compiled = createExpression(probed, {
+	const compiled = createExpression(probed, 'curve', {
 		type: outputType,
 		'property-type': 'data-driven',
 		expression: { interpolated: true, parameters: ['zoom', 'feature'] },
 		transition: false,
 		overridable: false
-	} as Parameters<typeof createExpression>[1]);
+	} as Parameters<typeof createExpression>[2]);
 	if (compiled.result === 'error') return null;
 
 	const span = domain[1] - domain[0] || 1;

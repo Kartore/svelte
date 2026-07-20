@@ -1,13 +1,17 @@
 import {
 	createExpression,
 	latest,
-	type ExpressionSpecification
+	type ExpressionSpecification,
+	type StylePropertySpecification
 } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
 import type { ExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 
 import { literalToSuggestedExpression, selectSuggestedProperty } from './expressionSeed.ts';
+
+const stylePropertySpecification = (value: unknown): StylePropertySpecification =>
+	value as StylePropertySpecification;
 
 const suggestions = (
 	fields: ExpressionSuggestions['propertyKeys'],
@@ -29,7 +33,13 @@ describe('expressionSeed', () => {
 		});
 
 		expect(result).toEqual(['coalesce', ['get', 'name'], 'Untitled']);
-		expect(createExpression(result, latest.layout_symbol['text-field']).result).toBe('success');
+		expect(
+			createExpression(
+				result,
+				'layout.text-field',
+				stylePropertySpecification(latest.layout_symbol['text-field'])
+			).result
+		).toBe('success');
 	});
 
 	it('selects a numeric field for a numeric property', () => {
@@ -43,7 +53,13 @@ describe('expressionSeed', () => {
 		});
 
 		expect(result).toEqual(['coalesce', ['get', 'width'], 2]);
-		expect(createExpression(result, latest.paint_line['line-width']).result).toBe('success');
+		expect(
+			createExpression(
+				result,
+				'paint.line-width',
+				stylePropertySpecification(latest.paint_line['line-width'])
+			).result
+		).toBe('success');
 	});
 
 	it('uses an explicit color conversion only for a color-related string field', () => {
@@ -58,7 +74,13 @@ describe('expressionSeed', () => {
 		});
 
 		expect(result).toEqual(['to-color', ['get', 'stroke_color'], '#336699']);
-		expect(createExpression(result, latest.paint_fill['fill-color']).result).toBe('success');
+		expect(
+			createExpression(
+				result,
+				'paint.fill-color',
+				stylePropertySpecification(latest.paint_fill['fill-color'])
+			).result
+		).toBe('success');
 	});
 
 	it('does not treat an unrelated string field as a color', () => {
@@ -97,8 +119,11 @@ describe('expressionSeed', () => {
 		});
 		expect(result).toEqual(['coalesce', ['literal', [4, 8]]]);
 		expect(
-			createExpression(result as ExpressionSpecification, latest.layout_symbol['icon-offset'])
-				.result
+			createExpression(
+				result as ExpressionSpecification,
+				'layout.icon-offset',
+				stylePropertySpecification(latest.layout_symbol['icon-offset'])
+			).result
 		).toBe('success');
 	});
 });

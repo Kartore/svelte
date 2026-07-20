@@ -187,7 +187,19 @@ const parseNode = (value: unknown): FilterNode => {
 };
 
 const normalizeFilter = (filter: FilterSpecification): ExpressionFilterSpecification => {
-	return isExpressionFilter(filter) ? filter : convertFilter(filter);
+	if (isExpressionFilter(filter)) return filter;
+
+	if (Array.isArray(filter) && (filter[0] === 'all' || filter[0] === 'any')) {
+		const childKinds = filter
+			.slice(1)
+			.filter((child) => typeof child !== 'boolean')
+			.map(isExpressionFilter);
+		if (childKinds.includes(true) && childKinds.includes(false)) {
+			return filter as ExpressionFilterSpecification;
+		}
+	}
+
+	return convertFilter(filter);
 };
 
 export const parseFilter = (filter: FilterSpecification | undefined): FilterGroupNode => {

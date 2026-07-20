@@ -34,8 +34,8 @@ export const parseExpressionJson = (
 	}
 
 	const result = propertySpec
-		? createPropertyExpression(parsed, propertySpec as StylePropertySpecification)
-		: createExpression(parsed);
+		? createPropertyExpression(parsed, 'expression', propertySpec as StylePropertySpecification)
+		: createExpression(parsed, 'expression');
 	if (result.result === 'error') {
 		return { ok: false, error: formatParseErrors(result.value) };
 	}

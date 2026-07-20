@@ -76,7 +76,7 @@
 		class="flex shrink-0 flex-row items-center justify-between border-b border-gray-200 px-4 py-2"
 	>
 		<div class="flex min-w-0 flex-col">
-			<h3 class="font-montserrat truncate text-sm font-semibold">{target.label}</h3>
+			<h3 class="truncate font-montserrat text-sm font-semibold">{target.label}</h3>
 			<span class="truncate font-mono text-xs text-gray-500" title={`${layer.id} · ${target.key}`}>
 				{layer.id} · {target.key}
 			</span>
@@ -141,7 +141,7 @@
 			{/key}
 			<PropertyErrorMessage group={target.group} property={target.key} />
 		{:else}
-			<div class="expression-builder min-w-0 max-w-full">
+			<div class="expression-builder max-w-full min-w-0">
 				<ExpressionInputField
 					class="w-full text-sm"
 					value={value as ExpressionSpecification}

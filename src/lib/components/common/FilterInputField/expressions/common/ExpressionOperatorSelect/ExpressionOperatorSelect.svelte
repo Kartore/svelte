@@ -41,7 +41,7 @@
 {#if !meta || !onChange}
 	<div
 		class={cn(
-			'flex min-w-0 max-w-full flex-row rounded bg-gray-100 px-2 py-1 font-mono text-sm font-normal text-gray-700',
+			'flex max-w-full min-w-0 flex-row rounded bg-gray-100 px-2 py-1 font-mono text-sm font-normal text-gray-700',
 			className
 		)}
 	>
@@ -50,7 +50,7 @@
 {:else}
 	<Select
 		aria-label="expression operator"
-		class={cn('inline-flex min-w-0 max-w-full font-mono', className)}
+		class={cn('inline-flex max-w-full min-w-0 font-mono', className)}
 		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
 		sections={operatorSections}
 		value={String(operator)}

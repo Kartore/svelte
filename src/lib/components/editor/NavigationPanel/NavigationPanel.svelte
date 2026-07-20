@@ -7,6 +7,7 @@
 
 	import { Button } from '$lib/components/common/Button';
 	import {
+		MenuCheckboxItem,
 		MenuItem,
 		MenuRoot,
 		MenuSeparator,
@@ -343,7 +344,7 @@
 					/>
 				{:else if onRenameStyle}
 					<Button
-						class="min-w-0 flex-1 justify-start rounded px-0 text-left text-xs font-semibold text-gray-700 underline-offset-2 hover:bg-transparent hover:underline active:bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+						class="min-w-0 flex-1 justify-start rounded px-0 text-left text-xs font-semibold text-gray-700 underline-offset-2 hover:bg-transparent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400 active:bg-transparent"
 						aria-label={`Rename style “${styleName}”`}
 						title={styleName}
 						onclick={startRenamingStyle}
@@ -425,6 +426,27 @@
 					<MenuItem disabled={!canRedo} shortcut="⇧⌘Z" onSelect={() => onClickRedo?.()}>
 						Redo
 					</MenuItem>
+					<MenuSeparator />
+					<MenuItem onSelect={() => onClickAddLayer?.()}>Add layer…</MenuItem>
+					<MenuItem
+						disabled={!canGroupLayersByPrefix || onGroupLayersByPrefix === undefined}
+						onSelect={groupLayersByPrefix}
+					>
+						Group layers by prefix
+					</MenuItem>
+				</MenuTrigger>
+				<MenuTrigger value="view" label="View">
+					<MenuCheckboxItem
+						checked={styleJsonMode}
+						onCheckedChange={() => onToggleStyleJsonMode?.()}
+					>
+						Style JSON editor
+					</MenuCheckboxItem>
+				</MenuTrigger>
+				<MenuTrigger value="assets" label="Assets">
+					<MenuItem onSelect={() => onClickSources?.()}>Sources…</MenuItem>
+					<MenuItem onSelect={() => onClickSprites?.()}>Sprites…</MenuItem>
+					<MenuItem onSelect={() => onClickFonts?.()}>Fonts…</MenuItem>
 				</MenuTrigger>
 			</MenuRoot>
 			<div class="flex min-w-0 items-center justify-end gap-1.5 overflow-hidden empty:hidden">
@@ -446,43 +468,14 @@
 					: `${mapStyle.layers.length} items`}
 			</p>
 		</div>
-		<div class="flex items-center gap-1.5">
-			<Button
-				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 disabled:cursor-default disabled:text-gray-300 disabled:hover:border-gray-200 disabled:hover:bg-transparent"
-				aria-label="Group layers by prefix"
-				title="Group layers by prefix"
-				disabled={!canGroupLayersByPrefix || onGroupLayersByPrefix === undefined}
-				onclick={groupLayersByPrefix}
-			>
-				Group
-			</Button>
-			<Button
-				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-				onclick={onClickSources}
-			>
-				Sources
-			</Button>
-			<Button
-				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-				onclick={onClickSprites}
-			>
-				Sprites
-			</Button>
-			<Button
-				class="h-7 rounded-md border border-gray-200 px-2 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-				onclick={onClickFonts}
-			>
-				Fonts
-			</Button>
-			<Button
-				class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-900 text-white shadow-sm hover:bg-gray-700"
-				aria-label="Add layer"
-				title="Add layer"
-				onclick={onClickAddLayer}
-			>
-				<PlusIcon class="h-4 w-4" />
-			</Button>
-		</div>
+		<Button
+			class="flex h-7 w-7 items-center justify-center rounded-md bg-gray-900 text-white shadow-sm hover:bg-gray-700"
+			aria-label="Add layer"
+			title="Add layer"
+			onclick={onClickAddLayer}
+		>
+			<PlusIcon class="h-4 w-4" />
+		</Button>
 	</div>
 	<div class="border-b border-b-gray-200 px-3 py-2">
 		<div class="relative">

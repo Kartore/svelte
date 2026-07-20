@@ -174,7 +174,7 @@
 
 <div class={cn('flex flex-row items-center justify-between', className)}>
 	{#if label}
-		<label for={`${id}-input`} class={cn('font-semibold text-gray-600 text-sm')}>
+		<label for={`${id}-input`} class={cn('text-sm font-semibold text-gray-600')}>
 			{label}
 		</label>
 	{/if}

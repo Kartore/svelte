@@ -41,7 +41,7 @@
 {#snippet typeSelect()}
 	<Select
 		aria-label="interpolation type"
-		class="inline-flex min-w-0 max-w-full font-mono"
+		class="inline-flex max-w-full min-w-0 font-mono"
 		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
 		items={interpolationTypes.map((type) => ({ value: type, label: type }))}
 		value={value[0]}

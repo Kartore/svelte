@@ -40,7 +40,7 @@
 <div
 	{...props}
 	class={cn(
-		'flex w-full items-center gap-2 px-4 py-2 text-gray-800 text-sm',
+		'flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-800',
 		indicator && 'opacity-60',
 		outsideZoomRange && 'opacity-45',
 		clone && 'inline-flex',
