@@ -10,10 +10,7 @@ export type ResolvedEditorMenuSection = {
 export const resolveEditorMenuSection = (
 	module: EditorModule,
 	menuId: EditorMenuId
-): Component | undefined => {
-	if (menuId === 'file') return module.menuSections?.file ?? module.menuSection;
-	return module.menuSections?.[menuId];
-};
+): Component | undefined => module.menuSections?.[menuId];
 
 export const collectEditorMenuSections = (
 	modules: EditorModule[]

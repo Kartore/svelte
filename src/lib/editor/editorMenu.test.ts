@@ -7,31 +7,15 @@ import { collectEditorMenuSections, resolveEditorMenuSection } from './editorMen
 const component = (name: string): Component => ({ name }) as unknown as Component;
 
 describe('editor menu sections', () => {
-	it('treats legacy menuSection as a File menu section', () => {
-		const legacy = component('legacy');
-		const module: EditorModule = { id: 'fixture', menuSection: legacy };
-
-		expect(resolveEditorMenuSection(module, 'file')).toBe(legacy);
-		expect(collectEditorMenuSections([module])).toEqual({
-			file: [{ moduleId: 'fixture', component: legacy }],
-			edit: [],
-			view: [],
-			assets: []
-		});
-	});
-
-	it('prefers menuSections.file without rendering the legacy alias twice', () => {
-		const legacy = component('legacy');
+	it('resolves the section for the requested menu', () => {
 		const file = component('file');
 		const module: EditorModule = {
 			id: 'fixture',
-			menuSection: legacy,
 			menuSections: { file }
 		};
 
-		expect(collectEditorMenuSections([module]).file).toEqual([
-			{ moduleId: 'fixture', component: file }
-		]);
+		expect(resolveEditorMenuSection(module, 'file')).toBe(file);
+		expect(resolveEditorMenuSection(module, 'edit')).toBeUndefined();
 	});
 
 	it('collects extensions for every menu in module order', () => {
