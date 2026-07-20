@@ -28,7 +28,8 @@
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { provideStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
-	import type { EditorApi, EditorPreview } from '$lib/editor/EditorModule.ts';
+	import type { EditorApi, EditorPreview, SaveProvider } from '$lib/editor/EditorModule.ts';
+	import { dispatchSave } from '$lib/editor/saveProvider.ts';
 	import { registerGlyphProtocol } from '$lib/fonts/glyphProtocol.ts';
 	import { loadGlyphore } from '$lib/fonts/glyphore.ts';
 	import { adapterModules } from 'virtual:kartore-adapter';
@@ -56,6 +57,7 @@
 	const backgroundMap = provideBackgroundMap();
 	const expressionFlyout = provideExpressionFlyout();
 	const styleHistory = provideStyleHistory();
+	const saveProviders: SaveProvider[] = [];
 	type LocalSpriteDimensions = {
 		svg: string;
 		width: number;
@@ -276,7 +278,8 @@
 		setStyle: (style) => store.setMapStyle(style),
 		setPreview: (preview) => (previewState = preview),
 		getPreview: () => previewState,
-		registerStyleHistoryProvider: (provider) => styleHistory.register(provider)
+		registerStyleHistoryProvider: (provider) => styleHistory.register(provider),
+		registerSaveProvider: (provider) => saveProviders.push(provider)
 	};
 	for (const module of adapterModules) {
 		setContext(`module:${module.id}`, module.setup?.(editorApi));
@@ -330,6 +333,10 @@
 		anchor.download = styleExport.fileName;
 		anchor.click();
 		URL.revokeObjectURL(url);
+	};
+
+	const handleSave = () => {
+		void dispatchSave(saveProviders, handleExport);
 	};
 
 	const handleOpenSprites = () => {
@@ -396,6 +403,13 @@
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
+		const hasCommandModifier = event.metaKey || event.ctrlKey;
+		if (hasCommandModifier && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 's') {
+			event.preventDefault();
+			if (!event.repeat) handleSave();
+			return;
+		}
+
 		const target = event.target;
 		if (
 			target instanceof HTMLElement &&
@@ -417,7 +431,6 @@
 			return;
 		}
 
-		const hasCommandModifier = event.metaKey || event.ctrlKey;
 		if (!hasCommandModifier && !event.altKey && event.key === '/') {
 			if (!layerSearchInput) return;
 			event.preventDefault();

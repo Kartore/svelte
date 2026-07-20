@@ -37,6 +37,12 @@ export type StyleHistoryProvider = {
 	loadStyleAtRevision: (revisionId: string) => Promise<StyleSpecification>;
 };
 
+export type SaveProvider = {
+	/** getter で実装し、リアクティブに評価できるようにする */
+	readonly available: boolean;
+	save: () => void | Promise<void>;
+};
+
 export type EditorApi = {
 	/** store.mapStyle を返す。$derived / $effect 内で呼べばリアクティブに追跡される */
 	getStyle: () => StyleSpecification;
@@ -45,6 +51,8 @@ export type EditorApi = {
 	getPreview: () => EditorPreview | null;
 	/** アダプタが履歴プロバイダを登録する */
 	registerStyleHistoryProvider: (provider: StyleHistoryProvider) => void;
+	/** アダプタが保存プロバイダを登録する */
+	registerSaveProvider: (provider: SaveProvider) => void;
 };
 
 export type EditorModulePage = {
