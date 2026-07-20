@@ -18,7 +18,8 @@
 	import { SortableLayerTreeItem } from '$lib/components/editor/NavigationPanel/SortableLayerTreeItem';
 	import { CloseIcon, PlusIcon } from '$lib/components/icons';
 	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
-	import type { EditorModule } from '$lib/editor/EditorModule.ts';
+	import type { EditorMenuId, EditorModule } from '$lib/editor/EditorModule.ts';
+	import { collectEditorMenuSections, resolveEditorMenuSection } from '$lib/editor/editorMenu.ts';
 	import {
 		buildLayerTreeRows,
 		filterLayerTreeRowsById,
@@ -82,9 +83,11 @@
 	} = $props();
 
 	const backgroundMap = useBackgroundMap();
-	const hasMenuSections = $derived(adapterModules.some((module) => module.menuSection));
+	const adapterMenuSections = $derived(collectEditorMenuSections(adapterModules));
 	const hasHeaderActionFallbacks = $derived(
-		adapterModules.some((module) => !module.menuSection && module.headerAction)
+		adapterModules.some(
+			(module) => !resolveEditorMenuSection(module, 'file') && module.headerAction
+		)
 	);
 	const styleName = $derived(mapStyle.name ?? 'Untitled style');
 	let isRenamingStyle = $state(false);
@@ -315,6 +318,16 @@
 	};
 </script>
 
+{#snippet renderAdapterMenuSections(menuId: EditorMenuId)}
+	{#if adapterMenuSections[menuId].length > 0}
+		<MenuSeparator />
+		{#each adapterMenuSections[menuId] as section (section.moduleId)}
+			{@const MenuSection = section.component}
+			<MenuSection />
+		{/each}
+	{/if}
+{/snippet}
+
 <div
 	{...props}
 	class={cn(
@@ -398,19 +411,11 @@
 				<MenuTrigger value="file" label="File">
 					<MenuItem onSelect={() => onClickImport?.()}>Import style…</MenuItem>
 					<MenuItem onSelect={() => onClickExport?.()}>Export style…</MenuItem>
-					{#if hasMenuSections}
-						<MenuSeparator />
-						{#each adapterModules as module (module.id)}
-							{#if module.menuSection}
-								{@const MenuSection = module.menuSection}
-								<MenuSection />
-							{/if}
-						{/each}
-					{/if}
+					{@render renderAdapterMenuSections('file')}
 					{#if hasHeaderActionFallbacks}
 						<MenuSeparator />
 						{#each adapterModules as module (module.id)}
-							{#if !module.menuSection && module.headerAction}
+							{#if !resolveEditorMenuSection(module, 'file') && module.headerAction}
 								{@const HeaderAction = module.headerAction}
 								<HeaderAction />
 							{/if}
@@ -434,6 +439,7 @@
 					>
 						Group layers by prefix
 					</MenuItem>
+					{@render renderAdapterMenuSections('edit')}
 				</MenuTrigger>
 				<MenuTrigger value="view" label="View">
 					<MenuCheckboxItem
@@ -442,11 +448,13 @@
 					>
 						Style JSON editor
 					</MenuCheckboxItem>
+					{@render renderAdapterMenuSections('view')}
 				</MenuTrigger>
 				<MenuTrigger value="assets" label="Assets">
 					<MenuItem onSelect={() => onClickSources?.()}>Sources…</MenuItem>
 					<MenuItem onSelect={() => onClickSprites?.()}>Sprites…</MenuItem>
 					<MenuItem onSelect={() => onClickFonts?.()}>Fonts…</MenuItem>
+					{@render renderAdapterMenuSections('assets')}
 				</MenuTrigger>
 			</MenuRoot>
 			<div class="flex min-w-0 items-center justify-end gap-1.5 overflow-hidden empty:hidden">

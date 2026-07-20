@@ -53,16 +53,20 @@ export type EditorModulePage = {
 	component: Component;
 };
 
+export type EditorMenuId = 'file' | 'edit' | 'view' | 'assets';
+
 // この型を変更したら、すべてのアダプタの types/host-app.d.ts も更新すること。
 export type EditorModule = {
 	id: string;
 	/**
-	 * @deprecated `menuSection` / `headerStatus` へ移行すること。`menuSection` が無い場合は
-	 * File メニュー末尾のフォールバックセクションに描画される。
+	 * @deprecated `menuSections` / `headerStatus` へ移行すること。File の有効なメニューセクションが
+	 * 無い場合は File メニュー末尾のフォールバックセクションに描画される。
 	 */
 	headerAction?: Component;
-	/** File メニューに差し込まれる項目群 */
+	/** @deprecated `menuSections.file` へ移行。両方あれば `menuSections.file` を優先する */
 	menuSection?: Component;
+	/** 各メニュー末尾に区切り線付きで差し込まれる項目群 */
+	menuSections?: Partial<Record<EditorMenuId, Component>>;
 	/** NavigationPanel のメニュー行右端に並ぶ小さな状態表示 */
 	headerStatus?: Component;
 	/** +page.svelte 直下にマウントされるダイアログ・オーバーレイ */
