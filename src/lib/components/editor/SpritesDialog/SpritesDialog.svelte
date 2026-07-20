@@ -51,7 +51,7 @@
 			const errors: Record<string, string | undefined> = {};
 			for (const [id, svg] of entries) {
 				try {
-					renderIcon(id, svg, 1);
+					await renderIcon(id, svg, 1);
 				} catch (error) {
 					errors[id] = errorMessage(error);
 				}
@@ -124,8 +124,10 @@
 		try {
 			const { buildSpriteSheet } = await loadSpritore();
 			const spriteIcons = validIconEntries.map(([id, svg]) => ({ id, svg }));
-			const oneX = buildSpriteSheet(spriteIcons, 1);
-			const twoX = buildSpriteSheet(spriteIcons, 2);
+			const [oneX, twoX] = await Promise.all([
+				buildSpriteSheet(spriteIcons, 1),
+				buildSpriteSheet(spriteIcons, 2)
+			]);
 
 			downloadBlob(oneX.indexJson, 'application/json', 'sprite.json');
 			downloadBlob(oneX.png, 'image/png', 'sprite.png');

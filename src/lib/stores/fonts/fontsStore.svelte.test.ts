@@ -1,4 +1,4 @@
-import type { FontInfo } from '@kartore/glyphore';
+import type { FontInfo, GlyphFont } from '@kartore/glyphore';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Glyphore } from '$lib/fonts/glyphore.ts';
@@ -15,18 +15,18 @@ const fontInfo: FontInfo = {
 };
 
 const createGlyphore = () => {
-	let nextHandle = 1;
-	const parseFont = vi.fn(() => ({ handle: nextHandle++, info: fontInfo }));
-	const freeFont = vi.fn();
+	const disposeFont = vi.fn();
+	const loadFont = vi.fn(async () => ({
+		info: fontInfo,
+		[Symbol.dispose]: disposeFont
+	}));
 	return {
 		glyphore: {
-			init: vi.fn(async () => undefined),
-			parseFont,
-			generateRange: vi.fn(() => Uint8Array.from([1, 2, 3])),
-			freeFont
+			loadFont,
+			generateRange: vi.fn(() => Uint8Array.from([1, 2, 3]))
 		} as unknown as Glyphore,
-		parseFont,
-		freeFont
+		loadFont,
+		disposeFont
 	};
 };
 
@@ -78,7 +78,7 @@ describe('FontsStore', () => {
 		expect(loadGlyphore).not.toHaveBeenCalled();
 	});
 
-	it('parses a saved font only on first use and caches its handle', async () => {
+	it('loads a saved font only on first use and caches its resource', async () => {
 		const storedFont: StoredFont = {
 			bytes: Uint8Array.from([1, 2, 3]).buffer,
 			familyName: fontInfo.familyName,
@@ -89,22 +89,22 @@ describe('FontsStore', () => {
 			{ 'Noto Sans JP Regular': storedFont },
 			{ 'Noto Sans JP Regular': storedFont }
 		);
-		const { glyphore, parseFont } = createGlyphore();
+		const { glyphore, loadFont } = createGlyphore();
 		const loadGlyphore = vi.fn(async () => glyphore);
 		const store = new FontsStore({ adapter, loadGlyphore });
 		await vi.waitFor(() => expect(store.isLoading).toBe(false));
 
-		const first = await store.getParsedFont('Noto Sans JP Regular');
-		const second = await store.getParsedFont('Noto Sans JP Regular');
-		expect(first).toEqual(second);
+		const first = await store.getLoadedFont('Noto Sans JP Regular');
+		const second = await store.getLoadedFont('Noto Sans JP Regular');
+		expect(first).toBe(second);
 		expect(first?.info).toEqual(fontInfo);
 		expect(loadGlyphore).toHaveBeenCalledTimes(1);
-		expect(parseFont).toHaveBeenCalledTimes(1);
+		expect(loadFont).toHaveBeenCalledTimes(1);
 	});
 
-	it('parses and saves an added font, then frees its handle on delete', async () => {
+	it('loads and saves an added font, then disposes it on delete', async () => {
 		const { adapter, save, remove } = createAdapter();
-		const { glyphore, freeFont } = createGlyphore();
+		const { glyphore, disposeFont } = createGlyphore();
 		const store = new FontsStore({
 			adapter,
 			loadGlyphore: async () => glyphore,
@@ -128,20 +128,55 @@ describe('FontsStore', () => {
 		await store.removeFont('Noto Sans JP Regular');
 		expect(remove).toHaveBeenCalledWith('Noto Sans JP Regular');
 		expect(store.fonts).toEqual({});
-		expect(freeFont).toHaveBeenCalledWith(1);
+		expect(disposeFont).toHaveBeenCalledOnce();
 	});
 
-	it('frees a newly parsed handle when persistence fails', async () => {
+	it('disposes a newly loaded font when persistence fails', async () => {
 		const { adapter } = createAdapter();
 		adapter.save = vi.fn(async () => {
 			throw new Error('quota exceeded');
 		});
-		const { glyphore, freeFont } = createGlyphore();
+		const { glyphore, disposeFont } = createGlyphore();
 		const store = new FontsStore({ adapter, loadGlyphore: async () => glyphore });
 		await vi.waitFor(() => expect(store.isLoading).toBe(false));
 
 		await expect(store.addFont(Uint8Array.from([1]))).rejects.toThrow('quota exceeded');
 		expect(store.fonts).toEqual({});
-		expect(freeFont).toHaveBeenCalledWith(1);
+		expect(disposeFont).toHaveBeenCalledOnce();
+	});
+
+	it('disposes cached fonts when destroyed', async () => {
+		const { adapter } = createAdapter();
+		const { glyphore, disposeFont } = createGlyphore();
+		const store = new FontsStore({ adapter, loadGlyphore: async () => glyphore });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+		await store.addFont(Uint8Array.from([1]));
+
+		store.destroy();
+		store.destroy();
+
+		expect(disposeFont).toHaveBeenCalledOnce();
+	});
+
+	it('disposes a font that finishes loading after destruction without saving it', async () => {
+		const { adapter, save } = createAdapter();
+		const disposeFont = vi.fn();
+		const deferred = Promise.withResolvers<GlyphFont>();
+		const loadFont = vi.fn(() => deferred.promise);
+		const glyphore = {
+			loadFont,
+			generateRange: vi.fn(() => Uint8Array.from([1, 2, 3]))
+		} as unknown as Glyphore;
+		const store = new FontsStore({ adapter, loadGlyphore: async () => glyphore });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+
+		const adding = store.addFont(Uint8Array.from([1]));
+		await vi.waitFor(() => expect(loadFont).toHaveBeenCalledOnce());
+		store.destroy();
+		deferred.resolve({ info: fontInfo, [Symbol.dispose]: disposeFont });
+
+		await expect(adding).rejects.toThrow('The font store has been destroyed.');
+		expect(save).not.toHaveBeenCalled();
+		expect(disposeFont).toHaveBeenCalledOnce();
 	});
 });

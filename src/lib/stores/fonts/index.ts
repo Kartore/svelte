@@ -5,4 +5,4 @@ export {
 	FONTS_OBJECT_STORE_NAME,
 	indexedDbFontsStoreAdapter
 } from './indexedDbFontsStoreAdapter.ts';
-export { FontsStore, type FontsStoreOptions, type ParsedFont } from './fontsStore.svelte.ts';
+export { FontsStore, type FontsStoreOptions, type LoadedFont } from './fontsStore.svelte.ts';

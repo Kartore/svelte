@@ -246,11 +246,11 @@ importers:
         specifier: 0.2.0
         version: 0.2.0(maplibre-gl@5.24.0)(svelte@5.56.4(@typescript-eslint/types@8.63.0))
       '@kartore/glyphore':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@kartore/spritore':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@maplibre/maplibre-gl-style-spec':
         specifier: ^25.0.2
         version: 25.0.2
@@ -843,11 +843,13 @@ packages:
       maplibre-gl: ^5.0.0
       svelte: ^5.0.0
 
-  '@kartore/glyphore@0.0.2':
-    resolution: {integrity: sha512-Vxov7Wn5LHhRk5qj1NdojTgxLnkNYWUjt+udMqRCJbJ7ZGDFJ2AohZk9KfCxM5YDjhKmG5aA5F2jb0hCRA1cAA==}
+  '@kartore/glyphore@0.2.0':
+    resolution: {integrity: sha512-PGcA24BynHK8I2WZLKzAeNxYF2Ztan0j62jKZHt9vQXDcEWK5d49eAZSFgf0UGdspF/dqLRVnHBe0cqKFjj4kw==}
+    hasBin: true
 
-  '@kartore/spritore@0.0.2':
-    resolution: {integrity: sha512-WqunVlePXW2bod68iZgyGGg3kiKC1Y01nVgQLl7wFTrFBY1YLFLbmmgg/lSrta9f5PyYP3jyrkKnZHiconxRcQ==}
+  '@kartore/spritore@0.2.0':
+    resolution: {integrity: sha512-fXtv5qGo7e2lwQy4hTUDNFhdgrNCDGpa/DL3q58ydZLg2M3WKeAvac+0tLkMiIUxRfwdqMKK2hAig3MdMJBbvg==}
+    hasBin: true
 
   '@lezer/common@1.5.2':
     resolution: {integrity: sha512-sxQE460fPZyU3sdc8lafxiPwJHBzZRy/udNFynGQky1SePYBdhkBl1kOagA9uT3pxR8K09bOrmTUqA9wb/PjSQ==}
@@ -2765,9 +2767,9 @@ snapshots:
       maplibre-gl: 5.24.0
       svelte: 5.56.4(@typescript-eslint/types@8.63.0)
 
-  '@kartore/glyphore@0.0.2': {}
+  '@kartore/glyphore@0.2.0': {}
 
-  '@kartore/spritore@0.0.2': {}
+  '@kartore/spritore@0.2.0': {}
 
   '@lezer/common@1.5.2': {}
 

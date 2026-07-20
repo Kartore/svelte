@@ -102,10 +102,10 @@
 		hasLocalFont: (fontstack) => fontstack in fontsStore.fonts,
 		getOriginalGlyphsUrl: () => effectiveStyle.glyphs,
 		generateRange: async (fontstack, start) => {
-			const parsed = await fontsStore.getParsedFont(fontstack);
-			if (!parsed) throw new Error(`Local font “${fontstack}” is no longer available.`);
+			const font = await fontsStore.getLoadedFont(fontstack);
+			if (!font) throw new Error(`Local font “${fontstack}” is no longer available.`);
 			const { generateRange } = await loadGlyphore();
-			return generateRange(parsed.handle, start);
+			return generateRange(font, start);
 		}
 	});
 	const selectedLayer = $derived(
@@ -195,11 +195,12 @@
 					nextDimensions[id] = { svg, width: svgDimensions.width, height: svgDimensions.height };
 					try {
 						const cached = renderedLocalSprites.get(id);
-						const rendered = cached?.svg === svg ? cached : { ...renderIcon(id, svg, 2), svg };
+						const rendered =
+							cached?.svg === svg ? cached : { ...(await renderIcon(id, svg, 2)), svg };
 						nextRenderedSprites.set(id, rendered);
 
 						if (!svgDimensions.hasIntegerSizeAttributes) {
-							const oneX = renderIcon(id, svg, 1);
+							const oneX = await renderIcon(id, svg, 1);
 							nextDimensions[id] = { svg, width: oneX.width, height: oneX.height };
 						}
 					} catch {
@@ -253,9 +254,10 @@
 			}
 
 			void loadSpritore()
-				.then(({ renderIcon }) => {
+				.then(async ({ renderIcon }) => {
 					if (backgroundMap.map !== map || spriteIconsStore.icons[event.id] !== svg) return;
-					const rendered = { ...renderIcon(event.id, svg, 2), svg };
+					const rendered = { ...(await renderIcon(event.id, svg, 2)), svg };
+					if (backgroundMap.map !== map || spriteIconsStore.icons[event.id] !== svg) return;
 					renderedLocalSprites.set(event.id, rendered);
 					addLocalSprite(map, rendered);
 					synchronizedIconSvgs.set(event.id, svg);
@@ -592,7 +594,7 @@
 				fonts={fontsStore.fonts}
 				onAddFont={fontsStore.addFont}
 				onRemoveFont={fontsStore.removeFont}
-				getParsedFont={fontsStore.getParsedFont}
+				getLoadedFont={fontsStore.getLoadedFont}
 			/>
 		{/if}
 		{#each adapterModules as module (module.id)}

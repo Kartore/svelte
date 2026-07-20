@@ -1,15 +1,12 @@
-import type { FontInfo } from '@kartore/glyphore';
+import type { FontInfo, GlyphFont } from '@kartore/glyphore';
 
 import { loadGlyphore, type Glyphore } from '$lib/fonts/glyphore.ts';
 
 import type { FontMeta, Fonts, FontsStoreAdapter, StoredFont } from './FontsStoreAdapter.ts';
 
-/* eslint-disable svelte/prefer-svelte-reactivity -- WASM handle caches do not participate in rendering. */
+/* eslint-disable svelte/prefer-svelte-reactivity -- WASM resource caches do not participate in rendering. */
 
-export type ParsedFont = {
-	handle: number;
-	info: FontInfo;
-};
+export type LoadedFont = GlyphFont;
 
 export type FontsStoreOptions = {
 	adapter: FontsStoreAdapter;
@@ -26,10 +23,8 @@ export class FontsStore {
 	#adapter: FontsStoreAdapter;
 	#loadGlyphore: () => Promise<Glyphore>;
 	#now: () => number;
-	#glyphore: Glyphore | undefined;
-	#handles = new globalThis.Map<string, number>();
-	#fontInfos = new globalThis.Map<string, FontInfo>();
-	#parsePromises = new globalThis.Map<string, Promise<ParsedFont | null>>();
+	#loadedFonts = new globalThis.Map<string, GlyphFont>();
+	#loadPromises = new globalThis.Map<string, Promise<LoadedFont | null>>();
 	#versions = new globalThis.Map<string, number>();
 	#destroyed = false;
 
@@ -49,35 +44,40 @@ export class FontsStore {
 	}
 
 	addFont = async (bytes: ArrayBuffer | Uint8Array): Promise<FontInfo> => {
+		if (this.#destroyed) throw new Error('The font store has been destroyed.');
 		const storedBytes = ownedArrayBuffer(bytes);
-		const glyphore = await this.#getGlyphore();
-		const parsed = glyphore.parseFont(new Uint8Array(storedBytes));
-		const name = parsed.info.fontstackName;
+		const { loadFont } = await this.#loadGlyphore();
+		if (this.#destroyed) throw new Error('The font store has been destroyed.');
+		const font = await loadFont(new Uint8Array(storedBytes));
+		if (this.#destroyed) {
+			font[Symbol.dispose]();
+			throw new Error('The font store has been destroyed.');
+		}
+		const name = font.info.fontstackName;
 		const storedFont: StoredFont = {
 			bytes: storedBytes,
-			familyName: parsed.info.familyName,
-			styleName: parsed.info.styleName,
+			familyName: font.info.familyName,
+			styleName: font.info.styleName,
 			addedAt: this.#now()
 		};
 
 		try {
 			await this.#adapter.save(name, storedFont);
 		} catch (error) {
-			glyphore.freeFont(parsed.handle);
+			font[Symbol.dispose]();
 			throw error;
 		}
 
 		if (this.#destroyed) {
-			glyphore.freeFont(parsed.handle);
+			font[Symbol.dispose]();
 			throw new Error('The font store has been destroyed.');
 		}
 
 		this.#advanceVersion(name);
-		this.#releaseHandle(name);
-		this.#handles.set(name, parsed.handle);
-		this.#fontInfos.set(name, parsed.info);
+		this.#releaseFont(name);
+		this.#loadedFonts.set(name, font);
 		this.fonts = { ...this.fonts, [name]: fontMeta(storedFont) };
-		return parsed.info;
+		return font.info;
 	};
 
 	removeFont = async (name: string): Promise<void> => {
@@ -89,26 +89,24 @@ export class FontsStore {
 		delete fonts[name];
 		this.fonts = fonts;
 		this.#advanceVersion(name);
-		this.#releaseHandle(name);
-		this.#fontInfos.delete(name);
+		this.#releaseFont(name);
 	};
 
-	getParsedFont = async (name: string): Promise<ParsedFont | null> => {
+	getLoadedFont = async (name: string): Promise<LoadedFont | null> => {
 		if (this.#destroyed || !(name in this.fonts)) return null;
-		const handle = this.#handles.get(name);
-		const info = this.#fontInfos.get(name);
-		if (handle !== undefined && info !== undefined) return { handle, info };
+		const font = this.#loadedFonts.get(name);
+		if (font !== undefined) return font;
 
-		const pending = this.#parsePromises.get(name);
+		const pending = this.#loadPromises.get(name);
 		if (pending) return pending;
 
 		const version = this.#version(name);
-		const promise = this.#parseStoredFont(name, version);
-		this.#parsePromises.set(name, promise);
+		const promise = this.#loadStoredFont(name, version);
+		this.#loadPromises.set(name, promise);
 		try {
 			return await promise;
 		} finally {
-			if (this.#parsePromises.get(name) === promise) this.#parsePromises.delete(name);
+			if (this.#loadPromises.get(name) === promise) this.#loadPromises.delete(name);
 		}
 	};
 
@@ -116,13 +114,12 @@ export class FontsStore {
 		if (this.#destroyed) return;
 		this.#destroyed = true;
 		for (const name of new globalThis.Set([
-			...this.#handles.keys(),
-			...this.#parsePromises.keys()
+			...this.#loadedFonts.keys(),
+			...this.#loadPromises.keys()
 		])) {
 			this.#advanceVersion(name);
 		}
-		for (const name of [...this.#handles.keys()]) this.#releaseHandle(name);
-		this.#fontInfos.clear();
+		for (const name of [...this.#loadedFonts.keys()]) this.#releaseFont(name);
 	};
 
 	async #load() {
@@ -138,37 +135,32 @@ export class FontsStore {
 		}
 	}
 
-	async #parseStoredFont(name: string, version: number): Promise<ParsedFont | null> {
+	async #loadStoredFont(name: string, version: number): Promise<LoadedFont | null> {
 		const storedFont = await this.#adapter.get(name);
 		if (!storedFont) throw new Error(`Stored font “${name}” could not be read.`);
-		const glyphore = await this.#getGlyphore();
-		const parsed = glyphore.parseFont(new Uint8Array(storedFont.bytes));
+		if (this.#destroyed || this.#version(name) !== version || !(name in this.fonts)) return null;
+		const { loadFont } = await this.#loadGlyphore();
+		if (this.#destroyed || this.#version(name) !== version || !(name in this.fonts)) return null;
+		const font = await loadFont(new Uint8Array(storedFont.bytes));
 
 		if (this.#destroyed || this.#version(name) !== version || !(name in this.fonts)) {
-			glyphore.freeFont(parsed.handle);
+			font[Symbol.dispose]();
 			return null;
 		}
 
-		const existingHandle = this.#handles.get(name);
-		if (existingHandle !== undefined && existingHandle !== parsed.handle) {
-			glyphore.freeFont(existingHandle);
+		const existingFont = this.#loadedFonts.get(name);
+		if (existingFont !== undefined && existingFont !== font) {
+			existingFont[Symbol.dispose]();
 		}
-		this.#handles.set(name, parsed.handle);
-		this.#fontInfos.set(name, parsed.info);
-		return parsed;
+		this.#loadedFonts.set(name, font);
+		return font;
 	}
 
-	async #getGlyphore(): Promise<Glyphore> {
-		const glyphore = await this.#loadGlyphore();
-		this.#glyphore = glyphore;
-		return glyphore;
-	}
-
-	#releaseHandle(name: string) {
-		const handle = this.#handles.get(name);
-		if (handle === undefined) return;
-		this.#glyphore?.freeFont(handle);
-		this.#handles.delete(name);
+	#releaseFont(name: string) {
+		const font = this.#loadedFonts.get(name);
+		if (font === undefined) return;
+		font[Symbol.dispose]();
+		this.#loadedFonts.delete(name);
 	}
 
 	#version(name: string): number {

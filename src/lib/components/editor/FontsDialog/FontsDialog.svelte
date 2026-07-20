@@ -6,20 +6,20 @@
 	import { Button } from '$lib/components/common/Button';
 	import { buildGlyphArchive, type GlyphDownloadProgress } from '$lib/fonts/glyphDownload.ts';
 	import { loadGlyphore } from '$lib/fonts/glyphore.ts';
-	import type { FontMeta, ParsedFont } from '$lib/stores/fonts';
+	import type { FontMeta, LoadedFont } from '$lib/stores/fonts';
 
 	let {
 		open = $bindable(false),
 		fonts,
 		onAddFont,
 		onRemoveFont,
-		getParsedFont
+		getLoadedFont
 	}: {
 		open?: boolean;
 		fonts: Record<string, FontMeta>;
 		onAddFont: (bytes: ArrayBuffer | Uint8Array) => Promise<FontInfo>;
 		onRemoveFont: (name: string) => Promise<void>;
-		getParsedFont: (name: string) => Promise<ParsedFont | null>;
+		getLoadedFont: (name: string) => Promise<LoadedFont | null>;
 	} = $props();
 
 	let fontInfos = $state<Record<string, FontInfo | undefined>>({});
@@ -62,9 +62,9 @@
 		const nextErrors: Record<string, string | undefined> = {};
 		for (const fontstack of fontstacks) {
 			try {
-				const parsed = await getParsedFont(fontstack);
-				if (!parsed) throw new Error('The font is no longer available.');
-				nextInfos[fontstack] = parsed.info;
+				const font = await getLoadedFont(fontstack);
+				if (!font) throw new Error('The font is no longer available.');
+				nextInfos[fontstack] = font.info;
 			} catch (error) {
 				nextErrors[fontstack] = errorMessage(error);
 			}
@@ -158,14 +158,14 @@
 		await tick();
 
 		try {
-			const parsed = await getParsedFont(fontstack);
-			if (!parsed) throw new Error('The font is no longer available.');
-			fontInfos = { ...fontInfos, [fontstack]: parsed.info };
+			const font = await getLoadedFont(fontstack);
+			if (!font) throw new Error('The font is no longer available.');
+			fontInfos = { ...fontInfos, [fontstack]: font.info };
 			const { generateRange } = await loadGlyphore();
 			const archive = await buildGlyphArchive({
 				fontstack,
-				ranges: parsed.info.coveredRanges,
-				generateRange: (start) => generateRange(parsed.handle, start),
+				ranges: font.info.coveredRanges,
+				generateRange: (start) => generateRange(font, start),
 				onProgress: (progress) => (downloadProgress = progress)
 			});
 			downloadBlob(archive, `${fontstack}-glyphs.zip`);
@@ -191,7 +191,7 @@
 		operationError = undefined;
 	};
 
-	// The dialog is conditionally mounted only while open, so saved fonts are parsed on opening,
+	// The dialog is conditionally mounted only while open, so saved fonts are loaded on opening,
 	// never during application startup.
 	// svelte-ignore state_referenced_locally
 	void validateFonts(Object.keys(fonts));
