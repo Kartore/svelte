@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import type { StyleSpecification } from 'maplibre-gl';
+import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
 export type EditorPreview = {
 	style: StyleSpecification;
@@ -33,8 +33,15 @@ export type StyleHistoryProvider = {
 	/** 履歴の対象を表すラベル。available=false なら null */
 	readonly label: string | null;
 	/** 新しい順。page は 1 始まり */
-	listRevisions: (options: { page: number; perPage?: number }) => Promise<StyleHistoryPage>;
+	listRevisions: (options: {
+		page: number;
+		perPage?: number;
+		/** 対応する provider は当該レイヤーを触った revision のみに絞る */
+		scope?: { layerId: string };
+	}) => Promise<StyleHistoryPage>;
 	loadStyleAtRevision: (revisionId: string) => Promise<StyleSpecification>;
+	/** 分割形式のみ。null はその revision にレイヤーが存在しないことを表す */
+	loadLayerAtRevision?: (revisionId: string, layerId: string) => Promise<LayerSpecification | null>;
 };
 
 export type SaveProvider = {

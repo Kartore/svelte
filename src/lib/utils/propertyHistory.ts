@@ -1,6 +1,6 @@
-import type { StyleSpecification } from 'maplibre-gl';
+import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
-import type { StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider, StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
 
 export type PropertyHistoryGroup = 'paint' | 'layout' | 'filter';
 
@@ -21,6 +21,16 @@ export type PropertyHistoryEntry = {
 	error?: string;
 };
 
+/** layer からプロパティ値を直接取り出す。未設定プロパティは undefined */
+export const extractLayerPropertyValue = (
+	layer: LayerSpecification,
+	group: PropertyHistoryGroup,
+	key: string
+): unknown => {
+	if (group === 'filter') return 'filter' in layer ? layer.filter : undefined;
+	return (layer[group] as Record<string, unknown> | undefined)?.[key];
+};
+
 /** style からプロパティ値を取り出す。layer が無ければ found=false */
 export const extractPropertyValue = (
 	style: StyleSpecification,
@@ -30,14 +40,46 @@ export const extractPropertyValue = (
 ): { found: boolean; value: unknown } => {
 	const layer = style.layers.find((candidate) => candidate.id === layerId);
 	if (!layer) return { found: false, value: undefined };
-	if (group === 'filter') {
-		return { found: true, value: 'filter' in layer ? layer.filter : undefined };
-	}
-
 	return {
 		found: true,
-		value: (layer[group] as Record<string, unknown> | undefined)?.[key]
+		value: extractLayerPropertyValue(layer, group, key)
 	};
+};
+
+const errorMessage = (value: unknown): string =>
+	value instanceof Error ? value.message : value ? String(value) : 'Could not load history.';
+
+/**
+ * provider がレイヤー単位の読込に対応する場合はそれを優先し、単一形式 provider では
+ * 従来どおり style 全文から値を取り出す。
+ */
+export const loadPropertyRevisionValue = async (
+	provider: StyleHistoryProvider,
+	revision: StyleHistoryRevision,
+	layerId: string,
+	group: PropertyHistoryGroup,
+	key: string
+): Promise<PropertyRevisionValue> => {
+	try {
+		if (provider.loadLayerAtRevision) {
+			const layer = await provider.loadLayerAtRevision(revision.id, layerId);
+			return layer === null
+				? { revision, state: 'layer-missing' }
+				: {
+						revision,
+						state: 'value',
+						value: extractLayerPropertyValue(layer, group, key)
+					};
+		}
+
+		const style = await provider.loadStyleAtRevision(revision.id);
+		const extracted = extractPropertyValue(style, layerId, group, key);
+		return extracted.found
+			? { revision, state: 'value', value: extracted.value }
+			: { revision, state: 'layer-missing' };
+	} catch (error) {
+		return { revision, state: 'error', error: errorMessage(error) };
+	}
 };
 
 const valuesEqual = (left: unknown, right: unknown): boolean =>

@@ -8,7 +8,7 @@
 	import { tryParseColor } from '$lib/utils/color.ts';
 	import {
 		computeHistoryEntries,
-		extractPropertyValue,
+		loadPropertyRevisionValue,
 		type PropertyHistoryEntry,
 		type PropertyHistoryGroup,
 		type PropertyRevisionValue
@@ -114,16 +114,13 @@
 				const index = cursor;
 				cursor += 1;
 				const revision = revisions[index];
-				let result: PropertyRevisionValue;
-				try {
-					const style = await activeProvider.loadStyleAtRevision(revision.id);
-					const extracted = extractPropertyValue(style, layerId, group, key);
-					result = extracted.found
-						? { revision, state: 'value', value: extracted.value }
-						: { revision, state: 'layer-missing' };
-				} catch (loadError) {
-					result = { revision, state: 'error', error: errorMessage(loadError) };
-				}
+				const result = await loadPropertyRevisionValue(
+					activeProvider,
+					revision,
+					layerId,
+					group,
+					key
+				);
 
 				if (requestGeneration !== generation) return;
 				results[index] = result;
@@ -153,7 +150,10 @@
 		error = null;
 
 		try {
-			const response = await activeProvider.listRevisions({ page });
+			const response = await activeProvider.listRevisions({
+				page,
+				scope: { layerId }
+			});
 			if (requestGeneration !== generation) return;
 			totalCount = response.revisions.length;
 			hasNext = response.hasNext;

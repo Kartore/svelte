@@ -1,11 +1,13 @@
-import type { StyleSpecification } from 'maplibre-gl';
+import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import type { StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider, StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
 
 import {
 	computeHistoryEntries,
+	extractLayerPropertyValue,
 	extractPropertyValue,
+	loadPropertyRevisionValue,
 	type PropertyRevisionValue
 } from './propertyHistory.ts';
 
@@ -70,6 +72,80 @@ describe('extractPropertyValue', () => {
 		expect(extractPropertyValue(style, 'road', 'paint', 'line-color')).toEqual({
 			found: false,
 			value: undefined
+		});
+	});
+
+	it('extracts directly from a layer without requiring a full style', () => {
+		const layer = style.layers[0];
+
+		expect(extractLayerPropertyValue(layer, 'paint', 'fill-color')).toBe('#2266aa');
+		expect(extractLayerPropertyValue(layer, 'layout', 'visibility')).toBeUndefined();
+		expect(extractLayerPropertyValue(layer, 'filter', 'filter')).toEqual([
+			'==',
+			['get', 'class'],
+			'river'
+		]);
+	});
+});
+
+describe('loadPropertyRevisionValue', () => {
+	const layer = {
+		id: 'water',
+		type: 'fill',
+		source: 'basemap',
+		paint: { 'fill-color': '#2266aa' }
+	} satisfies LayerSpecification;
+
+	const provider = (overrides: Partial<StyleHistoryProvider> = {}): StyleHistoryProvider => ({
+		available: true,
+		label: 'example/style@main',
+		listRevisions: async () => ({ revisions: [], hasNext: false }),
+		loadStyleAtRevision: async () => ({
+			version: 8,
+			sources: {},
+			layers: [layer]
+		}),
+		...overrides
+	});
+
+	it('prefers layer reads when the provider supports them', async () => {
+		let fullStyleLoads = 0;
+		const optimized = provider({
+			loadStyleAtRevision: async () => {
+				fullStyleLoads += 1;
+				throw new Error('full style should not load');
+			},
+			loadLayerAtRevision: async () => layer
+		});
+
+		await expect(
+			loadPropertyRevisionValue(optimized, revision('optimized'), 'water', 'paint', 'fill-color')
+		).resolves.toEqual({
+			revision: revision('optimized'),
+			state: 'value',
+			value: '#2266aa'
+		});
+		expect(fullStyleLoads).toBe(0);
+	});
+
+	it('maps a missing layer file to layer-missing', async () => {
+		const optimized = provider({ loadLayerAtRevision: async () => null });
+
+		await expect(
+			loadPropertyRevisionValue(optimized, revision('missing'), 'water', 'paint', 'fill-color')
+		).resolves.toEqual({
+			revision: revision('missing'),
+			state: 'layer-missing'
+		});
+	});
+
+	it('falls back to loading the full style for legacy providers', async () => {
+		await expect(
+			loadPropertyRevisionValue(provider(), revision('legacy'), 'water', 'paint', 'fill-color')
+		).resolves.toEqual({
+			revision: revision('legacy'),
+			state: 'value',
+			value: '#2266aa'
 		});
 	});
 });
