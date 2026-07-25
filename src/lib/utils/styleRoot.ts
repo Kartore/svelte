@@ -2,6 +2,14 @@ import type { StyleSpecification } from 'maplibre-gl';
 
 import type { RootPropertyKind } from '$lib/utils/layerSpec.ts';
 
+export type StyleSettingKey =
+	'name' | 'sprite' | 'glyphs' | 'center' | 'zoom' | 'bearing' | 'pitch';
+
+export type StyleSettingChange = <Key extends StyleSettingKey>(
+	key: Key,
+	value: StyleSpecification[Key] | undefined
+) => void;
+
 const getStyleRootObject = (
 	style: StyleSpecification,
 	kind: RootPropertyKind
@@ -20,6 +28,20 @@ export const setStyleRootObject = (
 
 	const nextStyle = { ...style };
 	Reflect.deleteProperty(nextStyle, kind);
+	return nextStyle;
+};
+
+export const replaceStyleSettingData = <Key extends StyleSettingKey>(
+	style: StyleSpecification,
+	key: Key,
+	value: StyleSpecification[Key] | undefined
+): StyleSpecification => {
+	if (value !== undefined) {
+		return { ...style, [key]: value };
+	}
+
+	const nextStyle = { ...style };
+	Reflect.deleteProperty(nextStyle, key);
 	return nextStyle;
 };
 

@@ -50,7 +50,6 @@
 		onToggleStyleJsonMode,
 		onClickExport,
 		onClickImport,
-		onClickSettings,
 		onRenameStyle,
 		onClickAddLayer,
 		onClickSources,
@@ -79,7 +78,6 @@
 		onToggleStyleJsonMode?: () => void;
 		onClickExport?: () => void;
 		onClickImport?: () => void;
-		onClickSettings?: () => void;
 		onRenameStyle?: (name: string) => void;
 		onClickAddLayer?: () => void;
 		onClickSources?: () => void;
@@ -406,8 +404,6 @@
 							{/if}
 						{/each}
 					{/if}
-					<MenuSeparator />
-					<MenuItem onSelect={() => onClickSettings?.()}>Style settings…</MenuItem>
 				</MenuTrigger>
 				<MenuTrigger value="edit" label="Edit">
 					<MenuItem disabled={!canUndo} shortcut="⌘Z" onSelect={() => onClickUndo?.()}>

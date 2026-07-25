@@ -7,18 +7,21 @@
 	import { TextField } from '$lib/components/common/TextField';
 	import { RootPropertyField } from '$lib/components/editor/StylePropertiesPanel/RootPropertyField';
 	import { getRootProperties, type RootPropertyKind } from '$lib/utils/layerSpec.ts';
+	import type { StyleSettingChange, StyleSettingKey } from '$lib/utils/styleRoot.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
 		mapStyle,
 		styleErrors,
+		onChangeStyleSetting,
 		onChangeRoot,
 		onSetRootObject
 	}: {
 		class?: string;
 		mapStyle: StyleSpecification;
 		styleErrors: string[];
+		onChangeStyleSetting?: StyleSettingChange;
 		onChangeRoot?: (kind: RootPropertyKind, key: string, value: unknown) => void;
 		onSetRootObject?: (kind: RootPropertyKind, value: object | undefined) => void;
 	} = $props();
@@ -33,6 +36,10 @@
 	];
 
 	const projectionType = $derived(mapStyle.projection?.type as unknown);
+	const spriteEditable = $derived(
+		mapStyle.sprite === undefined || typeof mapStyle.sprite === 'string'
+	);
+	const spriteJSON = $derived(JSON.stringify(mapStyle.sprite, null, '\t'));
 	const terrainObject = $derived(mapStyle.terrain as Record<string, unknown> | undefined);
 	const terrainSource = $derived(
 		typeof terrainObject?.source === 'string' ? terrainObject.source : undefined
@@ -64,6 +71,21 @@
 
 	let confirmingRemoveSky = $state(false);
 
+	const commitStringSetting = (
+		key: Extract<StyleSettingKey, 'name' | 'sprite' | 'glyphs'>,
+		raw: string
+	) => {
+		const trimmed = raw.trim();
+		const next = trimmed === '' ? undefined : trimmed;
+		const current = typeof mapStyle[key] === 'string' ? mapStyle[key] : undefined;
+		if (next === current) return;
+		onChangeStyleSetting?.(key, next);
+	};
+	const commitCenterCoordinate = (index: 0 | 1, value: number) => {
+		const center: [number, number] = mapStyle.center ? [...mapStyle.center] : [0, 0];
+		center[index] = value;
+		onChangeStyleSetting?.('center', center);
+	};
 	const getRootPropertyValue = (kind: RootPropertyKind, key: string): unknown => {
 		return (mapStyle[kind] as Record<string, unknown> | undefined)?.[key];
 	};
@@ -96,6 +118,92 @@
 	{/if}
 
 	<div class="flex flex-col gap-6">
+		<section class="flex flex-col gap-3 px-4">
+			<div>
+				<h3 class="font-montserrat text-sm font-semibold">Identity</h3>
+				<p class="text-xs text-gray-500">Name and shared asset endpoints for this style.</p>
+			</div>
+			<div class="flex flex-col gap-2 rounded-md border border-gray-200 bg-gray-50/60 p-3">
+				<TextField
+					class="[&>input]:w-[70%]"
+					label="Name"
+					value={mapStyle.name ?? ''}
+					onCommit={(value) => commitStringSetting('name', value)}
+				/>
+				{#if spriteEditable}
+					<TextField
+						class="[&>input]:w-[70%]"
+						label="Sprite"
+						value={typeof mapStyle.sprite === 'string' ? mapStyle.sprite : ''}
+						onCommit={(value) => commitStringSetting('sprite', value)}
+					/>
+				{:else}
+					<div class="flex flex-col gap-1">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-gray-600">Sprite</p>
+							<pre
+								class="max-h-28 w-[70%] overflow-auto rounded border border-gray-200 bg-white px-2 py-1 text-xs whitespace-pre-wrap text-gray-600">{spriteJSON}</pre>
+						</div>
+						<p class="self-end text-xs text-gray-500">Multiple sprites are not editable here.</p>
+					</div>
+				{/if}
+				<TextField
+					class="[&>input]:w-[70%]"
+					label="Glyphs"
+					placeholder={'https://.../{fontstack}/{range}.pbf'}
+					value={mapStyle.glyphs ?? ''}
+					onCommit={(value) => commitStringSetting('glyphs', value)}
+				/>
+			</div>
+		</section>
+
+		<section class="flex flex-col gap-3 px-4">
+			<div>
+				<h3 class="font-montserrat text-sm font-semibold">Default View</h3>
+				<p class="text-xs text-gray-500">Initial camera values used when the style opens.</p>
+			</div>
+			<div
+				class="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-gray-200 bg-gray-50/60 p-3"
+			>
+				<NumberField
+					class="[&>div]:w-[52%]"
+					label="Center Lng"
+					value={mapStyle.center?.[0]}
+					minValue={-180}
+					maxValue={180}
+					onValueChange={(value) => commitCenterCoordinate(0, value)}
+				/>
+				<NumberField
+					class="[&>div]:w-[52%]"
+					label="Center Lat"
+					value={mapStyle.center?.[1]}
+					minValue={-90}
+					maxValue={90}
+					onValueChange={(value) => commitCenterCoordinate(1, value)}
+				/>
+				<NumberField
+					class="[&>div]:w-[52%]"
+					label="Zoom"
+					value={mapStyle.zoom}
+					minValue={0}
+					maxValue={24}
+					onValueChange={(value) => onChangeStyleSetting?.('zoom', value)}
+				/>
+				<NumberField
+					class="[&>div]:w-[52%]"
+					label="Bearing"
+					value={mapStyle.bearing}
+					onValueChange={(value) => onChangeStyleSetting?.('bearing', value)}
+				/>
+				<NumberField
+					class="[&>div]:w-[52%]"
+					label="Pitch"
+					value={mapStyle.pitch}
+					onValueChange={(value) => onChangeStyleSetting?.('pitch', value)}
+				/>
+			</div>
+		</section>
+
 		<section class="flex flex-col gap-2 px-4">
 			<h3 class="font-montserrat text-sm font-semibold">Projection</h3>
 			{#if projectionType === undefined || typeof projectionType === 'string'}

@@ -25,7 +25,6 @@
 	import { SpritesDialog } from '$lib/components/editor/SpritesDialog';
 	import { StyleJsonPanel } from '$lib/components/editor/StyleJsonPanel';
 	import { StylePropertiesPanel } from '$lib/components/editor/StylePropertiesPanel';
-	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { provideStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
@@ -43,7 +42,12 @@
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { createStyleExport } from '$lib/utils/styleExport.ts';
 	import type { RootPropertyKind } from '$lib/utils/layerSpec.ts';
-	import { replaceStyleRootData, setStyleRootObject } from '$lib/utils/styleRoot.ts';
+	import {
+		replaceStyleRootData,
+		replaceStyleSettingData,
+		setStyleRootObject,
+		type StyleSettingChange
+	} from '$lib/utils/styleRoot.ts';
 	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
@@ -98,7 +102,6 @@
 	let layerSearchInput = $state<HTMLInputElement | null>(null);
 	let layerDragActive = $state(false);
 	let importDialogOpen = $state(false);
-	let settingsDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
 	let spritesDialogOpen = $state(false);
@@ -312,6 +315,12 @@
 		store.setMapStyle((currentStyle) => replaceStyleRootData(currentStyle, kind, key, value));
 	};
 
+	const handleChangeStyleSetting: StyleSettingChange = (key, value) => {
+		if (previewState) return;
+		if (JSON.stringify(store.mapStyle[key]) === JSON.stringify(value)) return;
+		store.setMapStyle((currentStyle) => replaceStyleSettingData(currentStyle, key, value));
+	};
+
 	const handleSetStyleRootObject = (kind: RootPropertyKind, value: object | undefined) => {
 		if (previewState) return;
 		store.setMapStyle((currentStyle) => setStyleRootObject(currentStyle, kind, value));
@@ -437,7 +446,6 @@
 		}
 		if (
 			importDialogOpen ||
-			settingsDialogOpen ||
 			addLayerDialogOpen ||
 			sourcesDialogOpen ||
 			spritesDialogOpen ||
@@ -559,7 +567,6 @@
 				onToggleStyleJsonMode={toggleStyleJsonMode}
 				onClickExport={handleExport}
 				onClickImport={() => (importDialogOpen = true)}
-				onClickSettings={() => (settingsDialogOpen = true)}
 				onRenameStyle={previewState ? undefined : handleRenameStyle}
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
@@ -618,6 +625,7 @@
 					class="w-[min(42rem,42vw)] min-w-[25rem]"
 					mapStyle={effectiveStyle}
 					styleErrors={validation.styleErrors}
+					onChangeStyleSetting={handleChangeStyleSetting}
 					onChangeRoot={handleChangeStyleRoot}
 					onSetRootObject={handleSetStyleRootObject}
 				/>
@@ -638,13 +646,6 @@
 			{/if}
 		</div>
 		<ImportStyleDialog bind:open={importDialogOpen} onImport={handleImport} />
-		{#if settingsDialogOpen}
-			<StyleSettingsDialog
-				bind:open={settingsDialogOpen}
-				mapStyle={effectiveStyle}
-				onApply={handleApplyStyle}
-			/>
-		{/if}
 		{#if addLayerDialogOpen}
 			<AddLayerDialog
 				bind:open={addLayerDialogOpen}

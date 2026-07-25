@@ -1,7 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import { replaceStyleRootData, setStyleRootObject } from './styleRoot.ts';
+import { replaceStyleRootData, replaceStyleSettingData, setStyleRootObject } from './styleRoot.ts';
 
 const emptyStyle = (): StyleSpecification => ({
 	version: 8,
@@ -60,5 +60,28 @@ describe('setStyleRootObject', () => {
 		expect(withProjection.projection).toEqual({ type: 'globe' });
 		expect(withoutProjection).toEqual(style);
 		expect(style).not.toHaveProperty('projection');
+	});
+});
+
+describe('replaceStyleSettingData', () => {
+	it('replaces a default view property without mutating the input style', () => {
+		const style = emptyStyle();
+
+		const next = replaceStyleSettingData(style, 'center', [139.7, 35.7]);
+
+		expect(next.center).toEqual([139.7, 35.7]);
+		expect(style).not.toHaveProperty('center');
+	});
+
+	it('removes an optional string setting instead of retaining undefined', () => {
+		const style = {
+			...emptyStyle(),
+			glyphs: 'https://example.com/{fontstack}/{range}.pbf'
+		};
+
+		const next = replaceStyleSettingData(style, 'glyphs', undefined);
+
+		expect(next).not.toHaveProperty('glyphs');
+		expect(style).toHaveProperty('glyphs');
 	});
 });
