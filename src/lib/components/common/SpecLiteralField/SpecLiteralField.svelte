@@ -30,7 +30,11 @@
 	const visibleLabel = $derived(compact ? undefined : label);
 	const isPercentNumber = $derived(spec.minimum === 0 && spec.maximum === 1);
 	const numberArrayLabels = $derived(
-		spec.length === 4 ? ['Top', 'Right', 'Bottom', 'Left'] : ['X', 'Y']
+		spec.length === 4
+			? ['Top', 'Right', 'Bottom', 'Left']
+			: spec.length === 3
+				? ['Radial', 'Azimuthal', 'Polar']
+				: ['X', 'Y']
 	);
 	const compactControlClass = $derived(compact ? 'w-full [&>div]:w-full' : undefined);
 	const compactListClass = $derived(compact ? 'w-full [&>input]:w-full' : undefined);

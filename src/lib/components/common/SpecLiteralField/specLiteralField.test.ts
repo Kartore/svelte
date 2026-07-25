@@ -20,6 +20,9 @@ describe('specLiteralField', () => {
 		expect(
 			getSpecLiteralFieldKind(spec({ type: 'array', value: 'number', length: 2 }), [1, 2])
 		).toBe('number-array');
+		expect(
+			getSpecLiteralFieldKind(spec({ type: 'array', value: 'number', length: 3 }), [1, 2, 3])
+		).toBe('number-array');
 		expect(getSpecLiteralFieldKind(spec({ type: 'padding' }), [1, 2, 3, 4])).toBe('padding');
 		expect(
 			getSpecLiteralFieldKind(spec({ type: 'variableAnchorOffsetCollection' }), ['top', [0, 1]])

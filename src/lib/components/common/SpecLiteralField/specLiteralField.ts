@@ -17,7 +17,9 @@ export const getSpecLiteralFieldKind = (
 		return 'number';
 	}
 	if (spec.type === 'array' && spec.value === 'number') {
-		return spec.length === 2 || spec.length === 4 ? 'number-array' : 'number-list';
+		return spec.length === 2 || spec.length === 3 || spec.length === 4
+			? 'number-array'
+			: 'number-list';
 	}
 	if (spec.type === 'padding') return 'padding';
 	if (spec.type === 'variableAnchorOffsetCollection') return 'variable-anchor-offset';
