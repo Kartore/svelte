@@ -48,21 +48,36 @@ const layerPath = (basename: string): string => `${SPLIT_STYLE_LAYERS_DIRECTORY}
 const basenameOf = (path: string): string => path.split('/').at(-1) ?? path;
 
 export const sanitizeLayerBasename = (layerId: string): string => {
-	const sanitized = layerId.replace(FORBIDDEN_BASENAME_CHARACTERS, '_').replace(/^\./, '_');
+	const sanitized = layerId
+		.normalize('NFC')
+		.replace(FORBIDDEN_BASENAME_CHARACTERS, '_')
+		.replace(/^\./, '_');
 	return sanitized || 'layer';
 };
 
-const allocateBasename = (layerId: string, used: Set<string>): string => {
-	const stem = sanitizeLayerBasename(layerId);
-	let candidate = `${stem}.json`;
+/**
+ * split style と asset pack で共有する basename 割り当て。
+ * extension は先頭の "." の有無を問わない。
+ */
+export const allocateSanitizedBasename = (
+	name: string,
+	extension: string,
+	used: Set<string>
+): string => {
+	const stem = sanitizeLayerBasename(name);
+	const suffixExtension = extension.startsWith('.') ? extension : `.${extension}`;
+	let candidate = `${stem}${suffixExtension}`;
 	let suffix = 2;
 	while (used.has(candidate)) {
-		candidate = `${stem}-${suffix}.json`;
+		candidate = `${stem}-${suffix}${suffixExtension}`;
 		suffix += 1;
 	}
 	used.add(candidate);
 	return candidate;
 };
+
+const allocateBasename = (layerId: string, used: Set<string>): string =>
+	allocateSanitizedBasename(layerId, '.json', used);
 
 const layerFingerprint = (layer: LayerSpecification): string => {
 	const withoutId = { ...layer } as Record<string, unknown>;
