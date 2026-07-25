@@ -111,6 +111,7 @@
 			label={visibleLabel}
 			arrayLabels={numberArrayLabels}
 			values={numberArrayValue(value, spec.length)}
+			stacked={spec.length === 3}
 			onChange={(next) => onChange?.(next)}
 		/>
 	{:else if kind === 'number-list' || kind === 'padding'}

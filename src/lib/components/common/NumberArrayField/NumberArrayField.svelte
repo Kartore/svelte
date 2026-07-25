@@ -7,12 +7,14 @@
 		label,
 		arrayLabels,
 		values,
+		stacked = false,
 		onChange
 	}: {
 		class?: string;
 		label?: string;
 		arrayLabels: string[];
 		values: number[];
+		stacked?: boolean;
 		onChange?: (values: number[]) => void;
 	} = $props();
 </script>
@@ -21,7 +23,7 @@
 	{#if label}
 		<span class="text-sm font-semibold text-gray-600">{label}</span>
 	{/if}
-	<div class="flex w-1/2 flex-row gap-1">
+	<div class={cn('flex w-1/2 gap-1', stacked ? 'flex-col' : 'flex-row')}>
 		{#each arrayLabels as arrayLabel, index (arrayLabel)}
 			<NumberArrayInnerField
 				label={arrayLabel}
