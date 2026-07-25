@@ -145,6 +145,62 @@ describe('FontsStore', () => {
 		expect(disposeFont).toHaveBeenCalledOnce();
 	});
 
+	it('reads every stored font with owned byte copies', async () => {
+		const storedFont: StoredFont = {
+			bytes: Uint8Array.from([1, 2, 3]).buffer,
+			familyName: fontInfo.familyName,
+			styleName: fontInfo.styleName,
+			addedAt: 1234
+		};
+		const { adapter, records } = createAdapter(
+			{ 'Noto Sans JP Regular': storedFont },
+			{ 'Noto Sans JP Regular': storedFont }
+		);
+		const store = new FontsStore({ adapter });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+
+		const result = await store.getStoredFonts();
+		new Uint8Array(result['Noto Sans JP Regular'].bytes)[0] = 9;
+
+		expect(new Uint8Array(records.get('Noto Sans JP Regular')!.bytes)).toEqual(
+			Uint8Array.from([1, 2, 3])
+		);
+	});
+
+	it('replaces all stored fonts without parsing them through glyphore', async () => {
+		const oldFont: StoredFont = {
+			bytes: Uint8Array.from([1]).buffer,
+			familyName: 'Old',
+			styleName: 'Regular',
+			addedAt: 1
+		};
+		const replacement: StoredFont = {
+			bytes: Uint8Array.from([4, 5, 6]).buffer,
+			familyName: 'Inter',
+			styleName: 'Bold',
+			addedAt: 2
+		};
+		const { adapter, save, remove } = createAdapter(
+			{ 'Old Regular': oldFont },
+			{ 'Old Regular': oldFont }
+		);
+		const loadGlyphore = vi.fn(async () => createGlyphore().glyphore);
+		const store = new FontsStore({ adapter, loadGlyphore });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+
+		await store.replaceStoredFonts({ 'Inter Bold': replacement });
+
+		expect(save).toHaveBeenCalledWith('Inter Bold', {
+			...replacement,
+			bytes: Uint8Array.from([4, 5, 6]).buffer
+		});
+		expect(remove).toHaveBeenCalledWith('Old Regular');
+		expect(store.fonts).toEqual({
+			'Inter Bold': { familyName: 'Inter', styleName: 'Bold', addedAt: 2 }
+		});
+		expect(loadGlyphore).not.toHaveBeenCalled();
+	});
+
 	it('disposes cached fonts when destroyed', async () => {
 		const { adapter } = createAdapter();
 		const { glyphore, disposeFont } = createGlyphore();

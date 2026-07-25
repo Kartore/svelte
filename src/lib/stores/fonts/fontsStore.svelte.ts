@@ -92,6 +92,41 @@ export class FontsStore {
 		this.#releaseFont(name);
 	};
 
+	getStoredFonts = async (): Promise<Record<string, StoredFont>> => {
+		if (this.#destroyed) throw new Error('The font store has been destroyed.');
+		const storedFonts: Record<string, StoredFont> = {};
+		for (const name of Object.keys(this.fonts).sort(compareKeys)) {
+			const font = await this.#adapter.get(name);
+			if (!font) throw new Error(`Stored font “${name}” could not be read.`);
+			storedFonts[name] = { ...font, bytes: ownedArrayBuffer(font.bytes) };
+		}
+		return storedFonts;
+	};
+
+	replaceStoredFonts = async (fonts: Record<string, StoredFont>): Promise<void> => {
+		if (this.#destroyed) throw new Error('The font store has been destroyed.');
+		const names = Object.keys(fonts).sort(compareKeys);
+		const replacements: Record<string, StoredFont> = {};
+
+		for (const name of names) {
+			const font = fonts[name];
+			const replacement = { ...font, bytes: ownedArrayBuffer(font.bytes) };
+			await this.#adapter.save(name, replacement);
+			replacements[name] = replacement;
+		}
+		for (const name of Object.keys(this.fonts).sort(compareKeys)) {
+			if (!(name in replacements)) await this.#adapter.remove(name);
+		}
+		if (this.#destroyed) throw new Error('The font store has been destroyed.');
+
+		const affectedNames = new globalThis.Set([...Object.keys(this.fonts), ...names]);
+		for (const name of affectedNames) {
+			this.#advanceVersion(name);
+			this.#releaseFont(name);
+		}
+		this.fonts = Object.fromEntries(names.map((name) => [name, fontMeta(replacements[name])]));
+	};
+
 	getLoadedFont = async (name: string): Promise<LoadedFont | null> => {
 		if (this.#destroyed || !(name in this.fonts)) return null;
 		const font = this.#loadedFonts.get(name);
@@ -177,3 +212,6 @@ const fontMeta = ({ familyName, styleName, addedAt }: StoredFont): FontMeta => (
 	styleName,
 	addedAt
 });
+
+const compareKeys = (left: string, right: string): number =>
+	left < right ? -1 : left > right ? 1 : 0;

@@ -1,6 +1,9 @@
 import type { Component } from 'svelte';
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
+import type { StoredFont } from '$lib/stores/fonts';
+import type { SpriteIcons } from '$lib/stores/spriteIcons';
+
 export type EditorPreview = {
 	style: StyleSpecification;
 	label: string;
@@ -51,9 +54,19 @@ export type SaveProvider = {
 };
 
 export type EditorApi = {
+	/** ホストアプリの package version。パック manifest など外部出力の生成元バージョン */
+	readonly appVersion: string;
 	/** store.mapStyle を返す。$derived / $effect 内で呼べばリアクティブに追跡される */
 	getStyle: () => StyleSpecification;
 	setStyle: (style: StyleSpecification) => void;
+	/** ローカル sprite 元 SVG の現在値を返す */
+	getSpriteIcons: () => SpriteIcons;
+	/** ローカル sprite 元 SVG をマージせず全置換する */
+	replaceSpriteIcons: (icons: SpriteIcons) => Promise<void>;
+	/** 登録済みローカルフォントを bytes 込みですべて返す */
+	getStoredFonts: () => Promise<Record<string, StoredFont>>;
+	/** 登録済みローカルフォントをマージせず全置換する */
+	replaceStoredFonts: (fonts: Record<string, StoredFont>) => Promise<void>;
 	setPreview: (preview: EditorPreview | null) => void;
 	getPreview: () => EditorPreview | null;
 	/** アダプタが履歴プロバイダを登録する */

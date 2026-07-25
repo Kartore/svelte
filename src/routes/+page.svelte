@@ -9,6 +9,8 @@
 	import { onDestroy, setContext } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
+	import appPackage from '../../package.json';
+
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { AddLayerDialog } from '$lib/components/editor/AddLayerDialog';
 	import { ControlPanel } from '$lib/components/editor/ControlPanel';
@@ -286,8 +288,13 @@
 	});
 
 	const editorApi: EditorApi = {
+		appVersion: appPackage.version,
 		getStyle: () => store.mapStyle,
 		setStyle: (style) => store.setMapStyle(style),
+		getSpriteIcons: () => $state.snapshot(spriteIconsStore.icons),
+		replaceSpriteIcons: spriteIconsStore.replaceIcons,
+		getStoredFonts: fontsStore.getStoredFonts,
+		replaceStoredFonts: fontsStore.replaceStoredFonts,
 		setPreview: (preview) => (previewState = preview),
 		getPreview: () => previewState,
 		registerStyleHistoryProvider: (provider) => styleHistory.register(provider),

@@ -31,6 +31,22 @@ export class SpriteIconsStore {
 		void this.#save(icons);
 	};
 
+	replaceIcons = async (icons: SpriteIcons): Promise<void> => {
+		const replacement = { ...icons };
+		this.isSaving = true;
+		this.saveError = null;
+		try {
+			await this.#adapter.save(replacement);
+			this.icons = replacement;
+		} catch (error) {
+			const saveError = error instanceof Error ? error : new Error(String(error));
+			this.saveError = saveError;
+			throw saveError;
+		} finally {
+			this.isSaving = false;
+		}
+	};
+
 	async #load() {
 		try {
 			this.icons = (await this.#adapter.load()) ?? {};

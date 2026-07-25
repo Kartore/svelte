@@ -38,4 +38,29 @@ describe('SpriteIconsStore', () => {
 		expect(store.icons).toEqual({});
 		expect(save).toHaveBeenLastCalledWith({});
 	});
+
+	it('replaces and persists the complete icon collection', async () => {
+		const { adapter, save } = createAdapter({ old: '<svg id="old" />' });
+		const store = new SpriteIconsStore({ adapter });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+
+		await store.replaceIcons({ marker: '<svg id="marker" />' });
+
+		expect(save).toHaveBeenCalledWith({ marker: '<svg id="marker" />' });
+		expect(store.icons).toEqual({ marker: '<svg id="marker" />' });
+	});
+
+	it('keeps the current collection when replacement persistence fails', async () => {
+		const { adapter } = createAdapter({ old: '<svg id="old" />' });
+		adapter.save = vi.fn(async () => {
+			throw new Error('quota exceeded');
+		});
+		const store = new SpriteIconsStore({ adapter });
+		await vi.waitFor(() => expect(store.isLoading).toBe(false));
+
+		await expect(store.replaceIcons({ marker: '<svg />' })).rejects.toThrow('quota exceeded');
+
+		expect(store.icons).toEqual({ old: '<svg id="old" />' });
+		expect(store.saveError?.message).toBe('quota exceeded');
+	});
 });
