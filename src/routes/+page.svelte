@@ -25,9 +25,11 @@
 	import { SpritesDialog } from '$lib/components/editor/SpritesDialog';
 	import { StyleJsonPanel } from '$lib/components/editor/StyleJsonPanel';
 	import { StylePropertiesPanel } from '$lib/components/editor/StylePropertiesPanel';
+	import { VariablesDialog } from '$lib/components/editor/VariablesDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { provideStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
+	import { provideStyleVariables } from '$lib/contexts/styleVariables.svelte.ts';
 	import type { EditorApi, EditorPreview, SaveProvider } from '$lib/editor/EditorModule.ts';
 	import { dispatchSave } from '$lib/editor/saveProvider.ts';
 	import { registerGlyphProtocol } from '$lib/fonts/glyphProtocol.ts';
@@ -42,6 +44,7 @@
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { createStyleExport } from '$lib/utils/styleExport.ts';
 	import type { RootPropertyKind } from '$lib/utils/layerSpec.ts';
+	import { normalizeStyleVariables } from '$lib/utils/styleVariables.ts';
 	import {
 		replaceStyleRootData,
 		replaceStyleSettingData,
@@ -103,11 +106,13 @@
 	let layerDragActive = $state(false);
 	let importDialogOpen = $state(false);
 	let addLayerDialogOpen = $state(false);
+	let variablesDialogOpen = $state(false);
 	let sourcesDialogOpen = $state(false);
 	let spritesDialogOpen = $state(false);
 	let fontsDialogOpen = $state(false);
 	let styleJsonMode = $state(false);
 	let previewState = $state<EditorPreview | null>(null);
+	provideStyleVariables(store, () => previewState === null);
 	const effectiveStyle = $derived(previewState?.style ?? store.mapStyle);
 	registerGlyphProtocol({
 		hasLocalFont: (fontstack) => fontstack in fontsStore.fonts,
@@ -328,7 +333,7 @@
 
 	const handleImport = (style: StyleSpecification) => {
 		if (previewState) return;
-		store.setMapStyle(style);
+		store.setMapStyle(normalizeStyleVariables(style));
 	};
 
 	const handleApplyStyle = (style: StyleSpecification) => {
@@ -447,6 +452,7 @@
 		if (
 			importDialogOpen ||
 			addLayerDialogOpen ||
+			variablesDialogOpen ||
 			sourcesDialogOpen ||
 			spritesDialogOpen ||
 			fontsDialogOpen ||
@@ -569,6 +575,7 @@
 				onClickImport={() => (importDialogOpen = true)}
 				onRenameStyle={previewState ? undefined : handleRenameStyle}
 				onClickAddLayer={() => (addLayerDialogOpen = true)}
+				onClickVariables={() => (variablesDialogOpen = true)}
 				onClickSources={() => (sourcesDialogOpen = true)}
 				onClickSprites={handleOpenSprites}
 				onClickFonts={handleOpenFonts}
@@ -652,6 +659,9 @@
 				mapStyle={effectiveStyle}
 				onAdd={handleAddLayer}
 			/>
+		{/if}
+		{#if variablesDialogOpen}
+			<VariablesDialog bind:open={variablesDialogOpen} />
 		{/if}
 		{#if sourcesDialogOpen}
 			<SourcesDialog

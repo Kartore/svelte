@@ -52,6 +52,7 @@
 		onClickImport,
 		onRenameStyle,
 		onClickAddLayer,
+		onClickVariables,
 		onClickSources,
 		onClickSprites,
 		onClickFonts,
@@ -80,6 +81,7 @@
 		onClickImport?: () => void;
 		onRenameStyle?: (name: string) => void;
 		onClickAddLayer?: () => void;
+		onClickVariables?: () => void;
 		onClickSources?: () => void;
 		onClickSprites?: () => void;
 		onClickFonts?: () => void;
@@ -432,6 +434,7 @@
 					{@render renderAdapterMenuSections('view')}
 				</MenuTrigger>
 				<MenuTrigger value="assets" label="Assets">
+					<MenuItem onSelect={() => onClickVariables?.()}>Variables…</MenuItem>
 					<MenuItem onSelect={() => onClickSources?.()}>Sources…</MenuItem>
 					<MenuItem onSelect={() => onClickSprites?.()}>Sprites…</MenuItem>
 					<MenuItem onSelect={() => onClickFonts?.()}>Fonts…</MenuItem>
