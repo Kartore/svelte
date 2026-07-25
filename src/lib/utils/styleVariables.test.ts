@@ -257,6 +257,60 @@ describe('style variable transforms', () => {
 		expect(style).toEqual(before);
 	});
 
+	it('reports interpolation bindings as current, stale, or inapplicable', () => {
+		const target = {
+			group: 'paint',
+			key: 'line-width',
+			slot: 'interpolation'
+		} as const;
+		const style = styleWithVariables(
+			[interpolationVariable],
+			[
+				{
+					id: 'road',
+					type: 'line',
+					source: 'roads',
+					paint: {
+						'line-width': ['interpolate', ['linear'], ['zoom'], 0, 1, 22, 4]
+					}
+				}
+			]
+		);
+		const bound = bindProperty(style, 'road', target, interpolationVariable.id);
+
+		expect(getBindingStatus(bound.layers[0], target, [interpolationVariable])).toEqual({
+			variable: interpolationVariable,
+			stale: false
+		});
+
+		const stale = structuredClone(bound);
+		(stale.layers[0].paint as Record<string, unknown>)['line-width'] = [
+			'interpolate',
+			['linear'],
+			['zoom'],
+			0,
+			1,
+			22,
+			4
+		];
+		expect(getBindingStatus(stale.layers[0], target, [interpolationVariable])).toEqual({
+			variable: interpolationVariable,
+			stale: true
+		});
+
+		const inapplicable = structuredClone(bound);
+		(inapplicable.layers[0].paint as Record<string, unknown>)['line-width'] = [
+			'step',
+			['zoom'],
+			1,
+			22,
+			4
+		];
+		expect(
+			getBindingStatus(inapplicable.layers[0], target, [interpolationVariable])
+		).toBeUndefined();
+	});
+
 	it('prunes dangling bindings during normalization and applies valid bindings', () => {
 		const style = styleWithVariables(
 			[colorVariable],

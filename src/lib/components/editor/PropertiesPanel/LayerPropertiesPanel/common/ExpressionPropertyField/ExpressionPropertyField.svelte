@@ -116,6 +116,26 @@
 	const hasCurvePreview = $derived(
 		isExpression(value) && sampleCurveExpression(value as ExpressionSpecification) !== null
 	);
+	const isInterpolateRoot = $derived(
+		Array.isArray(value) &&
+			(value[0] === 'interpolate' ||
+				value[0] === 'interpolate-hcl' ||
+				value[0] === 'interpolate-lab')
+	);
+	const interpolationTarget = $derived(
+		propertyKey !== undefined
+			? ({
+					group: propertyGroup,
+					key: propertyKey,
+					slot: 'interpolation'
+				} satisfies PropertyBindingTarget)
+			: undefined
+	);
+	const interpolationBinding = $derived(
+		variables !== undefined && layerId !== undefined && interpolationTarget !== undefined
+			? variables.getBindingStatus(layerId, interpolationTarget)
+			: undefined
+	);
 	const bindableType = $derived.by((): StyleVariableType | undefined => {
 		if (propertySpec?.['property-type'] === 'color-ramp') return undefined;
 		if (propertySpec?.type === 'color') return 'color';
@@ -176,6 +196,32 @@
 			},
 			layerId,
 			literalTarget
+		);
+	};
+	const bindInterpolation = (variableId: string) => {
+		if (variables === undefined || layerId === undefined || interpolationTarget === undefined) {
+			return;
+		}
+		variables.bind(layerId, interpolationTarget, variableId);
+	};
+	const createAndBindInterpolation = () => {
+		if (
+			variables === undefined ||
+			layerId === undefined ||
+			interpolationTarget === undefined ||
+			!isInterpolateRoot ||
+			!Array.isArray(value)
+		) {
+			return;
+		}
+		variables.createAndBind(
+			{
+				name: `${propertyKey ?? label} curve`,
+				type: 'interpolation',
+				value: value[1] as StyleVariable['value']
+			},
+			layerId,
+			interpolationTarget
 		);
 	};
 </script>
@@ -270,6 +316,28 @@
 				{zoomRange}
 				{onChange}
 			/>
+		{/if}
+		{#if isInterpolateRoot && variables !== undefined && layerId !== undefined && interpolationTarget !== undefined && Array.isArray(value)}
+			<div class="flex items-center justify-between gap-2">
+				<span class="shrink-0 text-xs font-semibold text-gray-500">curve</span>
+				<div class="flex w-1/2 min-w-0 justify-end">
+					{#if interpolationBinding !== undefined}
+						<VariableChip
+							variable={interpolationBinding.variable}
+							stale={interpolationBinding.stale}
+							onDetach={() => variables.unbind(layerId, interpolationTarget)}
+							onReapply={() => variables.reapply()}
+						/>
+					{:else}
+						<VariablePickerPopover
+							type="interpolation"
+							currentValue={value[1]}
+							onPick={bindInterpolation}
+							onCreateFromValue={createAndBindInterpolation}
+						/>
+					{/if}
+				</div>
+			</div>
 		{/if}
 		{#if propertyKey}
 			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />
