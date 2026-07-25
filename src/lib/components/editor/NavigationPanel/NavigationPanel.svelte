@@ -38,6 +38,9 @@
 		mapStyle,
 		class: className,
 		selectedLayerId,
+		isStyleSelected = false,
+		onClickStyle,
+		styleErrorCount = 0,
 		layerErrors,
 		canUndo,
 		canRedo,
@@ -62,6 +65,9 @@
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 		mapStyle: StyleSpecification;
 		selectedLayerId: LayerSpecification['id'] | null;
+		isStyleSelected?: boolean;
+		onClickStyle?: () => void;
+		styleErrorCount?: number;
 		layerErrors?: Record<string, LayerValidationError[]>;
 		onClickLayer: (layer: LayerSpecification) => void;
 		onChangeLayerOrder: (layers: LayerSpecification[]) => void;
@@ -438,6 +444,25 @@
 			</MenuRoot>
 		</div>
 	</div>
+	<Button
+		class={cn(
+			'flex w-full items-center justify-between border-b border-b-gray-200 px-4 py-2 text-sm font-semibold text-gray-800',
+			isStyleSelected ? 'bg-gray-200 hover:bg-gray-200' : 'bg-white hover:bg-gray-100'
+		)}
+		aria-pressed={isStyleSelected}
+		onclick={onClickStyle}
+	>
+		<span>Style</span>
+		{#if styleErrorCount > 0}
+			<span
+				class="min-w-5 rounded-full bg-red-100 px-1.5 py-0.5 text-center text-[10px] leading-none font-semibold text-red-600"
+				title={`${styleErrorCount} style error${styleErrorCount === 1 ? '' : 's'}`}
+				aria-label={`${styleErrorCount} style error${styleErrorCount === 1 ? '' : 's'}`}
+			>
+				{styleErrorCount}
+			</span>
+		{/if}
+	</Button>
 	<div class="flex items-center justify-between border-b border-b-gray-200 px-3 py-2.5">
 		<div>
 			<h2 class="font-[Montserrat] text-sm font-semibold text-gray-800">Layers</h2>
@@ -508,7 +533,7 @@
 				{:else}
 					{@const layer = mapStyle.layers[row.layerIndex]}
 					<SortableLayerTreeItem
-						isSelected={layer.id === selectedLayerId}
+						isSelected={!isStyleSelected && layer.id === selectedLayerId}
 						{layer}
 						indent={row.group !== undefined}
 						errors={errorMessages(layer.id)}
