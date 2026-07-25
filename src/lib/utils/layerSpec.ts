@@ -18,6 +18,7 @@ export type StylePropertySpec = {
 
 export type LayerPropertyEntry = { key: string; spec: StylePropertySpec };
 export type LayerPropertyGroup = 'paint' | 'layout';
+export type RootPropertyKind = 'light' | 'sky' | 'terrain' | 'projection';
 
 export const getLayerZoomRange = (layer: LayerSpecification): [number, number] => [
 	layer.minzoom ?? 0,
@@ -56,6 +57,13 @@ export const getLayerProperties = (
 			if (b.key === 'visibility') return 1;
 			return 0;
 		});
+};
+
+export const getRootProperties = (kind: RootPropertyKind): LayerPropertyEntry[] => {
+	const specGroup = (latest as Record<string, unknown>)[kind] as
+		Record<string, StylePropertySpec> | undefined;
+
+	return Object.entries(specGroup ?? {}).map(([key, spec]) => ({ key, spec }));
 };
 
 export const getLayerRawPropertyValue = (
@@ -144,10 +152,13 @@ export const isPropertyActive = (
 
 export const labelFromPropertyKey = (
 	key: string,
-	layerType: LayerSpecification['type'],
+	layerType?: LayerSpecification['type'],
 	stripPrefix?: string
 ): string => {
-	const layerStripped = key.startsWith(`${layerType}-`) ? key.slice(layerType.length + 1) : key;
+	const layerStripped =
+		layerType !== undefined && key.startsWith(`${layerType}-`)
+			? key.slice(layerType.length + 1)
+			: key;
 	const prefixStripped =
 		stripPrefix !== undefined && layerStripped.startsWith(stripPrefix)
 			? layerStripped.slice(stripPrefix.length)

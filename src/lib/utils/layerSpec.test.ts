@@ -1,7 +1,12 @@
 import type { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { getLayerZoomRangeLabel, isLayerOutsideZoomRange } from './layerSpec.ts';
+import {
+	getLayerZoomRangeLabel,
+	getRootProperties,
+	isLayerOutsideZoomRange,
+	labelFromPropertyKey
+} from './layerSpec.ts';
 
 const rangedLayer = (minzoom?: number, maxzoom?: number): LayerSpecification => ({
 	id: 'ranged',
@@ -29,5 +34,22 @@ describe('layer zoom range presentation', () => {
 		expect(getLayerZoomRangeLabel(rangedLayer(undefined, 10))).toBe('z0–10');
 		expect(getLayerZoomRangeLabel(rangedLayer(5, undefined))).toBe('z5–24');
 		expect(getLayerZoomRangeLabel(rangedLayer())).toBeUndefined();
+	});
+});
+
+describe('root property specifications', () => {
+	it('reads root property groups from the style specification', () => {
+		expect(getRootProperties('light').map(({ key }) => key)).toEqual([
+			'anchor',
+			'position',
+			'color',
+			'intensity'
+		]);
+		expect(getRootProperties('terrain').map(({ key }) => key)).toEqual(['source', 'exaggeration']);
+	});
+
+	it('formats root property labels without requiring a layer type', () => {
+		expect(labelFromPropertyKey('sky-color')).toBe('Sky Color');
+		expect(labelFromPropertyKey('fill-color', 'fill')).toBe('Color');
 	});
 });
