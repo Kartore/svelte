@@ -13,9 +13,19 @@
 	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import { PropertyHistoryPopover } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
+	import {
+		VariableChip,
+		VariablePickerPopover
+	} from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableBindingControl';
 	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
 	import { useStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
+	import { useStyleVariables } from '$lib/contexts/styleVariables.svelte.ts';
 	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+	import type {
+		PropertyBindingTarget,
+		StyleVariable,
+		StyleVariableType
+	} from '$lib/utils/styleVariables.ts';
 	import { cn } from '$lib/utils/tailwindUtil.ts';
 
 	let {
@@ -67,6 +77,7 @@
 
 	const flyout = useExpressionFlyout();
 	const history = useStyleHistory();
+	const variables = useStyleVariables();
 	const getExpressionSuggestions = useExpressionSuggestions();
 	const expressionSuggestions = $derived(getExpressionSuggestions());
 	// フライアウトは paint/layout プロパティ (propertyKey あり) でのみ使える。
@@ -105,12 +116,67 @@
 	const hasCurvePreview = $derived(
 		isExpression(value) && sampleCurveExpression(value as ExpressionSpecification) !== null
 	);
+	const bindableType = $derived.by((): StyleVariableType | undefined => {
+		if (propertySpec?.['property-type'] === 'color-ramp') return undefined;
+		if (propertySpec?.type === 'color') return 'color';
+		if (propertySpec?.type === 'number') return 'number';
+		return undefined;
+	});
+	const literalVariableSeed = $derived(value !== undefined ? value : propertySpec?.default);
+	const canCreateVariableFromLiteral = $derived(
+		(bindableType === 'color' &&
+			typeof literalVariableSeed === 'string' &&
+			literalVariableSeed !== '') ||
+			(bindableType === 'number' &&
+				typeof literalVariableSeed === 'number' &&
+				Number.isFinite(literalVariableSeed))
+	);
+	const literalTarget = $derived(
+		propertyKey !== undefined
+			? ({ group: propertyGroup, key: propertyKey } satisfies PropertyBindingTarget)
+			: undefined
+	);
+	const literalBinding = $derived(
+		variables !== undefined && layerId !== undefined && literalTarget !== undefined
+			? variables.getBindingStatus(layerId, literalTarget)
+			: undefined
+	);
+	const canBindLiteral = $derived(
+		variables !== undefined &&
+			layerId !== undefined &&
+			bindableType !== undefined &&
+			!isExpression(value)
+	);
 	const convertLiteralToExpression = () => {
 		return literalToSuggestedExpression(value ?? defaultLiteral, {
 			propertyKey,
 			propertySpec,
 			suggestions: expressionSuggestions
 		});
+	};
+	const bindLiteral = (variableId: string) => {
+		if (variables === undefined || layerId === undefined || literalTarget === undefined) return;
+		variables.bind(layerId, literalTarget, variableId);
+	};
+	const createAndBindLiteral = () => {
+		if (
+			variables === undefined ||
+			layerId === undefined ||
+			literalTarget === undefined ||
+			bindableType === undefined
+		) {
+			return;
+		}
+		if (!canCreateVariableFromLiteral) return;
+		variables.createAndBind(
+			{
+				name: propertyKey ?? label,
+				type: bindableType,
+				value: literalVariableSeed as StyleVariable['value']
+			},
+			layerId,
+			literalTarget
+		);
 	};
 </script>
 
@@ -212,8 +278,24 @@
 {:else}
 	<div {...props} class={cn('flex flex-col gap-1', className)}>
 		<div class="group/property relative flex flex-row items-center">
-			<div class="w-full min-w-0">{@render children()}</div>
-			{#if rampable || showExpressionButton || canShowHistory}
+			<div class="w-full min-w-0">
+				{#if literalBinding !== undefined && layerId !== undefined && literalTarget !== undefined}
+					<div class="flex items-center justify-between gap-2">
+						<span class="shrink-0 text-sm font-semibold text-gray-600">{label}</span>
+						<div class="w-1/2 min-w-0">
+							<VariableChip
+								variable={literalBinding.variable}
+								stale={literalBinding.stale}
+								onDetach={() => variables?.unbind(layerId, literalTarget)}
+								onReapply={() => variables?.reapply()}
+							/>
+						</div>
+					</div>
+				{:else}
+					{@render children()}
+				{/if}
+			</div>
+			{#if canShowHistory || (literalBinding === undefined && (rampable || showExpressionButton || canBindLiteral))}
 				<!-- ボタンをフロー外に置きラベルとコントロールの間の余白へ重ねる。
 					フロー内に置くとボタン数 (0〜2) の分だけコントロールの右端がずれるため -->
 				<div
@@ -230,31 +312,41 @@
 							onRestore={(restoredValue) => onChange?.(restoredValue)}
 						/>
 					{/if}
-					{#if rampable}
-						<Button
-							aria-label={`Interpolate ${label} by zoom`}
-							title={`Interpolate ${label} by zoom`}
-							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 hover:text-gray-600"
-							onclick={(event) => {
-								onChange?.(literalToZoomInterpolate(value ?? defaultLiteral));
-								openFlyout(event.currentTarget);
-							}}
-						>
-							∿
-						</Button>
-					{/if}
-					{#if showExpressionButton}
-						<Button
-							aria-label={`Use expression for ${label}`}
-							title={`Use expression for ${label}`}
-							class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
-							onclick={(event) => {
-								onChange?.(convertLiteralToExpression());
-								openFlyout(event.currentTarget);
-							}}
-						>
-							fx
-						</Button>
+					{#if literalBinding === undefined}
+						{#if canBindLiteral && bindableType !== undefined}
+							<VariablePickerPopover
+								type={bindableType}
+								currentValue={literalVariableSeed}
+								onPick={bindLiteral}
+								onCreateFromValue={canCreateVariableFromLiteral ? createAndBindLiteral : undefined}
+							/>
+						{/if}
+						{#if rampable}
+							<Button
+								aria-label={`Interpolate ${label} by zoom`}
+								title={`Interpolate ${label} by zoom`}
+								class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 hover:text-gray-600"
+								onclick={(event) => {
+									onChange?.(literalToZoomInterpolate(value ?? defaultLiteral));
+									openFlyout(event.currentTarget);
+								}}
+							>
+								∿
+							</Button>
+						{/if}
+						{#if showExpressionButton}
+							<Button
+								aria-label={`Use expression for ${label}`}
+								title={`Use expression for ${label}`}
+								class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
+								onclick={(event) => {
+									onChange?.(convertLiteralToExpression());
+									openFlyout(event.currentTarget);
+								}}
+							>
+								fx
+							</Button>
+						{/if}
 					{/if}
 				</div>
 			{/if}
