@@ -24,6 +24,7 @@
 	import { SourcesDialog } from '$lib/components/editor/SourcesDialog';
 	import { SpritesDialog } from '$lib/components/editor/SpritesDialog';
 	import { StyleJsonPanel } from '$lib/components/editor/StyleJsonPanel';
+	import { StylePropertiesPanel } from '$lib/components/editor/StylePropertiesPanel';
 	import { StyleSettingsDialog } from '$lib/components/editor/StyleSettingsDialog';
 	import { provideBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
 	import { provideExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
@@ -41,6 +42,8 @@
 	import { localStorageSpriteIconsStoreAdapter, SpriteIconsStore } from '$lib/stores/spriteIcons';
 	import { groupLayersByIdPrefix } from '$lib/utils/layerGroup.ts';
 	import { createStyleExport } from '$lib/utils/styleExport.ts';
+	import type { RootPropertyKind } from '$lib/utils/layerSpec.ts';
+	import { replaceStyleRootData, setStyleRootObject } from '$lib/utils/styleRoot.ts';
 	import { validateMapStyle, type StyleValidationResult } from '$lib/utils/styleValidation.ts';
 
 	const store = new MapStyleStore({
@@ -90,6 +93,7 @@
 	};
 
 	let selectedLayerId = $state<string | null>(osmLibertyMigrated.layers[4].id);
+	let stylePropertiesSelected = $state(false);
 	let layerSelectionRequest = $state(0);
 	let layerSearchInput = $state<HTMLInputElement | null>(null);
 	let layerDragActive = $state(false);
@@ -303,6 +307,16 @@
 		store.setMapStyle((currentStyle) => replaceLayerData(currentStyle, layer, group, key, value));
 	};
 
+	const handleChangeStyleRoot = (kind: RootPropertyKind, key: string, value: unknown) => {
+		if (previewState) return;
+		store.setMapStyle((currentStyle) => replaceStyleRootData(currentStyle, kind, key, value));
+	};
+
+	const handleSetStyleRootObject = (kind: RootPropertyKind, value: object | undefined) => {
+		if (previewState) return;
+		store.setMapStyle((currentStyle) => setStyleRootObject(currentStyle, kind, value));
+	};
+
 	const handleImport = (style: StyleSpecification) => {
 		if (previewState) return;
 		store.setMapStyle(style);
@@ -355,6 +369,7 @@
 	};
 
 	const handleSelectLayer = (layer: LayerSpecification) => {
+		stylePropertiesSelected = false;
 		selectedLayerId = layer.id;
 		layerSelectionRequest += 1;
 	};
@@ -368,6 +383,7 @@
 	};
 
 	const handleAddLayer = (layer: LayerSpecification) => {
+		stylePropertiesSelected = false;
 		if (previewState) return;
 		store.setMapStyle((currentStyle) => ({
 			...currentStyle,
@@ -479,6 +495,7 @@
 	// レイヤーを切り替えたら編集中プロパティとの対応が切れるため閉じる
 	$effect(() => {
 		void effectiveSelectedLayerId;
+		void stylePropertiesSelected;
 		expressionFlyout.close();
 	});
 
@@ -531,6 +548,9 @@
 				layerErrors={validation.layerErrors}
 				onChangeLayerOrder={handleChangeLayerOrder}
 				selectedLayerId={effectiveSelectedLayerId}
+				isStyleSelected={stylePropertiesSelected}
+				onClickStyle={() => (stylePropertiesSelected = true)}
+				styleErrorCount={validation.styleErrors.length}
 				canUndo={!previewState && store.canUndo}
 				canRedo={!previewState && store.canRedo}
 				onClickUndo={() => store.undo()}
@@ -592,6 +612,14 @@
 					{layerSelectionRequest}
 					readOnly={previewState !== null}
 					onApply={handleApplyStyleJson}
+				/>
+			{:else if stylePropertiesSelected}
+				<StylePropertiesPanel
+					class="w-[min(42rem,42vw)] min-w-[25rem]"
+					mapStyle={effectiveStyle}
+					styleErrors={validation.styleErrors}
+					onChangeRoot={handleChangeStyleRoot}
+					onSetRootObject={handleSetStyleRootObject}
 				/>
 			{:else}
 				{#key selectedLayer.id}
