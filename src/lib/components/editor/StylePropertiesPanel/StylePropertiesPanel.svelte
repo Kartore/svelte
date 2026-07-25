@@ -118,37 +118,33 @@
 	{/if}
 
 	<div class="flex flex-col gap-6">
-		<section class="flex flex-col gap-3 px-4">
-			<div>
-				<h3 class="font-montserrat text-sm font-semibold">Identity</h3>
-				<p class="text-xs text-gray-500">Name and shared asset endpoints for this style.</p>
-			</div>
-			<div class="flex flex-col gap-2 rounded-md border border-gray-200 bg-gray-50/60 p-3">
+		<section class="flex flex-col gap-2 px-4">
+			<h3 class="font-montserrat text-sm font-semibold">Identity</h3>
+			<div class="flex flex-col gap-2">
 				<TextField
-					class="[&>input]:w-[70%]"
 					label="Name"
 					value={mapStyle.name ?? ''}
 					onCommit={(value) => commitStringSetting('name', value)}
 				/>
 				{#if spriteEditable}
 					<TextField
-						class="[&>input]:w-[70%]"
 						label="Sprite"
 						value={typeof mapStyle.sprite === 'string' ? mapStyle.sprite : ''}
 						onCommit={(value) => commitStringSetting('sprite', value)}
 					/>
 				{:else}
 					<div class="flex flex-col gap-1">
-						<div class="flex items-center justify-between gap-3">
-							<p class="text-sm font-semibold text-gray-600">Sprite</p>
+						<div class="flex items-start justify-between gap-3">
+							<p class="pt-1 text-sm font-semibold text-gray-600">Sprite</p>
 							<pre
-								class="max-h-28 w-[70%] overflow-auto rounded border border-gray-200 bg-white px-2 py-1 text-xs whitespace-pre-wrap text-gray-600">{spriteJSON}</pre>
+								class="max-h-28 w-1/2 overflow-auto rounded bg-gray-100 px-2 py-1 text-xs whitespace-pre-wrap text-gray-600">{spriteJSON}</pre>
 						</div>
-						<p class="self-end text-xs text-gray-500">Multiple sprites are not editable here.</p>
+						<p class="w-1/2 self-end text-xs text-gray-500">
+							Multiple sprites are not editable here.
+						</p>
 					</div>
 				{/if}
 				<TextField
-					class="[&>input]:w-[70%]"
 					label="Glyphs"
 					placeholder={'https://.../{fontstack}/{range}.pbf'}
 					value={mapStyle.glyphs ?? ''}
@@ -157,16 +153,10 @@
 			</div>
 		</section>
 
-		<section class="flex flex-col gap-3 px-4">
-			<div>
-				<h3 class="font-montserrat text-sm font-semibold">Default View</h3>
-				<p class="text-xs text-gray-500">Initial camera values used when the style opens.</p>
-			</div>
-			<div
-				class="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-gray-200 bg-gray-50/60 p-3"
-			>
+		<section class="flex flex-col gap-2 px-4">
+			<h3 class="font-montserrat text-sm font-semibold">Default View</h3>
+			<div class="flex flex-col gap-2">
 				<NumberField
-					class="[&>div]:w-[52%]"
 					label="Center Lng"
 					value={mapStyle.center?.[0]}
 					minValue={-180}
@@ -174,7 +164,6 @@
 					onValueChange={(value) => commitCenterCoordinate(0, value)}
 				/>
 				<NumberField
-					class="[&>div]:w-[52%]"
 					label="Center Lat"
 					value={mapStyle.center?.[1]}
 					minValue={-90}
@@ -182,7 +171,6 @@
 					onValueChange={(value) => commitCenterCoordinate(1, value)}
 				/>
 				<NumberField
-					class="[&>div]:w-[52%]"
 					label="Zoom"
 					value={mapStyle.zoom}
 					minValue={0}
@@ -190,13 +178,11 @@
 					onValueChange={(value) => onChangeStyleSetting?.('zoom', value)}
 				/>
 				<NumberField
-					class="[&>div]:w-[52%]"
 					label="Bearing"
 					value={mapStyle.bearing}
 					onValueChange={(value) => onChangeStyleSetting?.('bearing', value)}
 				/>
 				<NumberField
-					class="[&>div]:w-[52%]"
 					label="Pitch"
 					value={mapStyle.pitch}
 					onValueChange={(value) => onChangeStyleSetting?.('pitch', value)}
