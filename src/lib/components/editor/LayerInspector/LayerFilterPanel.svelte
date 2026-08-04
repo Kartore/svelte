@@ -7,7 +7,7 @@
 	} from '@maplibre/maplibre-gl-style-spec';
 	import { FunctionIcon, LockSimple } from 'phosphor-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import type maplibregl from 'maplibre-gl';
+	import type * as maplibregl from 'maplibre-gl';
 
 	import { Button } from '#lib/components/common/Button';
 	import {

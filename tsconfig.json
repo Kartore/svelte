@@ -1,6 +1,7 @@
 {
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
-	  "noEmit": true,
+		"noEmit": true,
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		// worker-configuration.d.ts の `typeof import("./.svelte-kit/cloudflare/_worker")` が

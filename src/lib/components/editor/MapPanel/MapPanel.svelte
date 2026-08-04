@@ -1,5 +1,6 @@
 <script lang="ts">
 	import 'maplibre-gl/dist/maplibre-gl.css';
+	import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import type {
 		LayerSpecification,
 		Map as MaplibreMap,
@@ -7,6 +8,7 @@
 		MapMouseEvent,
 		StyleSpecification
 	} from 'maplibre-gl';
+	import { setWorkerUrl } from 'maplibre-gl';
 	import { X } from 'phosphor-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { fromAction } from 'svelte/attachments';
@@ -37,6 +39,8 @@
 	import { applyFilterHighlight, FILTER_HIGHLIGHT_LAYER_ID } from '#lib/utils/filterHighlight.ts';
 	import { getLayerGroup } from '#lib/utils/layerGroup.ts';
 	import { cn } from '#lib/utils/tailwindUtil';
+
+	setWorkerUrl(maplibreWorkerUrl);
 
 	type LayerPickCandidate = {
 		layer: LayerSpecification;

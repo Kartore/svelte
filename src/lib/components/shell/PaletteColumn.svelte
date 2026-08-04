@@ -3,7 +3,7 @@
 	import { ArrowRight, CaretDown, FunctionIcon, Plus, Trash } from 'phosphor-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type maplibregl from 'maplibre-gl';
+	import type * as maplibregl from 'maplibre-gl';
 
 	import { Button } from '#lib/components/common/Button';
 	import { ColorSwatch } from '#lib/components/common/ColorField/ColorSwatch';

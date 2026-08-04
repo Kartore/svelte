@@ -1,4 +1,4 @@
-import type { Map as MaplibreMap, MapStyleImageMissingEvent } from 'maplibre-gl';
+import type { Map as MaplibreMap } from 'maplibre-gl';
 import type { RenderedIcon } from '@kartore/spritore';
 
 import { loadSpritore } from './spritore.ts';
@@ -38,10 +38,10 @@ export class MapSpriteSynchronizer {
 		const generation = ++this.#generation;
 
 		if (map !== this.#map) {
-			this.#map?.off('styleimagemissing', this.#handleStyleImageMissing);
+			this.#map?.setMissingStyleImageResolver(null);
 			this.#map = map;
 			this.#synchronizedIconSvgs = new Map();
-			map?.on('styleimagemissing', this.#handleStyleImageMissing);
+			map?.setMissingStyleImageResolver(this.#resolveMissingStyleImage);
 		}
 
 		if (map) {
@@ -63,7 +63,7 @@ export class MapSpriteSynchronizer {
 
 	destroy = () => {
 		this.#generation += 1;
-		this.#map?.off('styleimagemissing', this.#handleStyleImageMissing);
+		this.#map?.setMissingStyleImageResolver(null);
 		this.#map = null;
 	};
 
@@ -127,31 +127,32 @@ export class MapSpriteSynchronizer {
 		}
 	}
 
-	#handleStyleImageMissing = (event: MapStyleImageMissingEvent) => {
+	#resolveMissingStyleImage = async (id: string) => {
 		const map = this.#map;
 		if (!map) return;
-		const svg = this.#icons[event.id];
+		const svg = this.#icons[id];
 		if (svg === undefined) return;
-		const cached = this.#renderedLocalSprites.get(event.id);
+		const cached = this.#renderedLocalSprites.get(id);
 		if (cached?.svg === svg) {
 			try {
 				this.#addLocalSprite(map, cached);
-				this.#synchronizedIconSvgs.set(event.id, svg);
+				this.#synchronizedIconSvgs.set(id, svg);
 			} catch {
-				// 後続の styleimagemissing で再試行する。
+				// 次の欠落画像解決時に再試行する。
 			}
 			return;
 		}
 
-		void loadSpritore()
-			.then(async ({ renderIcon }) => {
-				if (this.#map !== map || this.#icons[event.id] !== svg) return;
-				const rendered = { ...(await renderIcon(event.id, svg, 2)), svg };
-				if (this.#map !== map || this.#icons[event.id] !== svg) return;
-				this.#renderedLocalSprites.set(event.id, rendered);
-				this.#addLocalSprite(map, rendered);
-				this.#synchronizedIconSvgs.set(event.id, svg);
-			})
-			.catch(() => undefined);
+		try {
+			const { renderIcon } = await loadSpritore();
+			if (this.#map !== map || this.#icons[id] !== svg) return;
+			const rendered = { ...(await renderIcon(id, svg, 2)), svg };
+			if (this.#map !== map || this.#icons[id] !== svg) return;
+			this.#renderedLocalSprites.set(id, rendered);
+			this.#addLocalSprite(map, rendered);
+			this.#synchronizedIconSvgs.set(id, svg);
+		} catch {
+			// 無効な SVG や初期化エラーは欠落画像のまま扱う。
+		}
 	};
 }

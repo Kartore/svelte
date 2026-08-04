@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import { getContext, setContext } from 'svelte';
 
 import type { FilterHighlightRequest } from '#lib/utils/filterHighlight.ts';
