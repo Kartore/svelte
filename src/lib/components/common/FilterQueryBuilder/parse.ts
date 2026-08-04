@@ -4,7 +4,7 @@ import type {
 	FilterSpecification
 } from '@maplibre/maplibre-gl-style-spec';
 
-import { isExpressionFilter } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties/utils/isExpressionFilter.ts';
+import { isExpressionFilter } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties/utils/isExpressionFilter.ts';
 
 import type { FilterConditionNode, FilterGroupNode, FilterNode, FilterSubject } from './model.ts';
 

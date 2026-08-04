@@ -3,8 +3,8 @@
 	import { adapterProviders } from 'virtual:kartore-adapter';
 
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import AdapterProviders from '$lib/components/AdapterProviders.svelte';
+	import favicon from '#lib/assets/favicon.svg';
+	import AdapterProviders from '#lib/components/AdapterProviders.svelte';
 
 	let { children } = $props();
 

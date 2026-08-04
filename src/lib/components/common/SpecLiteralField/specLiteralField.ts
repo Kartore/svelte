@@ -1,7 +1,7 @@
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
-import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 export type SpecLiteralFieldKind =
 	'color' | 'number' | 'number-array' | 'number-list' | 'padding' | 'variable-anchor-offset';

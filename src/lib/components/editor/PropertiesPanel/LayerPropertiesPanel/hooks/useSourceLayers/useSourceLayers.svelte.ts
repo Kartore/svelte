@@ -11,6 +11,16 @@ type SourceVectorLayer = {
 	source_name?: string;
 };
 
+export type TileJsonMetadata = {
+	tilejson?: string;
+	name?: string;
+	description?: string;
+	minzoom?: number;
+	maxzoom?: number;
+	tiles?: string[];
+	vector_layers?: SourceVectorLayer[];
+};
+
 export const createSourceLayers = (getSource: () => VectorSourceSpecification | undefined) => {
 	const url = $derived(getSource()?.url);
 	const query = createQuery(() => ({
@@ -18,14 +28,24 @@ export const createSourceLayers = (getSource: () => VectorSourceSpecification | 
 		enabled: !!url,
 		queryFn: async () => {
 			const response = await fetch(url!);
-			const json = (await response.json()) as { vector_layers?: SourceVectorLayer[] };
-			return json.vector_layers ?? null;
+			if (!response.ok) throw new Error(`TileJSON request failed (${response.status}).`);
+			return (await response.json()) as TileJsonMetadata;
 		}
 	}));
 
 	return {
 		get sourceLayers(): SourceVectorLayer[] | undefined {
+			return query.data?.vector_layers ?? undefined;
+		},
+		get tileJson(): TileJsonMetadata | undefined {
 			return query.data ?? undefined;
-		}
+		},
+		get isLoading(): boolean {
+			return query.isFetching;
+		},
+		get error(): Error | undefined {
+			return query.error instanceof Error ? query.error : undefined;
+		},
+		refetch: () => query.refetch()
 	};
 };

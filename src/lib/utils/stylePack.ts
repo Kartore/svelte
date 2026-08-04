@@ -1,7 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-import type { StoredFont } from '$lib/stores/fonts';
-import type { SpriteIcons } from '$lib/stores/spriteIcons';
+import type { StoredFont } from '#lib/stores/fonts';
+import type { SpriteIcons } from '#lib/stores/spriteIcons';
 
 import { parseStyleJSON } from './styleImport.ts';
 import {

@@ -6,18 +6,18 @@
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { BackgroundLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/BackgroundLayerPropertiesPanel';
-	import { CircleLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/CircleLayerPropertiesPanel';
-	import { provideLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
-	import { LayerSuggestionsProvider } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerSuggestionsProvider';
-	import { ColorReliefLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/ColorReliefLayerPropertiesPanel';
-	import { FillExtrusionLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillExtrusionLayerPropertiesPanel';
-	import { FillLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillLayerPropertiesPanel';
-	import { HeatmapLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/HeatmapLayerPropertiesPanel';
-	import { HillshadeLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/HillshadeLayerPropertiesPanel';
-	import { LineLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/LineLayerPropertiesPanel';
-	import { RasterLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/RasterLayerPropertiesPanel';
-	import { SymbolLayerPropertiesPanel } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/SymbolLayerPropertiesPanel';
+	import { BackgroundLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/BackgroundLayerPropertiesPanel';
+	import { CircleLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/CircleLayerPropertiesPanel';
+	import { provideLayerErrors } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
+	import { LayerSuggestionsProvider } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerSuggestionsProvider';
+	import { ColorReliefLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/ColorReliefLayerPropertiesPanel';
+	import { FillExtrusionLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillExtrusionLayerPropertiesPanel';
+	import { FillLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/FillLayerPropertiesPanel';
+	import { HeatmapLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/HeatmapLayerPropertiesPanel';
+	import { HillshadeLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/HillshadeLayerPropertiesPanel';
+	import { LineLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/LineLayerPropertiesPanel';
+	import { RasterLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/RasterLayerPropertiesPanel';
+	import { SymbolLayerPropertiesPanel } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/SymbolLayerPropertiesPanel';
 	import {
 		isBackgroundLayer,
 		isCircleLayer,
@@ -29,9 +29,10 @@
 		isLineLayer,
 		isRasterLayer,
 		isSymbolLayer
-	} from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import type { LayerValidationError } from '$lib/utils/styleValidation.ts';
+	} from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { providePropertyCommit } from '#lib/contexts/propertyCommit.ts';
+	import type { LayerValidationError } from '#lib/utils/styleValidation.ts';
 
 	let {
 		layer,
@@ -39,6 +40,9 @@
 		sources,
 		errors,
 		onChange,
+		onTransientChange,
+		onCommitChange,
+		onCancelTransient,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
 		class?: string;
@@ -47,9 +51,23 @@
 		sources: { [key: string]: SourceSpecification };
 		errors?: LayerValidationError[];
 		onChange?: onChangeType;
+		onTransientChange?: onChangeType;
+		onCommitChange?: onChangeType;
+		onCancelTransient?: () => void;
 	} = $props();
 
 	provideLayerErrors(() => errors ?? []);
+	providePropertyCommit({
+		get onTransientChange() {
+			return onTransientChange;
+		},
+		get onCommitChange() {
+			return onCommitChange;
+		},
+		get onCancelTransient() {
+			return onCancelTransient;
+		}
+	});
 </script>
 
 {#if isBackgroundLayer(layer)}
@@ -57,23 +75,23 @@
 {:else}
 	<LayerSuggestionsProvider {layer} {sources}>
 		{#if isCircleLayer(layer)}
-			<CircleLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<CircleLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isColorReliefLayer(layer)}
-			<ColorReliefLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<ColorReliefLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isFillExtrusionLayer(layer)}
-			<FillExtrusionLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<FillExtrusionLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isFillLayer(layer)}
-			<FillLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<FillLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isHeatmapLayer(layer)}
-			<HeatmapLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<HeatmapLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isHillshadeLayer(layer)}
-			<HillshadeLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<HillshadeLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isLineLayer(layer)}
-			<LineLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<LineLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isRasterLayer(layer)}
-			<RasterLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<RasterLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isSymbolLayer(layer)}
-			<SymbolLayerPropertiesPanel {layer} {sources} {sprite} {onChange} {...props} />
+			<SymbolLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{/if}
 	</LayerSuggestionsProvider>
 {/if}

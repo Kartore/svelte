@@ -1,1 +1,1 @@
-export { VariableAnchorOffsetField } from '$lib/components/common/VariableAnchorOffsetField';
+export { VariableAnchorOffsetField } from '#lib/components/common/VariableAnchorOffsetField';

@@ -1,41 +1,57 @@
 <script lang="ts">
 	import type { StyleSpecification } from 'maplibre-gl';
+	import { BracketsCurly, Palette, Plus } from 'phosphor-svelte';
 
-	import { Button } from '$lib/components/common/Button';
-	import { NumberField } from '$lib/components/common/NumberField';
-	import { Select } from '$lib/components/common/Select';
-	import { TextField } from '$lib/components/common/TextField';
-	import { RootPropertyField } from '$lib/components/editor/StylePropertiesPanel/RootPropertyField';
-	import { getRootProperties, type RootPropertyKind } from '$lib/utils/layerSpec.ts';
-	import type { StyleSettingChange, StyleSettingKey } from '$lib/utils/styleRoot.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { BoxRadioGroup } from '#lib/components/common/BoxRadioGroup';
+	import { Button } from '#lib/components/common/Button';
+	import { NumberField } from '#lib/components/common/NumberField';
+	import { Select } from '#lib/components/common/Select';
+	import { TextField } from '#lib/components/common/TextField';
+	import { RootPropertyField } from '#lib/components/editor/StylePropertiesPanel/RootPropertyField';
+	import { getRootProperties, type RootPropertyKind } from '#lib/utils/layerSpec.ts';
+	import type { StyleSettingChange, StyleSettingKey } from '#lib/utils/styleRoot.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
 		mapStyle,
 		styleErrors,
+		search = '',
+		managedSprite = false,
 		onChangeStyleSetting,
 		onChangeRoot,
-		onSetRootObject
+		onSetRootObject,
+		onOpenStyleJson,
+		onUseCurrentView,
+		onOpenVariables
 	}: {
 		class?: string;
 		mapStyle: StyleSpecification;
 		styleErrors: string[];
+		search?: string;
+		managedSprite?: boolean;
 		onChangeStyleSetting?: StyleSettingChange;
 		onChangeRoot?: (kind: RootPropertyKind, key: string, value: unknown) => void;
 		onSetRootObject?: (kind: RootPropertyKind, value: object | undefined) => void;
+		onOpenStyleJson?: () => void;
+		onUseCurrentView?: () => void;
+		onOpenVariables?: () => void;
 	} = $props();
 
 	const lightProperties = getRootProperties('light');
 	const skyProperties = getRootProperties('sky');
-	// Keep this list in sync with MapLibre GL JS projection presets when upgrading maplibre-gl.
 	const projectionItems = [
-		{ value: 'mercator', label: 'mercator (default)' },
-		{ value: 'globe', label: 'globe' },
-		{ value: 'vertical-perspective', label: 'vertical-perspective' }
+		{ value: 'mercator', label: 'mercator' },
+		{ value: 'globe', label: 'globe' }
 	];
 
 	const projectionType = $derived(mapStyle.projection?.type as unknown);
+	const projectionIsSegmented = $derived(
+		projectionType === undefined ||
+			(typeof projectionType === 'string' &&
+				projectionItems.some(({ value }) => value === projectionType))
+	);
+	const segmentedProjectionType = $derived(projectionType === 'globe' ? 'globe' : 'mercator');
 	const spriteEditable = $derived(
 		mapStyle.sprite === undefined || typeof mapStyle.sprite === 'string'
 	);
@@ -51,7 +67,7 @@
 	);
 	const terrainSourceItems = $derived.by(() => {
 		const items = [
-			{ value: '', label: 'None' },
+			{ value: '', label: 'なし' },
 			...rasterDemSourceIds.map((sourceId) => ({
 				value: sourceId,
 				label: sourceId
@@ -60,7 +76,7 @@
 		if (terrainSource && !rasterDemSourceIds.includes(terrainSource)) {
 			items.unshift({
 				value: terrainSource,
-				label: `${terrainSource} (missing)`
+				label: `${terrainSource} (見つかりません)`
 			});
 		}
 		return items;
@@ -70,6 +86,10 @@
 	);
 
 	let confirmingRemoveSky = $state(false);
+	const matchesSearch = (...terms: string[]): boolean => {
+		const query = search.trim().toLocaleLowerCase();
+		return query === '' || terms.some((term) => term.toLocaleLowerCase().includes(query));
+	};
 
 	const commitStringSetting = (
 		key: Extract<StyleSettingKey, 'name' | 'sprite' | 'glyphs'>,
@@ -96,218 +116,276 @@
 	};
 </script>
 
-<div
-	data-properties-panel=""
-	class={cn(
-		'pointer-events-auto overflow-y-auto rounded-lg border border-gray-300/80 bg-white py-4 shadow-lg shadow-gray-950/10 backdrop-blur',
-		className
-	)}
->
+<div data-properties-panel="" class={cn('h-full overflow-y-auto bg-white', className)}>
 	{#if styleErrors.length > 0}
-		<div
-			class="mx-4 mb-4 flex flex-col gap-1 rounded-md border border-red-300 bg-red-50 px-3 py-2"
-			role="alert"
-		>
-			<h3 class="font-montserrat text-sm font-semibold text-red-600">
-				{styleErrors.length} error{styleErrors.length === 1 ? '' : 's'} in this style
+		<div class="border-b border-hairline-soft px-3 py-2" role="alert">
+			<h3 class="text-[11px] font-semibold text-ink-1">
+				このスタイルに {styleErrors.length} 件のエラー
 			</h3>
 			{#each styleErrors as error, index (error + index)}
-				<p class="text-xs break-words text-red-600">{error}</p>
+				<p class="mt-1 text-[10px] break-words text-ink-2">{error}</p>
 			{/each}
 		</div>
 	{/if}
 
-	<div class="flex flex-col gap-6">
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Identity</h3>
-			<div class="flex flex-col gap-2">
+	<div class="flex flex-col">
+		{#if matchesSearch('identity', 'name', 'sprite', 'glyphs', '名前', 'スプライト', 'フォント')}
+			<section class="border-b border-hairline-soft px-3 pt-0.5 pb-2">
 				<TextField
-					label="Name"
+					label="名前"
 					value={mapStyle.name ?? ''}
 					onCommit={(value) => commitStringSetting('name', value)}
 				/>
-				{#if spriteEditable}
-					<TextField
-						label="Sprite"
-						value={typeof mapStyle.sprite === 'string' ? mapStyle.sprite : ''}
-						onCommit={(value) => commitStringSetting('sprite', value)}
+			</section>
+		{/if}
+
+		{#if matchesSearch('default view', 'center', 'zoom', 'bearing', 'pitch', '既定ビュー', '現在のビュー')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-2.5">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-1">既定ビュー</h3>
+				<div class="flex min-h-[30px] items-center gap-2">
+					<span class="w-[52px] shrink-0 text-[10px] text-ink-2">中心</span>
+					<NumberField
+						class="h-6 min-w-0 flex-1"
+						aria-label="中心経度"
+						value={mapStyle.center?.[0]}
+						minValue={-180}
+						maxValue={180}
+						onValueChange={(value) => commitCenterCoordinate(0, value)}
+					/>
+					<NumberField
+						class="h-6 min-w-0 flex-1"
+						aria-label="中心緯度"
+						value={mapStyle.center?.[1]}
+						minValue={-90}
+						maxValue={90}
+						onValueChange={(value) => commitCenterCoordinate(1, value)}
+					/>
+				</div>
+				<div class="flex min-h-[30px] items-center">
+					<span class="w-[84px] shrink-0 text-[10px] text-ink-2">ズーム</span>
+					<NumberField
+						class="h-6 w-12"
+						aria-label="既定ズーム"
+						value={mapStyle.zoom}
+						minValue={0}
+						maxValue={24}
+						onValueChange={(value) => onChangeStyleSetting?.('zoom', value)}
+					/>
+				</div>
+				{#if onUseCurrentView}
+					<Button
+						class="mt-0.5 h-5 px-0 text-[10px] font-semibold text-accent hover:bg-transparent"
+						title="現在の地図位置を既定ビューに設定"
+						onclick={() => onUseCurrentView()}
+					>
+						現在のビューを既定にする
+					</Button>
+				{/if}
+			</section>
+		{/if}
+
+		{#if matchesSearch('projection', 'type', '投影')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-2.5">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-1">
+					プロジェクション
+				</h3>
+				{#if projectionIsSegmented}
+					<BoxRadioGroup
+						label="type"
+						items={projectionItems}
+						value={segmentedProjectionType}
+						onValueChange={(value) => {
+							if (value === 'mercator') {
+								onSetRootObject?.('projection', undefined);
+							} else {
+								onSetRootObject?.('projection', { type: value });
+							}
+						}}
 					/>
 				{:else}
-					<div class="flex flex-col gap-1">
-						<div class="flex items-start justify-between gap-3">
-							<p class="pt-1 text-sm font-semibold text-gray-600">Sprite</p>
-							<pre
-								class="max-h-28 w-1/2 overflow-auto rounded bg-gray-100 px-2 py-1 text-xs whitespace-pre-wrap text-gray-600">{spriteJSON}</pre>
-						</div>
-						<p class="w-1/2 self-end text-xs text-gray-500">
-							Multiple sprites are not editable here.
-						</p>
-					</div>
+					<TextField label="type" value={fallbackValue(projectionType)} disabled />
 				{/if}
+			</section>
+		{/if}
+
+		{#if matchesSearch('asset', 'glyphs', 'sprite', 'アセット', 'フォント', 'スプライト')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-2.5">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-1">
+					アセット URL
+				</h3>
 				<TextField
-					label="Glyphs"
+					label="glyphs"
 					placeholder={'https://.../{fontstack}/{range}.pbf'}
 					value={mapStyle.glyphs ?? ''}
 					onCommit={(value) => commitStringSetting('glyphs', value)}
 				/>
-			</div>
-		</section>
-
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Default View</h3>
-			<div class="flex flex-col gap-2">
-				<NumberField
-					label="Center Lng"
-					value={mapStyle.center?.[0]}
-					minValue={-180}
-					maxValue={180}
-					onValueChange={(value) => commitCenterCoordinate(0, value)}
-				/>
-				<NumberField
-					label="Center Lat"
-					value={mapStyle.center?.[1]}
-					minValue={-90}
-					maxValue={90}
-					onValueChange={(value) => commitCenterCoordinate(1, value)}
-				/>
-				<NumberField
-					label="Zoom"
-					value={mapStyle.zoom}
-					minValue={0}
-					maxValue={24}
-					onValueChange={(value) => onChangeStyleSetting?.('zoom', value)}
-				/>
-				<NumberField
-					label="Bearing"
-					value={mapStyle.bearing}
-					onValueChange={(value) => onChangeStyleSetting?.('bearing', value)}
-				/>
-				<NumberField
-					label="Pitch"
-					value={mapStyle.pitch}
-					onValueChange={(value) => onChangeStyleSetting?.('pitch', value)}
-				/>
-			</div>
-		</section>
-
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Projection</h3>
-			{#if projectionType === undefined || typeof projectionType === 'string'}
-				<Select
-					label="Type"
-					items={projectionItems}
-					value={projectionType ?? 'mercator'}
-					onValueChange={(value) => {
-						if (value === 'mercator') {
-							onSetRootObject?.('projection', undefined);
-						} else {
-							onSetRootObject?.('projection', { type: value });
-						}
-					}}
-				/>
-			{:else}
-				<TextField label="Type" value={fallbackValue(projectionType)} disabled />
-			{/if}
-		</section>
-
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Light</h3>
-			{#each lightProperties as entry (entry.key)}
-				<RootPropertyField
-					{entry}
-					value={getRootPropertyValue('light', entry.key)}
-					onChange={(value) => onChangeRoot?.('light', entry.key, value)}
-				/>
-			{/each}
-		</section>
-
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Sky</h3>
-			{#if mapStyle.sky === undefined}
-				<div class="flex items-center justify-between gap-3 rounded-md bg-gray-50 px-3 py-2">
-					<p class="text-xs font-medium text-gray-500">Sky is not rendered until added.</p>
-					<Button
-						class="h-8 shrink-0 rounded-md border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-						onclick={() => onSetRootObject?.('sky', {})}
-					>
-						Add sky
-					</Button>
-				</div>
-			{:else}
-				{#each skyProperties as entry (entry.key)}
-					<RootPropertyField
-						{entry}
-						value={getRootPropertyValue('sky', entry.key)}
-						onChange={(value) => onChangeRoot?.('sky', entry.key, value)}
-					/>
-				{/each}
-				{#if confirmingRemoveSky}
-					<div class="rounded-md border border-red-200 bg-red-50 px-3 py-2">
-						<p class="mb-2 text-xs font-semibold text-red-700">Remove sky permanently?</p>
-						<div class="flex justify-end gap-2">
-							<Button
-								class="h-8 rounded-md px-3 text-xs font-semibold text-gray-600 hover:bg-red-100"
-								onclick={() => (confirmingRemoveSky = false)}
-							>
-								Cancel
-							</Button>
-							<Button
-								class="h-8 rounded-md bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500"
-								onclick={() => {
-									confirmingRemoveSky = false;
-									onSetRootObject?.('sky', undefined);
-								}}
-							>
-								Remove
-							</Button>
-						</div>
+				{#if managedSprite}
+					<div class="flex min-h-[30px] items-center">
+						<p class="w-[84px] shrink-0 font-mono text-[10px] text-ink-2">sprite</p>
+						<p class="text-[10px] text-ink-3">kartore が管理(ローカル生成)</p>
 					</div>
+				{:else if spriteEditable}
+					<TextField
+						label="sprite"
+						value={typeof mapStyle.sprite === 'string' ? mapStyle.sprite : ''}
+						onCommit={(value) => commitStringSetting('sprite', value)}
+					/>
 				{:else}
-					<div class="flex justify-end rounded-md bg-gray-50 px-3 py-2">
-						<Button
-							class="h-8 rounded-md px-3 text-xs font-semibold text-red-600 hover:bg-red-50"
-							onclick={() => (confirmingRemoveSky = true)}
-						>
-							Remove sky
-						</Button>
+					<div class="flex min-h-[30px] items-start">
+						<p class="w-[84px] shrink-0 pt-2 font-mono text-[10px] text-ink-2">sprite</p>
+						<pre
+							class="max-h-20 min-w-0 flex-1 overflow-auto rounded-[5px] bg-field px-2 py-1 font-mono text-[9px] whitespace-pre-wrap text-ink-2">{spriteJSON}</pre>
 					</div>
 				{/if}
-			{/if}
-		</section>
+			</section>
+		{/if}
 
-		<section class="flex flex-col gap-2 px-4">
-			<h3 class="font-montserrat text-sm font-semibold">Terrain</h3>
-			{#if rasterDemSourceIds.length === 0 && terrainObject === undefined}
-				<p class="rounded-md bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
-					Add a raster-dem source to enable terrain.
-				</p>
-			{:else}
-				<Select
-					label="Source"
-					items={terrainSourceItems}
-					value={terrainSource ?? ''}
-					onValueChange={(source) => {
-						if (source === '') {
-							onSetRootObject?.('terrain', undefined);
-						} else {
-							onSetRootObject?.('terrain', {
-								...terrainObject,
-								source
-							});
-						}
-					}}
-				/>
+		{#if matchesSearch('light', 'anchor', 'position', 'color', 'intensity', 'ライト')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-1">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-3">
+					ライト
+					{#if mapStyle.light === undefined}
+						<Button
+							class="ml-auto grid size-6 place-items-center rounded-[5px] text-ink-2 hover:bg-field hover:text-ink-1"
+							aria-label="ライトを追加"
+							onclick={() => onSetRootObject?.('light', {})}
+						>
+							<Plus size={14} weight="regular" aria-hidden="true" />
+						</Button>
+					{/if}
+				</h3>
+				{#if mapStyle.light !== undefined}
+					{#each lightProperties as entry (entry.key)}
+						<RootPropertyField
+							{entry}
+							value={getRootPropertyValue('light', entry.key)}
+							onChange={(value) => onChangeRoot?.('light', entry.key, value)}
+						/>
+					{/each}
+				{/if}
+			</section>
+		{/if}
+
+		{#if matchesSearch('sky', '空')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-1">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-3">
+					スカイ
+					{#if mapStyle.sky === undefined}
+						<Button
+							class="ml-auto grid size-6 place-items-center rounded-[5px] text-ink-2 hover:bg-field hover:text-ink-1"
+							aria-label="スカイを追加"
+							onclick={() => onSetRootObject?.('sky', {})}
+						>
+							<Plus size={14} weight="regular" aria-hidden="true" />
+						</Button>
+					{/if}
+				</h3>
+				{#if mapStyle.sky !== undefined}
+					{#each skyProperties as entry (entry.key)}
+						<RootPropertyField
+							{entry}
+							value={getRootPropertyValue('sky', entry.key)}
+							onChange={(value) => onChangeRoot?.('sky', entry.key, value)}
+						/>
+					{/each}
+					{#if confirmingRemoveSky}
+						<div class="py-1">
+							<p class="mb-1 text-[10px] text-ink-2">スカイを削除しますか？</p>
+							<div class="flex justify-end gap-1">
+								<Button
+									class="h-6 rounded-[5px] px-2 text-[10px] text-ink-2 hover:bg-field"
+									onclick={() => (confirmingRemoveSky = false)}
+								>
+									キャンセル
+								</Button>
+								<Button
+									class="h-6 rounded-[5px] bg-ink-1 px-2 text-[10px] font-semibold text-white"
+									onclick={() => {
+										confirmingRemoveSky = false;
+										onSetRootObject?.('sky', undefined);
+									}}
+								>
+									削除
+								</Button>
+							</div>
+						</div>
+					{:else}
+						<div class="flex justify-end">
+							<Button
+								class="h-6 rounded-[5px] px-2 text-[10px] text-ink-2 hover:bg-field"
+								onclick={() => (confirmingRemoveSky = true)}
+							>
+								スカイを削除
+							</Button>
+						</div>
+					{/if}
+				{/if}
+			</section>
+		{/if}
+
+		{#if matchesSearch('terrain', 'source', 'exaggeration', '地形')}
+			<section class="border-b border-hairline-soft px-3 pt-1.5 pb-1">
+				<h3 class="flex h-[22px] items-center text-[11px] font-semibold text-ink-3">
+					地形(terrain)
+					{#if terrainObject === undefined && rasterDemSourceIds.length > 0}
+						<Button
+							class="ml-auto grid size-6 place-items-center rounded-[5px] text-ink-2 hover:bg-field hover:text-ink-1"
+							aria-label="地形を追加"
+							onclick={() => onSetRootObject?.('terrain', { source: rasterDemSourceIds[0] })}
+						>
+							<Plus size={14} weight="regular" aria-hidden="true" />
+						</Button>
+					{/if}
+				</h3>
+				{#if rasterDemSourceIds.length === 0 && terrainObject === undefined}
+					<p class="pb-1 text-[10px] text-ink-3">raster-dem ソースが必要です。</p>
+				{:else}
+					<Select
+						label="source"
+						items={terrainSourceItems}
+						value={terrainSource ?? ''}
+						onValueChange={(source) => {
+							if (source === '') {
+								onSetRootObject?.('terrain', undefined);
+							} else {
+								onSetRootObject?.('terrain', {
+									...terrainObject,
+									source
+								});
+							}
+						}}
+					/>
+				{/if}
+				{#if terrainObject !== undefined}
+					<NumberField
+						label="強調"
+						value={terrainExaggeration}
+						minValue={0}
+						description="×"
+						onValueChange={(value) =>
+							onChangeRoot?.('terrain', 'exaggeration', value === 1 ? undefined : value)}
+					/>
+				{/if}
+			</section>
+		{/if}
+
+		<section class="flex flex-col px-3 py-2">
+			{#if onOpenVariables}
+				<Button
+					class="flex h-6 w-full items-center gap-1.5 rounded-[5px] px-1 text-left text-[10.5px] text-ink-2 hover:bg-field hover:text-ink-1"
+					onclick={() => onOpenVariables()}
+				>
+					<Palette size={14} weight="regular" aria-hidden="true" />
+					パレットを開く
+				</Button>
 			{/if}
-			{#if terrainObject !== undefined}
-				<NumberField
-					label="Exaggeration"
-					value={terrainExaggeration}
-					minValue={0}
-					description="×"
-					onValueChange={(value) =>
-						onChangeRoot?.('terrain', 'exaggeration', value === 1 ? undefined : value)}
-				/>
-			{/if}
+			<Button
+				class="flex h-6 w-full items-center gap-1.5 rounded-[5px] px-1 text-left text-[10.5px] text-ink-2 hover:bg-field hover:text-ink-1"
+				onclick={() => onOpenStyleJson?.()}
+			>
+				<BracketsCurly size={14} weight="regular" aria-hidden="true" />
+				スタイル全体を JSON で表示
+			</Button>
 		</section>
 	</div>
 </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 import {
 	getEditableExpressionLiteral,

@@ -5,7 +5,7 @@ import {
 	type StylePropertySpecification
 } from '@maplibre/maplibre-gl-style-spec';
 
-import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 export type ExpressionJsonResult =
 	{ ok: true; value: ExpressionSpecification } | { ok: false; error: string };

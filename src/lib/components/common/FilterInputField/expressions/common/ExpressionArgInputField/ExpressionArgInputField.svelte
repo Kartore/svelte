@@ -2,7 +2,7 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 	export type ExpressionArgSuggestionHint = 'propertyKey' | { kind: 'propertyValue'; key: string };
 
@@ -31,23 +31,25 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '$lib/components/common/Button';
-	import { ExpressionInputField } from '$lib/components/common/FilterInputField/expressions';
-	import { ExpressionInputTypeInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
-	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { FunctionIcon, X } from 'phosphor-svelte';
+
+	import { Button } from '#lib/components/common/Button';
+	import { ExpressionInputField } from '#lib/components/common/FilterInputField/expressions';
+	import { ExpressionInputTypeInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
+	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 	import {
 		literalToExpression,
 		replaceArgAt
-	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { literalToSuggestedExpression } from '$lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
-	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+	} from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { literalToSuggestedExpression } from '#lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
+	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import {
 		SpecLiteralField,
 		getEditableExpressionLiteral,
 		getSpecLiteralFieldKind,
 		replaceEditableExpressionLiteral
-	} from '$lib/components/common/SpecLiteralField';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	} from '#lib/components/common/SpecLiteralField';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -56,7 +58,7 @@
 		index,
 		onChange,
 		onRemove,
-		removeLabel = 'Remove argument',
+		removeLabel = '引数を削除',
 		disableConvert,
 		suggestion,
 		literalType,
@@ -111,7 +113,7 @@
 		<SpecLiteralField
 			class="min-w-0 flex-1"
 			compact
-			label="Value"
+			label="値"
 			spec={propertySpec}
 			value={editableLiteral.value}
 			onChange={handleChildChange ? handleSpecLiteralChange : undefined}
@@ -129,33 +131,33 @@
 	{/if}
 	{#if handleChildChange && !disableConvert && !editAsExpression && !isExpression(arg)}
 		<Button
-			aria-label="Convert to expression"
-			title="Convert to expression"
-			class="rounded px-1 py-0.5 font-mono text-xs text-gray-500 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			aria-label="式に変換"
+			title="式に変換"
+			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-white hover:text-ink-1 focus-visible:opacity-100"
 			onclick={specLiteralFieldKind !== undefined
 				? editSpecLiteralAsExpression
 				: () => handleChildChange?.(literalToExpression(arg))}
 		>
-			fx
+			<FunctionIcon size={14} weight="regular" aria-hidden="true" />
 		</Button>
 	{:else if handleChildChange && !disableConvert && specLiteralFieldKind !== undefined && !editAsExpression}
 		<Button
-			aria-label="Edit as expression"
-			title="Edit as expression"
-			class="rounded px-1 py-0.5 font-mono text-xs text-gray-500 italic opacity-0 transition-opacity group-hover/arg:opacity-100 focus-visible:opacity-100"
+			aria-label="式として編集"
+			title="式として編集"
+			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-white hover:text-ink-1 focus-visible:opacity-100"
 			onclick={editSpecLiteralAsExpression}
 		>
-			fx
+			<FunctionIcon size={14} weight="regular" aria-hidden="true" />
 		</Button>
 	{/if}
 	{#if onRemove && onChange}
 		<Button
 			aria-label={removeLabel}
 			title={removeLabel}
-			class="shrink-0 rounded px-1 py-0.5 text-xs text-gray-500 transition-colors hover:text-red-500"
+			class="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-3 transition-colors hover:bg-white hover:text-ink-1"
 			onclick={onRemove}
 		>
-			×
+			<X size={14} weight="regular" aria-hidden="true" />
 		</Button>
 	{/if}
 	{@render children?.()}

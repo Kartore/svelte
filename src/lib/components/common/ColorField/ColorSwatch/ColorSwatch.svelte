@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { parseColor, type Color } from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	import { parseColor, type Color } from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		class: className,
@@ -34,14 +34,14 @@
 	});
 
 	const resolvedColorName = $derived(
-		colorName ?? (color.getChannelValue('alpha') === 0 ? 'transparent' : color.getColorName())
+		colorName ?? (color.getChannelValue('alpha') === 0 ? '透明' : color.toString('hex'))
 	);
 </script>
 
 <div
 	{...props}
 	role="img"
-	aria-roledescription="color swatch"
+	aria-roledescription="カラースウォッチ"
 	aria-label={[resolvedColorName, ariaLabel || ''].filter(Boolean).join(', ')}
 	aria-labelledby={ariaLabelledby ? `${resolvedId} ${ariaLabelledby}` : undefined}
 	id={resolvedId}

@@ -2,7 +2,7 @@
 	import { Menubar } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,

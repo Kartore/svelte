@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { SVGAttributes } from 'svelte/elements';
+	import { Minus } from 'phosphor-svelte';
+	import type { ComponentProps } from 'svelte';
 
-	let { ...props }: SVGAttributes<SVGSVGElement> = $props();
+	let { ...props }: ComponentProps<typeof Minus> = $props();
 </script>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" {...props}>
-	<path d="M200-440v-80h560v80H200Z" fill="currentColor" />
-</svg>
+<Minus {...props} color="currentColor" weight="regular" />

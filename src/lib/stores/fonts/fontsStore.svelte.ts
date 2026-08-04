@@ -1,6 +1,6 @@
 import type { FontInfo, GlyphFont } from '@kartore/glyphore';
 
-import { loadGlyphore, type Glyphore } from '$lib/fonts/glyphore.ts';
+import { loadGlyphore, type Glyphore } from '#lib/fonts/glyphore.ts';
 
 import type { FontMeta, Fonts, FontsStoreAdapter, StoredFont } from './FontsStoreAdapter.ts';
 

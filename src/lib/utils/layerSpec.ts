@@ -3,6 +3,7 @@ import type { LayerSpecification, SourceSpecification } from '@maplibre/maplibre
 
 export type StylePropertySpec = {
 	type: string;
+	doc?: string;
 	default?: unknown;
 	minimum?: number;
 	maximum?: number;

@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { latest } from '@maplibre/maplibre-gl-style-spec';
 
-	import { Button } from '$lib/components/common/Button';
-	import { NumberArrayInnerField } from '$lib/components/common/NumberArrayField/NumberArrayInnerField';
-	import { Select } from '$lib/components/common/Select';
-	import { CloseIcon } from '$lib/components/icons';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { Button } from '#lib/components/common/Button';
+	import { NumberArrayInnerField } from '#lib/components/common/NumberArrayField/NumberArrayInnerField';
+	import { Select } from '#lib/components/common/Select';
+	import { CloseIcon } from '#lib/components/icons';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
-		label = 'Value',
+		label = '値',
 		compact = false,
 		value,
 		onChange
@@ -75,17 +75,24 @@
 
 <div class={cn('flex min-w-0 flex-col gap-1', className)}>
 	{#if !compact || nextAnchor !== undefined}
-		<div class={cn('flex flex-row items-center justify-between', compact && 'justify-end')}>
+		<div
+			class={cn('flex min-h-[30px] min-w-0 flex-row items-center', compact && 'justify-end')}
+			style="column-gap: var(--field-column-gap, 8px)"
+		>
 			{#if !compact}
-				<span class="text-sm font-semibold text-gray-600">{label}</span>
+				<span
+					class="shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+					style="width: var(--field-label-width, auto)"
+					title={label}>{label}</span
+				>
 			{/if}
 			{#if nextAnchor !== undefined}
 				<Button
-					aria-label={`Add ${label} entry`}
-					class="rounded bg-gray-100 px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-200"
+					aria-label={`${label}を追加`}
+					class="h-6 min-w-24 flex-1 rounded-[5px] bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:bg-field"
 					onclick={() => commit([...pairs, { anchor: nextAnchor, offset: [0, 0] }])}
 				>
-					+ Add
+					＋ 追加
 				</Button>
 			{/if}
 		</div>
@@ -95,7 +102,7 @@
 			<Select
 				class="min-w-0 flex-1"
 				triggerClass="w-full"
-				aria-label={`${label} anchor ${index + 1}`}
+				aria-label={`${label}のアンカー ${index + 1}`}
 				items={anchors.map((anchor) => ({
 					value: anchor,
 					label: anchor,
@@ -117,8 +124,8 @@
 				/>
 			</div>
 			<Button
-				aria-label={`Remove ${label} entry ${index + 1}`}
-				class="rounded p-0.5 text-gray-400 hover:text-red-500"
+				aria-label={`${label} ${index + 1} を削除`}
+				class="rounded p-0.5 text-ink-3 hover:text-ink-2"
 				onclick={() => commit(pairs.filter((_, currentIndex) => currentIndex !== index))}
 			>
 				<CloseIcon class="w-4 fill-current" />

@@ -827,7 +827,7 @@ class HSLColor extends Color {
 }
 
 // https://www.w3.org/TR/css-color-4/#color-conversion-code
-function toOKLCH(color: Color): [number, number, number] {
+export function toOKLCH(color: Color): [number, number, number] {
 	const rgb = color.toFormat('rgb');
 	let red = rgb.getChannelValue('red') / 255;
 	let green = rgb.getChannelValue('green') / 255;

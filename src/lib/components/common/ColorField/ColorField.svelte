@@ -1,21 +1,25 @@
 <script lang="ts">
 	import { NumberFormatter, NumberParser } from '@internationalized/number';
 
-	import { ColorPicker } from '$lib/components/common/ColorField/ColorPicker';
-	import { clamp, parseColor, snapValueToStep, type Color } from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	import { ColorPicker } from '#lib/components/common/ColorField/ColorPicker';
+	import { clamp, parseColor, snapValueToStep, type Color } from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		class: className,
 		label,
 		value,
 		onChange,
+		onPickVariable,
+		onPromoteColor,
 		description
 	}: {
 		class?: string;
 		label?: string;
 		value?: string | Color;
 		onChange?: (color: Color | null) => void;
+		onPickVariable?: (variableId: string) => void;
+		onPromoteColor?: () => void;
 		description?: string;
 	} = $props();
 
@@ -172,19 +176,29 @@
 	};
 </script>
 
-<div class={cn('flex flex-row items-center justify-between', className)}>
+<div
+	class={cn('flex h-[30px] min-w-0 flex-row items-center', className)}
+	style="column-gap: var(--field-column-gap, 0px)"
+>
 	{#if label}
-		<label for={`${id}-input`} class={cn('text-sm font-semibold text-gray-600')}>
+		<label
+			for={`${id}-input`}
+			class={cn('shrink-0 truncate font-mono text-[10px] font-normal text-ink-2')}
+			style="width: var(--field-label-width, 84px)"
+			title={label}
+		>
 			{label}
 		</label>
 	{/if}
 	<div
-		class="flex w-1/2 flex-row items-center gap-2 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
+		class="flex h-6 min-w-0 flex-1 flex-row items-center gap-2 rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 focus-within:shadow-[inset_0_0_0_1px_var(--color-accent)] hover:shadow-[inset_0_0_0_1px_var(--color-accent)]"
 	>
 		<ColorPicker
 			value={colorValue ?? undefined}
-			aria-label={label ?? 'Color'}
+			aria-label={label ?? 'カラー'}
 			onChange={(color) => onChange?.(color)}
+			{onPickVariable}
+			{onPromoteColor}
 		/>
 		<input
 			id={`${id}-input`}
@@ -192,7 +206,7 @@
 			autocomplete="off"
 			autocorrect="off"
 			spellcheck="false"
-			aria-label={label ? undefined : 'Color'}
+			aria-label={label ? undefined : 'カラー'}
 			value={inputValue}
 			oninput={(e) => {
 				const v = e.currentTarget.value;
@@ -220,7 +234,7 @@
 					incrementToMax();
 				}
 			}}
-			class={cn('min-w-10 flex-2 border-none focus-visible:outline-0')}
+			class={cn('h-6 min-w-10 flex-2 border-none bg-transparent focus-visible:outline-0')}
 		/>
 		<input
 			type="text"
@@ -228,7 +242,7 @@
 			autocomplete="off"
 			autocorrect="off"
 			spellcheck="false"
-			aria-label="Alpha"
+			aria-label="不透明度"
 			bind:value={alphaInputValue}
 			onblur={commitAlpha}
 			onkeydown={(event) => {
@@ -242,11 +256,11 @@
 					stepAlphaBy(-1);
 				}
 			}}
-			class={cn('min-w-8 flex-1 border-none focus-visible:outline-0')}
+			class={cn('h-6 min-w-8 flex-1 border-none bg-transparent focus-visible:outline-0')}
 		/>
 	</div>
 	{#if description}
-		<div class={cn('text-xs')}>
+		<div class={cn('text-[10px] text-ink-3')}>
 			{description}
 		</div>
 	{/if}

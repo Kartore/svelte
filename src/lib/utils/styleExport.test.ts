@@ -1,8 +1,8 @@
 import type { StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import { createDisplayStyle } from '$lib/fonts/displayStyle.ts';
-import { GLYPH_PROTOCOL_TEMPLATE } from '$lib/fonts/glyphProtocol.ts';
+import { createDisplayStyle } from '#lib/fonts/displayStyle.ts';
+import { GLYPH_PROTOCOL_TEMPLATE } from '#lib/fonts/glyphProtocol.ts';
 
 import { createStyleExport } from './styleExport.ts';
 
@@ -63,5 +63,35 @@ describe('createStyleExport', () => {
 		const result = createStyleExport(style);
 
 		expect(JSON.parse(result.contents)).toEqual(style);
+	});
+
+	it('prunes runtime defaults only from the downloaded export', () => {
+		const style = {
+			version: 8,
+			sources: {
+				lines: {
+					type: 'geojson',
+					data: { type: 'FeatureCollection', features: [] }
+				}
+			},
+			layers: [
+				{
+					id: 'lines',
+					type: 'line',
+					source: 'lines',
+					layout: { visibility: 'visible' },
+					paint: { 'line-width': 1 }
+				}
+			]
+		} as StyleSpecification;
+
+		const result = createStyleExport(style);
+
+		expect(JSON.parse(result.contents).layers[0]).toEqual({
+			id: 'lines',
+			type: 'line',
+			source: 'lines'
+		});
+		expect(style.layers[0]).toHaveProperty('paint.line-width', 1);
 	});
 });

@@ -1,12 +1,12 @@
 <script lang="ts" module>
 	export const literalInputClassName =
-		'min-w-0 max-w-full rounded border-none bg-gray-100 px-1 py-0.5 text-center font-semibold text-gray-700 transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0';
+		'h-6 min-w-0 max-w-full rounded-[5px] border-none bg-field px-1 text-center font-mono text-[11px] font-normal text-ink-1 transition-colors hover:bg-field focus-visible:bg-field focus-visible:outline-0';
 </script>
 
 <script lang="ts">
 	import type { ExpressionInputType } from '@maplibre/maplibre-gl-style-spec';
 
-	import type { ExpressionSuggestionValue } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import type { ExpressionSuggestionValue } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 
 	let {
 		value,
@@ -47,7 +47,7 @@
 </script>
 
 <input
-	aria-label={ariaLabel ?? 'literal value'}
+	aria-label={ariaLabel ?? 'リテラル値'}
 	class={literalInputClassName}
 	style:width={`${Math.max(draft.length, 1) + 2}ch`}
 	value={draft}

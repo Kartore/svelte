@@ -1,6 +1,6 @@
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
-import type { StyleHistoryProvider, StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider, StyleHistoryRevision } from '#lib/editor/EditorModule.ts';
 
 export type PropertyHistoryGroup = 'paint' | 'layout' | 'filter';
 

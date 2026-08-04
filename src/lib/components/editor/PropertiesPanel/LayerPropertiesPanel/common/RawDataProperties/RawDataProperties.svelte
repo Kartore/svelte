@@ -3,9 +3,9 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { CodeEditor } from '$lib/components/common/CodeEditor';
-	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { CodeEditor } from '#lib/components/common/CodeEditor';
+	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		layer,
@@ -21,11 +21,13 @@
 	} = $props();
 </script>
 
-<div {...props} class={cn('flex flex-col gap-2 px-4', className)}>
-	<h3 class="font-montserrat text-sm font-semibold">Raw Data Editor (Advanced)</h3>
+<div {...props} class={cn('flex flex-col px-3', className)}>
+	<div class="flex h-7 items-center border-b border-hairline-soft">
+		<h3 class="text-[11px] font-semibold text-ink-1">生データ編集(詳細)</h3>
+	</div>
 
 	<CodeEditor
-		class={cn('min-h-40', className)}
+		class={cn('my-2 min-h-40', className)}
 		value={JSON.stringify(layer, undefined, 2)}
 		onChange={(value) => {
 			if (!onChange || !value) return;

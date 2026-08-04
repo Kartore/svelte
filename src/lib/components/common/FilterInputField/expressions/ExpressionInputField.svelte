@@ -2,7 +2,7 @@
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 	export type ExpressionInputFieldProps = Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
 		class?: string;
@@ -18,340 +18,340 @@
 
 <script lang="ts">
 	import type { Component } from 'svelte';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import {
 		RgbaInputField,
 		isRgbaExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/color/RgbaInputField';
+	} from '#lib/components/common/FilterInputField/expressions/color/RgbaInputField';
 	import {
 		RgbInputField,
 		isRgbExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/color/RgbInputField';
+	} from '#lib/components/common/FilterInputField/expressions/color/RgbInputField';
 	import {
 		ToRgbaInputField,
 		isToRgbaExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/color/ToRgbaInputField';
+	} from '#lib/components/common/FilterInputField/expressions/color/ToRgbaInputField';
 	import {
 		InterpolateHclInputField,
 		isInterpolateHclExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/InterpolateHclInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/InterpolateHclInputField';
 	import {
 		InterpolateInputField,
 		isInterpolateExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/InterpolateInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/InterpolateInputField';
 	import {
 		InterpolateLabInputField,
 		isInterpolateLabExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/InterpolateLabInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/InterpolateLabInputField';
 	import {
 		StepInputField,
 		isStepExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/StepInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/StepInputField';
 	import {
 		AllInputField,
 		isAllExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/AllInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/AllInputField';
 	import {
 		AnyInputField,
 		isAnyExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/AnyInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/AnyInputField';
 	import {
 		CaseInputField,
 		isCaseExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/CaseInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/CaseInputField';
 	import {
 		CoalesceInputField,
 		isCoalesceExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/CoalesceInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/CoalesceInputField';
 	import {
 		EqualInputField,
 		isEqualExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/EqualInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/EqualInputField';
 	import {
 		GreaterThanInputField,
 		isGreaterThanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/GreaterThanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/GreaterThanInputField';
 	import {
 		GreaterThanOrEqualInputField,
 		isGreaterThanOrEqualExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/GreaterThanOrEqualInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/GreaterThanOrEqualInputField';
 	import {
 		LessThanInputField,
 		isLessThanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/LessThanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/LessThanInputField';
 	import {
 		LessThanOrEqualInputField,
 		isLessThanOrEqualExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/LessThanOrEqualInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/LessThanOrEqualInputField';
 	import {
 		MatchInputField,
 		isMatchExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/MatchInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/MatchInputField';
 	import {
 		NotEqualInputField,
 		isNotEqualExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/NotEqualInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/NotEqualInputField';
 	import {
 		NotInputField,
 		isNotExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/NotInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/NotInputField';
 	import {
 		WithinInputField,
 		isWithinExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/decision/WithinInputField';
+	} from '#lib/components/common/FilterInputField/expressions/decision/WithinInputField';
 	import {
 		AccumulatedInputField,
 		isAccumulatedExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/AccumulatedInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/AccumulatedInputField';
 	import {
 		FeatureStateInputField,
 		isFeatureStateExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/FeatureStateInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/FeatureStateInputField';
 	import {
 		GeometryTypeInputField,
 		isGeometryTypeExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/GeometryTypeInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/GeometryTypeInputField';
 	import {
 		IdInputField,
 		isIdExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/IdInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/IdInputField';
 	import {
 		LineProgressInputField,
 		isLineProgressExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/LineProgressInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/LineProgressInputField';
 	import {
 		PropertiesInputField,
 		isPropertiesExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/feature-data/PropertiesInputField';
+	} from '#lib/components/common/FilterInputField/expressions/feature-data/PropertiesInputField';
 	import {
 		HeatmapDensityInputField,
 		isHeatmapDensityExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/heatmap/HeatmapDensity';
+	} from '#lib/components/common/FilterInputField/expressions/heatmap/HeatmapDensity';
 	import {
 		AtInputField,
 		isAtExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/AtInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/AtInputField';
 	import {
 		GetInputField,
 		isGetExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/GetInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/GetInputField';
 	import {
 		HasInputField,
 		isHasExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/HasInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/HasInputField';
 	import {
 		IndexOfInputField,
 		isIndexOfExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/IndexOfInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/IndexOfInputField';
 	import {
 		InInputField,
 		isInExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/InInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/InInputField';
 	import {
 		LengthInputField,
 		isLengthExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/LengthInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/LengthInputField';
 	import {
 		SliceInputField,
 		isSliceExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/lookup/SliceInputField';
+	} from '#lib/components/common/FilterInputField/expressions/lookup/SliceInputField';
 	import {
 		AbsInputField,
 		isAbsExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/AbsInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/AbsInputField';
 	import {
 		AcosInputField,
 		isAcosExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/AcosInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/AcosInputField';
 	import {
 		AdditionInputField,
 		isAdditionExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/AdditionInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/AdditionInputField';
 	import {
 		AsinInputField,
 		isAsinExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/AsinInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/AsinInputField';
 	import {
 		AtanInputField,
 		isAtanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/AtanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/AtanInputField';
 	import {
 		CeilInputField,
 		isCeilExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/CeilInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/CeilInputField';
 	import {
 		CosInputField,
 		isCosExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/CosInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/CosInputField';
 	import {
 		DistanceInputField,
 		isDistanceExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/DistanceInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/DistanceInputField';
 	import {
 		DivisionInputField,
 		isDivisionExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/DivisionInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/DivisionInputField';
 	import {
 		EInputField,
 		isEExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/EInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/EInputField';
 	import {
 		FloorInputField,
 		isFloorExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/FloorInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/FloorInputField';
 	import {
 		Ln2InputField,
 		isLn2ExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/Ln2InputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/Ln2InputField';
 	import {
 		LnInputField,
 		isLnExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/LnInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/LnInputField';
 	import {
 		Log2InputField,
 		isLog2ExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/Log2InputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/Log2InputField';
 	import {
 		Log10InputField,
 		isLog10ExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/Log10InputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/Log10InputField';
 	import {
 		MaxInputField,
 		isMaxExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/MaxInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/MaxInputField';
 	import {
 		MinInputField,
 		isMinExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/MinInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/MinInputField';
 	import {
 		MultiplicationInputField,
 		isMultiplicationExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/MultiplicationInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/MultiplicationInputField';
 	import {
 		PiInputField,
 		isPiExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/PiInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/PiInputField';
 	import {
 		PowerInputField,
 		isPowerExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/PowerInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/PowerInputField';
 	import {
 		RemainderInputField,
 		isRemainderExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/RemainderInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/RemainderInputField';
 	import {
 		RoundInputField,
 		isRoundExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/RoundInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/RoundInputField';
 	import {
 		SinInputField,
 		isSinExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/SinInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/SinInputField';
 	import {
 		SqrtInputField,
 		isSqrtExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/SqrtInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/SqrtInputField';
 	import {
 		SubtractionInputField,
 		isSubtractionExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/SubtractionInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/SubtractionInputField';
 	import {
 		TanInputField,
 		isTanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/math/TanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/math/TanInputField';
 	import {
 		ConcatInputField,
 		isConcatExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/string/ConcatInputField';
+	} from '#lib/components/common/FilterInputField/expressions/string/ConcatInputField';
 	import {
 		DowncaseInputField,
 		isDowncaseExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/string/DowncaseInputField';
+	} from '#lib/components/common/FilterInputField/expressions/string/DowncaseInputField';
 	import {
 		IsSupportedScriptInputField,
 		isIsSupportedScriptExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/string/IsSupportedScriptInputField';
+	} from '#lib/components/common/FilterInputField/expressions/string/IsSupportedScriptInputField';
 	import {
 		ResolvedLocaleInputField,
 		isResolvedLocaleExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/string/ResolvedLocaleInputField';
+	} from '#lib/components/common/FilterInputField/expressions/string/ResolvedLocaleInputField';
 	import {
 		UpcaseInputField,
 		isUpcaseExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/string/UpcaseInputField';
+	} from '#lib/components/common/FilterInputField/expressions/string/UpcaseInputField';
 	import {
 		ArrayInputField,
 		isArrayExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ArrayInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ArrayInputField';
 	import {
 		BooleanInputField,
 		isBooleanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/BooleanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/BooleanInputField';
 	import {
 		CollatorInputField,
 		isCollatorExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/CollatorInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/CollatorInputField';
 	import {
 		FormatInputField,
 		isFormatExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/FormatInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/FormatInputField';
 	import {
 		ImageInputField,
 		isImageExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ImageInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ImageInputField';
 	import {
 		LiteralInputField,
 		isLiteralExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/LiteralInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/LiteralInputField';
 	import {
 		NumberFormatInputField,
 		isNumberFormatExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/NumberFormatInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/NumberFormatInputField';
 	import {
 		NumberInputField,
 		isNumberExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/NumberInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/NumberInputField';
 	import {
 		ObjectInputField,
 		isObjectExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ObjectInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ObjectInputField';
 	import {
 		StringInputField,
 		isStringExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/StringInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/StringInputField';
 	import {
 		ToBooleanInputField,
 		isToBooleanExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ToBooleanInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ToBooleanInputField';
 	import {
 		ToColorInputField,
 		isToColorExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ToColorInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ToColorInputField';
 	import {
 		ToNumberInputField,
 		isToNumberExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ToNumberInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ToNumberInputField';
 	import {
 		ToStringInputField,
 		isToStringExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/ToStringInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/ToStringInputField';
 	import {
 		TypeofInputField,
 		isTypeofExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/types/TypeofInputField';
+	} from '#lib/components/common/FilterInputField/expressions/types/TypeofInputField';
 	import {
 		LetInputField,
 		isLetExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/variables/LetInputField';
+	} from '#lib/components/common/FilterInputField/expressions/variables/LetInputField';
 	import {
 		VarInputField,
 		isVarExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/variables/VarInputField';
+	} from '#lib/components/common/FilterInputField/expressions/variables/VarInputField';
 	import {
 		ZoomInputField,
 		isZoomExpressionSpecification
-	} from '$lib/components/common/FilterInputField/expressions/zoom/ZoomInputField';
+	} from '#lib/components/common/FilterInputField/expressions/zoom/ZoomInputField';
 
 	type ExpressionFieldDispatchEntry = {
 		guard: (value: ExpressionSpecification) => boolean;
@@ -492,7 +492,7 @@
 		...(entry?.acceptsZoomRange ? { zoomRange } : {}),
 		...(entry?.acceptsPropertySpec ? { propertySpec } : {})
 	});
-	const fieldClass = $derived(cn('max-w-full text-gray-700', className));
+	const fieldClass = $derived(cn('max-w-full text-ink-2', className));
 </script>
 
 {#if value}

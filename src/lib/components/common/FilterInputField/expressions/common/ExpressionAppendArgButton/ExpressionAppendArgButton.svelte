@@ -11,17 +11,19 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '$lib/components/common/Button';
-	import { insertArgsAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { getExpressionOperatorMeta } from '$lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { Plus } from 'phosphor-svelte';
+
+	import { Button } from '#lib/components/common/Button';
+	import { insertArgsAt } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { getExpressionOperatorMeta } from '#lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		value,
 		onChange,
 		class: className,
-		label = '+ Add argument',
-		ariaLabel = 'Add argument'
+		label = '引数を追加',
+		ariaLabel = '引数を追加'
 	}: ExpressionAppendArgButtonProps = $props();
 
 	const variadic = $derived(getExpressionOperatorMeta(value[0])?.variadic);
@@ -32,7 +34,7 @@
 		aria-label={ariaLabel}
 		title={ariaLabel}
 		class={cn(
-			'rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 hover:text-gray-700',
+			'flex h-6 items-center gap-1 rounded-[6px] px-1.5 text-[10px] font-semibold text-ink-3 hover:bg-white hover:text-ink-1',
 			className
 		)}
 		onclick={() => {
@@ -42,6 +44,7 @@
 			);
 		}}
 	>
-		{label}
+		<Plus size={14} weight="regular" aria-hidden="true" />
+		{label.replace(/^\+\s*/, '')}
 	</Button>
 {/if}

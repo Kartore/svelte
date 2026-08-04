@@ -3,9 +3,9 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -31,17 +31,17 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-field px-2 py-2',
 		className
 	)}
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	<ExpressionArgInputField parentValue={expression} index={1} {onChange} suggestion="propertyKey" />
-	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">in</div>
+	<div class="text-[10px] font-semibold tracking-wide text-ink-3">対象</div>
 	{#if items !== undefined}
 		<ExpressionArgInputField parentValue={expression} index={2} {onChange} />
 	{:else}
-		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">this features</div>
+		<div class="text-[10px] font-semibold tracking-wide text-ink-3">このフィーチャー</div>
 	{/if}
 	{@render children?.()}
 </div>

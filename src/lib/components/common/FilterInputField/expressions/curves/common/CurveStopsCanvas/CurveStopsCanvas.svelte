@@ -12,11 +12,11 @@
 </script>
 
 <script lang="ts">
-	import { CurvePreview } from '$lib/components/common/FilterInputField/expressions/common/CurvePreview';
-	import type { CurveSamplingResult } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
-	import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
-	import { replaceArgAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { CurvePreview } from '#lib/components/common/FilterInputField/expressions/common/CurvePreview';
+	import type { CurveSamplingResult } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+	import { sampleCurveExpression } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+	import { replaceArgAt } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import {
 		clampCurveInput,
@@ -121,7 +121,7 @@
 		return next;
 	});
 	const overlayHeightClass = $derived(
-		result?.outputType === 'number' ? 'h-12' : result?.outputType === 'text' ? 'h-6' : 'h-4'
+		result?.outputType === 'number' ? 'h-[72px]' : result?.outputType === 'text' ? 'h-6' : 'h-4'
 	);
 	const attachOverlayElement = (element: HTMLDivElement) => {
 		overlayElement = element;
@@ -240,13 +240,13 @@
 		/>
 		<div
 			{@attach attachOverlayElement}
-			class={cn('pointer-events-none absolute top-1 right-0 left-0', overlayHeightClass)}
+			class={cn('pointer-events-none absolute top-0 right-0 left-0', overlayHeightClass)}
 		>
 			{#each handles as handle (handle.stopIndex)}
 				<div
 					role="slider"
 					tabindex="0"
-					aria-label={`Stop ${handle.stopIndex + 1} input`}
+					aria-label={`ストップ ${handle.stopIndex + 1} の入力値`}
 					aria-orientation="horizontal"
 					aria-valuemin={handle.bounds?.min ?? result.domain[0]}
 					aria-valuemax={handle.bounds?.max ?? result.domain[1]}
@@ -257,19 +257,19 @@
 						: `${handle.input}, output ${handle.output}`}
 					data-stop-index={handle.stopIndex}
 					class={cn(
-						'pointer-events-auto absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full outline-none select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
+						'pointer-events-auto absolute flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full outline-none select-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1',
 						handle.pointerDraggable
 							? result.outputType === 'number'
 								? 'cursor-move touch-none'
 								: 'cursor-ew-resize touch-none'
 							: 'cursor-not-allowed opacity-40',
-						selectedStopIndex === handle.stopIndex && 'ring-2 ring-blue-500 ring-offset-1'
+						selectedStopIndex === handle.stopIndex && 'ring-2 ring-accent ring-offset-1'
 					)}
 					style:left={`${handle.xPercent}%`}
 					style:top={`${handle.yPercent}%`}
 					title={handle.pointerDraggable
-						? 'Drag to edit this stop'
-						: 'Use the stop row or arrow keys to edit this input'}
+						? 'ドラッグしてストップを編集'
+						: 'ストップ行または矢印キーで入力値を編集'}
 					onfocus={() => onSelectStop?.(handle.stopIndex)}
 					onkeydown={(event) => adjustWithKeyboard(event, handle)}
 					onpointerdown={(event) => startDrag(event, handle)}
@@ -280,8 +280,8 @@
 					<span
 						aria-hidden="true"
 						class={cn(
-							'size-3 rounded-full border-2 border-white bg-blue-500 shadow-[0_0_0_1px_rgba(0,0,0,0.25)]',
-							selectedStopIndex === handle.stopIndex && 'bg-blue-600'
+							'size-1.5 rounded-full border-[1.8px] border-accent bg-white',
+							selectedStopIndex === handle.stopIndex && 'bg-accent'
 						)}
 					></span>
 				</div>

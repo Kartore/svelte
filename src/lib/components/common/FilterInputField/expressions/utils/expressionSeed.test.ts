@@ -6,7 +6,7 @@ import {
 } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import type { ExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+import type { ExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 
 import { literalToSuggestedExpression, selectSuggestedProperty } from './expressionSeed.ts';
 

@@ -1,32 +1,34 @@
 <script lang="ts">
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
+	import { Popover } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import { CaretDown, ChartLine, DotsThree, FunctionIcon, Minus } from 'phosphor-svelte';
 
-	import { Button } from '$lib/components/common/Button';
-	import { ExpressionInputField } from '$lib/components/common/FilterInputField/expressions';
-	import { CurvePreview } from '$lib/components/common/FilterInputField/expressions/common/CurvePreview';
-	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { literalToZoomInterpolate } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { literalToSuggestedExpression } from '$lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
-	import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
-	import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
-	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
-	import { PropertyHistoryPopover } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
+	import { Button } from '#lib/components/common/Button';
+	import { ExpressionInputField } from '#lib/components/common/FilterInputField/expressions';
+	import { CurveStopsEditor } from '#lib/components/common/FilterInputField/expressions/curves/common/CurveStopsEditor';
+	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { literalToZoomInterpolate } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { literalToSuggestedExpression } from '#lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
+	import { sampleCurveExpression } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+	import { PropertyErrorMessage } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
+	import { PropertyHistoryPopover } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
 	import {
 		VariableChip,
 		VariablePickerPopover
-	} from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableBindingControl';
-	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
-	import { useStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
-	import { useStyleVariables } from '$lib/contexts/styleVariables.svelte.ts';
-	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+	} from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/VariableBindingControl';
+	import { useExpressionFlyout } from '#lib/contexts/expressionFlyout.svelte.ts';
+	import { useStyleHistory } from '#lib/contexts/styleHistory.svelte.ts';
+	import { useStyleVariables } from '#lib/contexts/styleVariables.svelte.ts';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 	import type {
 		PropertyBindingTarget,
 		StyleVariable,
 		StyleVariableType
-	} from '$lib/utils/styleVariables.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	} from '#lib/utils/styleVariables.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		label,
@@ -34,6 +36,7 @@
 		defaultLiteral,
 		styleDefaultValue,
 		onChange,
+		onReset,
 		rampable,
 		showExpressionButton = true,
 		layerId,
@@ -55,6 +58,8 @@
 		styleDefaultValue?: unknown;
 		/** property-level setter — receives an expression, or undefined to reset */
 		onChange?: (value: unknown | undefined) => void;
+		/** resets the configured property to its unset state */
+		onReset?: () => void;
 		/** offers the zoom-interpolate shortcut — only for interpolatable (number/color) properties */
 		rampable?: boolean;
 		/** shows the literal-to-expression button */
@@ -72,8 +77,6 @@
 		/** the literal editor, rendered while the value is not an expression */
 		children: Snippet;
 	} = $props();
-
-	let confirmingRemove = $state(false);
 
 	const flyout = useExpressionFlyout();
 	const history = useStyleHistory();
@@ -115,6 +118,15 @@
 	// curve 式のときだけサイドバーにプレビューを出す (二重サンプリングになるが 64 点評価で軽量)
 	const hasCurvePreview = $derived(
 		isExpression(value) && sampleCurveExpression(value as ExpressionSpecification) !== null
+	);
+	const expressionInputSummary = $derived.by(() => {
+		if (!hasCurvePreview || !Array.isArray(value)) return '';
+		const inputIndex = value[0] === 'step' ? 1 : 2;
+		const input = value[inputIndex];
+		return Array.isArray(input) && typeof input[0] === 'string' ? input[0] : 'input';
+	});
+	const expressionDisplaySummary = $derived(
+		`${expressionSummary}${expressionInputSummary ? ` ・ ${expressionInputSummary}` : ''}`
 	);
 	const isInterpolateRoot = $derived(
 		Array.isArray(value) &&
@@ -167,6 +179,13 @@
 			bindableType !== undefined &&
 			!isExpression(value)
 	);
+	const hasPropertyActions = $derived(
+		canShowHistory ||
+			onReset !== undefined ||
+			(!isExpression(value) &&
+				literalBinding === undefined &&
+				(rampable || showExpressionButton || canBindLiteral))
+	);
 	const convertLiteralToExpression = () => {
 		return literalToSuggestedExpression(value ?? defaultLiteral, {
 			propertyKey,
@@ -198,32 +217,8 @@
 			literalTarget
 		);
 	};
-	const bindInterpolation = (variableId: string) => {
-		if (variables === undefined || layerId === undefined || interpolationTarget === undefined) {
-			return;
-		}
-		variables.bind(layerId, interpolationTarget, variableId);
-	};
-	const createAndBindInterpolation = () => {
-		if (
-			variables === undefined ||
-			layerId === undefined ||
-			interpolationTarget === undefined ||
-			!isInterpolateRoot ||
-			!Array.isArray(value)
-		) {
-			return;
-		}
-		variables.createAndBind(
-			{
-				name: `${propertyKey ?? label} curve`,
-				type: 'interpolation',
-				value: value[1] as StyleVariable['value']
-			},
-			layerId,
-			interpolationTarget
-		);
-	};
+
+	let actionsOpen = $state(false);
 </script>
 
 <!--
@@ -231,86 +226,149 @@
 	editor plus an "fx" button converting to an expression; expression values
 	render the expression editor with a remove action resetting the property.
 -->
-{#if isExpression(value)}
-	<div {...props} class={cn('flex flex-col gap-1', className)}>
-		<div class="flex flex-row items-center justify-between gap-2">
-			<span class="shrink-0 text-sm font-semibold text-gray-600">{label}</span>
-			<div class="flex min-w-0 flex-row items-center gap-1">
-				{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
-					<PropertyHistoryPopover
-						{layerId}
-						group={propertyGroup}
-						key={propertyKey}
-						{label}
-						currentValue={value}
-						defaultValue={styleDefaultValue}
-						onRestore={(restoredValue) => onChange?.(restoredValue)}
-					/>
-				{/if}
-				{#if confirmingRemove}
-					<Button
-						aria-label={`Confirm removing expression for ${label}`}
-						class="rounded px-2 py-0.5 text-xs font-semibold text-red-500"
-						onclick={() => {
-							confirmingRemove = false;
-							if (isFlyoutOpen) flyout?.close();
-							onChange?.(undefined);
-						}}
+{#snippet propertyActions()}
+	{#if hasPropertyActions}
+		<div class="flex size-6 shrink-0 items-center justify-center">
+			<Popover.Root bind:open={actionsOpen}>
+				<Popover.Trigger
+					aria-label={`${label} の操作`}
+					title={`${label} の操作`}
+					class="flex size-6 items-center justify-center rounded-[5px] text-ink-3 opacity-0 transition-opacity group-hover/property-field:opacity-100 hover:bg-field hover:text-ink-1 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-accent data-[state=open]:bg-field data-[state=open]:text-ink-1 data-[state=open]:opacity-100"
+				>
+					<DotsThree size={15} weight="bold" aria-hidden="true" />
+				</Popover.Trigger>
+				<Popover.Portal>
+					<Popover.Content
+						class="z-50 w-[252px] max-w-[calc(100vw-1rem)] overflow-hidden rounded-[10px] border border-hairline bg-white text-[11px] shadow-[0_8px_28px_rgba(0,0,0,0.2)]"
+						side="left"
+						align="start"
+						sideOffset={8}
+						collisionPadding={8}
 					>
-						Reset property
-					</Button>
-					<Button
-						aria-label="Cancel"
-						class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
-						onclick={() => (confirmingRemove = false)}
-					>
-						Cancel
-					</Button>
-				{:else}
-					{#if canUseFlyout}
-						<Button
-							bind:ref={() => null, handleExpressionButtonRef}
-							aria-label={`Edit expression for ${label}`}
-							aria-pressed={isFlyoutOpen}
-							class={cn(
-								'flex min-w-0 flex-row items-center gap-1.5 rounded border px-2 py-0.5 text-xs transition-colors',
-								isFlyoutOpen
-									? 'border-blue-300 bg-blue-50 text-blue-600'
-									: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
-							)}
-							onclick={(event) => toggleFlyout(event.currentTarget)}
-						>
-							<span class="shrink-0 font-mono font-semibold italic">fx</span>
-							<span class="truncate font-mono">{expressionSummary}</span>
-						</Button>
-					{/if}
-					<Button
-						aria-label={`Remove expression for ${label}`}
-						class="shrink-0 rounded px-2 py-0.5 text-xs font-semibold text-gray-400 hover:text-red-500"
-						onclick={() => (confirmingRemove = true)}
-					>
-						Remove
-					</Button>
-				{/if}
-			</div>
+						<div class="border-b border-hairline-soft px-3 py-2">
+							<p class="truncate font-mono text-[10px] text-ink-2" title={label}>{label}</p>
+						</div>
+						<div class="flex flex-col p-1">
+							{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
+								<div class="flex h-7 items-center rounded-[6px] px-2 hover:bg-field">
+									<span class="min-w-0 flex-1 truncate">履歴</span>
+									<PropertyHistoryPopover
+										{layerId}
+										group={propertyGroup}
+										key={propertyKey}
+										{label}
+										currentValue={value}
+										defaultValue={styleDefaultValue}
+										onRestore={(restoredValue) => onChange?.(restoredValue)}
+									/>
+								</div>
+							{/if}
+							{#if !isExpression(value) && literalBinding === undefined}
+								{#if canBindLiteral && bindableType !== undefined}
+									<div class="flex h-7 items-center rounded-[6px] px-2 hover:bg-field">
+										<span class="min-w-0 flex-1 truncate">スタイル変数</span>
+										<VariablePickerPopover
+											type={bindableType}
+											currentValue={literalVariableSeed}
+											onPick={bindLiteral}
+											onCreateFromValue={canCreateVariableFromLiteral
+												? createAndBindLiteral
+												: undefined}
+										/>
+									</div>
+								{/if}
+								{#if rampable}
+									<Button
+										class="flex h-7 w-full items-center gap-2 rounded-[6px] px-2 text-left hover:bg-field"
+										onclick={(event) => {
+											onChange?.(literalToZoomInterpolate(value ?? defaultLiteral));
+											openFlyout(event.currentTarget);
+											actionsOpen = false;
+										}}
+									>
+										<ChartLine size={14} weight="regular" class="shrink-0" aria-hidden="true" />
+										<span class="min-w-0 flex-1 truncate">ズーム補間</span>
+									</Button>
+								{/if}
+								{#if showExpressionButton}
+									<Button
+										class="flex h-7 w-full items-center gap-2 rounded-[6px] px-2 text-left hover:bg-field"
+										onclick={(event) => {
+											onChange?.(convertLiteralToExpression());
+											openFlyout(event.currentTarget);
+											actionsOpen = false;
+										}}
+									>
+										<FunctionIcon size={14} weight="regular" class="shrink-0" aria-hidden="true" />
+										<span class="min-w-0 flex-1 truncate">式で編集</span>
+									</Button>
+								{/if}
+							{/if}
+							{#if onReset}
+								<Button
+									class="flex h-7 w-full items-center gap-2 rounded-[6px] px-2 text-left hover:bg-field"
+									onclick={() => {
+										onReset?.();
+										actionsOpen = false;
+									}}
+								>
+									<Minus size={14} weight="regular" class="shrink-0" aria-hidden="true" />
+									<span class="min-w-0 flex-1 truncate">未設定に戻す</span>
+								</Button>
+							{/if}
+						</div>
+					</Popover.Content>
+				</Popover.Portal>
+			</Popover.Root>
 		</div>
-		{#if canUseFlyout}
-			<!-- curve 式ならサイドバーでも値の分布が見えるようにプレビューを出す。
-				クリックでフライアウトを開く -->
-			{#if hasCurvePreview}
-				<button
-					type="button"
-					class="w-full cursor-pointer text-left"
-					aria-label={`Open ${label} expression editor`}
-					title={`Open ${label} expression editor`}
+	{/if}
+{/snippet}
+
+{#if isExpression(value)}
+	<div {...props} class={cn('flex min-w-0 flex-col', className)}>
+		<div class="group/property-field flex h-[30px] min-w-0 items-center gap-2">
+			<span
+				class="w-28 shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+				title={label}
+			>
+				{label}
+			</span>
+			{#if canUseFlyout}
+				<Button
+					bind:ref={() => null, handleExpressionButtonRef}
+					aria-label={`${label} の式を編集`}
+					aria-pressed={isFlyoutOpen}
+					class="flex h-6 min-w-24 flex-1 items-center gap-1.5 rounded-[5px] bg-field px-2 text-[10.5px] text-ink-1 hover:bg-field focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-none"
 					onclick={(event) => toggleFlyout(event.currentTarget)}
 				>
-					<CurvePreview value={value as ExpressionSpecification} {zoomRange} />
-				</button>
+					<span
+						class="font-[Georgia,serif] text-[11px] leading-none font-normal text-ink-3 italic"
+						aria-hidden="true">ƒ</span
+					>
+					<span
+						class="min-w-0 flex-1 truncate text-left font-mono"
+						title={expressionDisplaySummary}
+					>
+						{expressionDisplaySummary}
+					</span>
+					<CaretDown size={10} weight="regular" class="shrink-0 text-ink-3" aria-hidden="true" />
+				</Button>
+			{/if}
+			{@render propertyActions()}
+		</div>
+		{#if canUseFlyout}
+			{#if hasCurvePreview}
+				<CurveStopsEditor
+					class="mt-1"
+					value={value as ExpressionSpecification}
+					{zoomRange}
+					{propertySpec}
+					{onChange}
+				/>
 			{/if}
 		{:else}
 			<ExpressionInputField
-				class="text-sm"
+				class="font-mono text-[11px]"
 				value={value as ExpressionSpecification}
 				{propertySpec}
 				{zoomRange}
@@ -318,39 +376,35 @@
 			/>
 		{/if}
 		{#if isInterpolateRoot && variables !== undefined && layerId !== undefined && interpolationTarget !== undefined && Array.isArray(value)}
-			<div class="flex items-center justify-between gap-2">
-				<span class="shrink-0 text-xs font-semibold text-gray-500">curve</span>
-				<div class="flex w-1/2 min-w-0 justify-end">
-					{#if interpolationBinding !== undefined}
+			{#if interpolationBinding !== undefined}
+				<div class="mt-1 flex h-6 items-center justify-between gap-2">
+					<span class="shrink-0 font-mono text-[10px] font-normal text-ink-3">補間変数</span>
+					<div class="flex min-w-0 justify-end">
 						<VariableChip
 							variable={interpolationBinding.variable}
 							stale={interpolationBinding.stale}
 							onDetach={() => variables.unbind(layerId, interpolationTarget)}
 							onReapply={() => variables.reapply()}
 						/>
-					{:else}
-						<VariablePickerPopover
-							type="interpolation"
-							currentValue={value[1]}
-							onPick={bindInterpolation}
-							onCreateFromValue={createAndBindInterpolation}
-						/>
-					{/if}
+					</div>
 				</div>
-			</div>
+			{/if}
 		{/if}
 		{#if propertyKey}
 			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />
 		{/if}
 	</div>
 {:else}
-	<div {...props} class={cn('flex flex-col gap-1', className)}>
-		<div class="group/property relative flex flex-row items-center">
-			<div class="w-full min-w-0">
+	<div {...props} class={cn('flex min-w-0 flex-col', className)}>
+		<div class="group/property-field flex h-[30px] min-w-0 flex-row items-center">
+			<div class="min-w-[216px] flex-1" style="--field-label-width: 112px; --field-column-gap: 8px">
 				{#if literalBinding !== undefined && layerId !== undefined && literalTarget !== undefined}
-					<div class="flex items-center justify-between gap-2">
-						<span class="shrink-0 text-sm font-semibold text-gray-600">{label}</span>
-						<div class="w-1/2 min-w-0">
+					<div class="flex min-w-0 items-center gap-2">
+						<span
+							class="w-28 shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+							title={label}>{label}</span
+						>
+						<div class="min-w-24 flex-1">
 							<VariableChip
 								variable={literalBinding.variable}
 								stale={literalBinding.stale}
@@ -363,61 +417,7 @@
 					{@render children()}
 				{/if}
 			</div>
-			{#if canShowHistory || (literalBinding === undefined && (rampable || showExpressionButton || canBindLiteral))}
-				<!-- ボタンをフロー外に置きラベルとコントロールの間の余白へ重ねる。
-					フロー内に置くとボタン数 (0〜2) の分だけコントロールの右端がずれるため -->
-				<div
-					class="pointer-events-none absolute top-1/2 right-1/2 mr-1 flex -translate-y-1/2 flex-row items-center gap-0.5 rounded bg-white/90 opacity-0 transition-opacity group-hover/property:pointer-events-auto group-hover/property:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100"
-				>
-					{#if canShowHistory && layerId !== undefined && propertyKey !== undefined}
-						<PropertyHistoryPopover
-							{layerId}
-							group={propertyGroup}
-							key={propertyKey}
-							{label}
-							currentValue={value}
-							defaultValue={styleDefaultValue}
-							onRestore={(restoredValue) => onChange?.(restoredValue)}
-						/>
-					{/if}
-					{#if literalBinding === undefined}
-						{#if canBindLiteral && bindableType !== undefined}
-							<VariablePickerPopover
-								type={bindableType}
-								currentValue={literalVariableSeed}
-								onPick={bindLiteral}
-								onCreateFromValue={canCreateVariableFromLiteral ? createAndBindLiteral : undefined}
-							/>
-						{/if}
-						{#if rampable}
-							<Button
-								aria-label={`Interpolate ${label} by zoom`}
-								title={`Interpolate ${label} by zoom`}
-								class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 hover:text-gray-600"
-								onclick={(event) => {
-									onChange?.(literalToZoomInterpolate(value ?? defaultLiteral));
-									openFlyout(event.currentTarget);
-								}}
-							>
-								∿
-							</Button>
-						{/if}
-						{#if showExpressionButton}
-							<Button
-								aria-label={`Use expression for ${label}`}
-								title={`Use expression for ${label}`}
-								class="rounded px-1 py-0.5 font-mono text-xs text-gray-400 italic hover:text-gray-600"
-								onclick={(event) => {
-									onChange?.(convertLiteralToExpression());
-									openFlyout(event.currentTarget);
-								}}
-							>
-								fx
-							</Button>
-						{/if}
-					{/if}
-				</div>
-			{/if}
+			{@render propertyActions()}
 		</div>
 		{#if propertyKey}
 			<PropertyErrorMessage group={propertyGroup} property={propertyKey} />

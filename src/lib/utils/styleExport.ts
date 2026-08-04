@@ -1,5 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
+import { pruneDefaultValues } from './stylePrune.ts';
 import { serializeStyle } from './styleSerialize.ts';
 
 export type StyleExport = {
@@ -8,6 +9,6 @@ export type StyleExport = {
 };
 
 export const createStyleExport = (style: StyleSpecification): StyleExport => ({
-	contents: serializeStyle(style),
+	contents: serializeStyle(pruneDefaultValues(style)),
 	fileName: `${(style.name ?? 'style').replace(/[\\/:*?"<>|]/g, '_')}.json`
 });

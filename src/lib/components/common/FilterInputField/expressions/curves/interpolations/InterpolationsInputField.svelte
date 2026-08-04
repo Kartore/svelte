@@ -6,16 +6,16 @@
 	import {
 		CubicBezierInputField,
 		isCubicBezierInterpolationSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/interpolations/CubicBezierInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/interpolations/CubicBezierInputField';
 	import {
 		ExponentialInputField,
 		isExponentialInterpolationSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/interpolations/ExponentialInputField';
+	} from '#lib/components/common/FilterInputField/expressions/curves/interpolations/ExponentialInputField';
 	import {
 		LinearInputField,
 		isLinearInterpolationSpecification
-	} from '$lib/components/common/FilterInputField/expressions/curves/interpolations/LinearInputField';
-	import { Select } from '$lib/components/common/Select';
+	} from '#lib/components/common/FilterInputField/expressions/curves/interpolations/LinearInputField';
+	import { Select } from '#lib/components/common/Select';
 
 	let {
 		value,
@@ -40,9 +40,9 @@
 
 {#snippet typeSelect()}
 	<Select
-		aria-label="interpolation type"
+		aria-label="補間方式"
 		class="inline-flex max-w-full min-w-0 font-mono"
-		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
+		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-ink-2"
 		items={interpolationTypes.map((type) => ({ value: type, label: type }))}
 		value={value[0]}
 		onValueChange={(key) => {

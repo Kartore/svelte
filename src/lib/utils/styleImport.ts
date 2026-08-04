@@ -2,6 +2,8 @@ import { convertFilter, migrate, validateStyleMin } from '@maplibre/maplibre-gl-
 import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 import type { StyleSpecification } from 'maplibre-gl';
 
+import { pruneDefaultValues } from './stylePrune.ts';
+
 export type StyleImportResult =
 	{ ok: true; style: StyleSpecification; warnings: string[] } | { ok: false; error: string };
 
@@ -89,6 +91,12 @@ export const parseStyleJSON = (text: string): StyleImportResult => {
 	}
 
 	return { ok: true, style, warnings };
+};
+
+/** 外部 JSON の import 境界でだけ既定値を削除する。永続ファイルの再読込には使わない。 */
+export const parseImportedStyleJSON = (text: string): StyleImportResult => {
+	const result = parseStyleJSON(text);
+	return result.ok ? { ...result, style: pruneDefaultValues(result.style) } : result;
 };
 
 const MIXED_FILTER_ERROR = 'Mixing deprecated filter syntax with expression syntax';

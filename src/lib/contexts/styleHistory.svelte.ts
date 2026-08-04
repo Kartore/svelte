@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 
-import type { StyleHistoryProvider } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider } from '#lib/editor/EditorModule.ts';
 
 export class StyleHistoryContext {
 	#providers = $state<StyleHistoryProvider[]>([]);

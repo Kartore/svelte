@@ -8,10 +8,10 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { getGetExpressionKey } from '$lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { getGetExpressionKey } from '#lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -37,16 +37,16 @@
 	const rightKey = $derived(getGetExpressionKey(value[2]));
 </script>
 
-<div {...props} class={cn('flex min-w-0 flex-col gap-1 rounded bg-black/5 px-2 py-2', className)}>
+<div {...props} class={cn('flex min-w-0 flex-col gap-1 rounded bg-field px-2 py-2', className)}>
 	<div
-		class="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] gap-1 px-0.5 font-mono text-[10px] text-gray-400"
+		class="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] gap-1 px-0.5 font-mono text-[10px] text-ink-3"
 	>
-		<span class="min-w-0 truncate">subject</span>
-		<span class="min-w-0 truncate text-center" title="operator">op</span>
-		<span class="min-w-0 truncate">value</span>
+		<span class="min-w-0 truncate">対象</span>
+		<span class="min-w-0 truncate text-center" title="演算子">演算</span>
+		<span class="min-w-0 truncate">値</span>
 	</div>
 	<div
-		class="grid min-w-0 grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+		class="grid min-w-0 grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white"
 	>
 		<ExpressionArgInputField
 			class="min-w-0 [&>:first-child]:w-full"
@@ -65,10 +65,8 @@
 		/>
 	</div>
 	{#if collator}
-		<div class="flex min-w-0 items-start gap-2 border-t border-gray-200 px-0.5 pt-1">
-			<span class="pt-1 text-[10px] font-semibold tracking-wide text-gray-400 uppercase"
-				>collator</span
-			>
+		<div class="flex min-w-0 items-start gap-2 border-t border-hairline-soft px-0.5 pt-1">
+			<span class="pt-1 text-[10px] font-semibold tracking-wide text-ink-3">照合順序</span>
 			<ExpressionArgInputField
 				class="min-w-0 flex-1"
 				parentValue={expression}

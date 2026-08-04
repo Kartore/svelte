@@ -12,10 +12,10 @@
 </script>
 
 <script lang="ts">
-	import type { CurveSamplingResult } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
-	import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
-	import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import type { CurveSamplingResult } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+	import { sampleCurveExpression } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+	import { useBackgroundMap } from '#lib/contexts/backgroundMap.svelte.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let { value, zoomRange, outputRange, class: className }: CurvePreviewProps = $props();
 
@@ -50,23 +50,23 @@
 {#snippet markerLine(marker: { percent: number; outOfDomain: boolean; zoom: number })}
 	<div
 		class={cn(
-			'pointer-events-none absolute top-0 h-full w-px -translate-x-1/2 bg-gray-900/80',
+			'pointer-events-none absolute top-0 h-full w-px -translate-x-1/2 bg-ink-4',
 			marker.outOfDomain && 'opacity-30'
 		)}
 		style:left={`${marker.percent}%`}
-		title={`current zoom ${formatNumber(marker.zoom)}`}
+		title={`現在のズーム ${formatNumber(marker.zoom)}`}
 	></div>
 {/snippet}
 
 {#snippet markerDot(marker: { percent: number; outOfDomain: boolean; zoom: number }, top: string)}
 	<div
 		class={cn(
-			'pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gray-900 bg-white shadow-sm',
+			'pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink-1 bg-white shadow-sm',
 			marker.outOfDomain && 'opacity-30'
 		)}
 		style:left={`${marker.percent}%`}
 		style:top
-		title={`current zoom ${formatNumber(marker.zoom)}`}
+		title={`現在のズーム ${formatNumber(marker.zoom)}`}
 	></div>
 {/snippet}
 
@@ -77,7 +77,7 @@
 	<div class="relative h-4 w-full overflow-hidden rounded" style:background={gradient}>
 		{#each result.stops as stop, index (index)}
 			<div
-				class="absolute top-0 h-full w-px bg-white/70"
+				class="absolute top-0 h-full w-px bg-white"
 				style:left={`${toPercent(stop, result.domain)}%`}
 			></div>
 		{/each}
@@ -107,49 +107,30 @@
 		return null;
 	})()}
 	<div class="w-full">
-		<div class="relative h-12 w-full overflow-hidden rounded bg-gray-100">
+		<div class="relative h-[72px] w-full overflow-hidden rounded-[6px] bg-white">
 			<svg
 				aria-hidden="true"
 				class="h-full w-full"
 				viewBox="0 0 100 100"
 				preserveAspectRatio="none"
 			>
+				<g stroke="#f0f0f0" stroke-width="1" vector-effect="non-scaling-stroke">
+					<line x1="0" x2="100" y1="25" y2="25" />
+					<line x1="0" x2="100" y1="50" y2="50" />
+					<line x1="0" x2="100" y1="75" y2="75" />
+				</g>
 				<polyline
 					{points}
 					fill="none"
 					stroke="currentColor"
-					stroke-width={2}
+					stroke-width={1.8}
 					vector-effect="non-scaling-stroke"
-					class="text-blue-500"
+					class="text-accent"
 				/>
-				{#each result.stops as stop, index (index)}
-					<line
-						x1={toPercent(stop, result.domain)}
-						x2={toPercent(stop, result.domain)}
-						y1={0}
-						y2={100}
-						stroke="currentColor"
-						stroke-width={1}
-						vector-effect="non-scaling-stroke"
-						class="text-gray-300"
-					/>
-				{/each}
 			</svg>
 			{#if zoomMarker && markerOutput !== null}
 				{@render markerLine(zoomMarker)}
-				{@render markerDot(zoomMarker, `${toYPercent(markerOutput)}%`)}
 			{/if}
-		</div>
-		<div class="flex flex-row justify-between font-mono text-[10px] text-gray-400">
-			<span
-				>{`${formatNumber(result.domain[0])} → ${formatNumber(minOutput)}..${formatNumber(maxOutput)}`}</span
-			>
-			{#if zoomMarker && markerOutput !== null}
-				<span class="text-gray-600"
-					>{`z${formatNumber(zoomMarker.zoom)}: ${formatNumber(markerOutput)}`}</span
-				>
-			{/if}
-			<span>{formatNumber(result.domain[1])}</span>
 		</div>
 	</div>
 {/snippet}
@@ -159,13 +140,13 @@
 	{@const edges = [result.domain[0], ...result.stops, result.domain[1]]}
 	<div class="w-full">
 		<div
-			class="relative flex h-6 w-full flex-row overflow-hidden rounded bg-gray-100 font-mono text-[10px] text-gray-600"
+			class="relative flex h-6 w-full flex-row overflow-hidden rounded bg-field font-mono text-[10px] text-ink-2"
 		>
 			{#each labels as label, index (index)}
 				{@const width =
 					toPercent(edges[index + 1], result.domain) - toPercent(edges[index], result.domain)}
 				<div
-					class="flex min-w-0 items-center justify-center border-r border-white last:border-r-0 odd:bg-gray-200/70"
+					class="flex min-w-0 items-center justify-center border-r border-white last:border-r-0 odd:bg-field/70"
 					style:width={`${width}%`}
 					title={label}
 				>
@@ -176,7 +157,7 @@
 				{@render markerLine(zoomMarker)}
 			{/if}
 		</div>
-		<div class="flex flex-row justify-between font-mono text-[10px] text-gray-400">
+		<div class="flex flex-row justify-between font-mono text-[10px] text-ink-3">
 			<span>{formatNumber(result.domain[0])}</span>
 			<span>{formatNumber(result.domain[1])}</span>
 		</div>
@@ -191,7 +172,7 @@
 	sampled (mid-edit or non-curve expressions).
 -->
 {#if result}
-	<div class={cn('w-full min-w-48 px-0.5 py-1', className)}>
+	<div class={cn('w-full min-w-48', className)}>
 		{#if result.outputType === 'color'}
 			{@render gradientPreview(result)}
 		{:else if result.outputType === 'text'}

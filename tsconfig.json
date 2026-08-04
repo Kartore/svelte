@@ -1,6 +1,6 @@
 {
-	"extends": "$app/tsconfig",
 	"compilerOptions": {
+	  "noEmit": true,
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
 		// worker-configuration.d.ts の `typeof import("./.svelte-kit/cloudflare/_worker")` が
@@ -14,7 +14,7 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
-		"types": ["./worker-configuration.d.ts"]
+		"types": ["./worker-configuration.d.ts", "$app/types"]
 	},
 	// exclude は extends 先を上書きするため、生成 tsconfig の除外対象も再掲する
 	"exclude": [

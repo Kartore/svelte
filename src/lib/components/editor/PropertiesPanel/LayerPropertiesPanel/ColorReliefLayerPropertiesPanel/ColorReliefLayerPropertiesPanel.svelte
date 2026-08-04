@@ -1,23 +1,20 @@
 <script lang="ts">
 	import type {
 		ColorReliefLayerSpecification,
-		SourceSpecification,
 		SpriteSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { GeneralProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/GeneralProperties';
-	import { RawDataProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties';
-	import { SpecPropertiesSection } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertiesSection';
-	import { createSpriteIds } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
-	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { GeneralProperties } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/GeneralProperties';
+	import { SpecPropertiesSection } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertiesSection';
+	import { createSpriteIds } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
+	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		children,
 		layer,
-		sources,
 		sprite,
 		onChange,
 		class: className,
@@ -26,7 +23,6 @@
 		class?: string;
 		layer: ColorReliefLayerSpecification;
 		sprite?: SpriteSpecification;
-		sources: { [key: string]: SourceSpecification };
 		onChange?: onChangeType;
 		children?: Snippet;
 	} = $props();
@@ -36,26 +32,23 @@
 	const spriteImages = $derived(spriteIdsState.spriteImages);
 </script>
 
-<div {...props} class={cn('flex flex-col gap-6', className)}>
-	<GeneralProperties {layer} {sources} {onChange} />
+<div {...props} class={cn('flex flex-col', className)}>
 	<SpecPropertiesSection
 		{layer}
-		{sources}
 		groups={['layout']}
-		title="Layout"
+		title="レイアウト"
 		{spriteIds}
 		{spriteImages}
 		{onChange}
 	/>
 	<SpecPropertiesSection
 		{layer}
-		{sources}
 		groups={['paint']}
-		title="Paint"
+		title="ペイント"
 		{spriteIds}
 		{spriteImages}
 		{onChange}
 	/>
-	<RawDataProperties {layer} {onChange} />
+	<GeneralProperties {layer} {onChange} />
 	{@render children?.()}
 </div>

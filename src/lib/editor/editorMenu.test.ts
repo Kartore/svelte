@@ -22,10 +22,9 @@ describe('editor menu sections', () => {
 		const firstEdit = component('first-edit');
 		const secondEdit = component('second-edit');
 		const view = component('view');
-		const assets = component('assets');
 		const modules: EditorModule[] = [
 			{ id: 'first', menuSections: { edit: firstEdit, view } },
-			{ id: 'second', menuSections: { edit: secondEdit, assets } }
+			{ id: 'second', menuSections: { edit: secondEdit } }
 		];
 
 		expect(collectEditorMenuSections(modules)).toEqual({
@@ -34,8 +33,7 @@ describe('editor menu sections', () => {
 				{ moduleId: 'first', component: firstEdit },
 				{ moduleId: 'second', component: secondEdit }
 			],
-			view: [{ moduleId: 'first', component: view }],
-			assets: [{ moduleId: 'second', component: assets }]
+			view: [{ moduleId: 'first', component: view }]
 		});
 	});
 });

@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import type { ExpressionSuggestionValue } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import type { ExpressionSuggestionValue } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 
 	export type ExpressionInputTypeInputFieldProps = Omit<
 		HTMLAttributes<HTMLDivElement>,
@@ -21,11 +21,11 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '$lib/components/common/Button';
-	import { ColorPicker } from '$lib/components/common/ColorField/ColorPicker';
-	import type { Color } from '$lib/utils/color.ts';
-	import { parseColor } from '$lib/utils/color.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { Button } from '#lib/components/common/Button';
+	import { ColorPicker } from '#lib/components/common/ColorField/ColorPicker';
+	import type { Color } from '#lib/utils/color.ts';
+	import { parseColor } from '#lib/utils/color.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import LiteralTextInput, { literalInputClassName } from './LiteralTextInput.svelte';
 
@@ -81,7 +81,7 @@
 		{toDisplayText(value)}
 	{:else if typeof value === 'boolean'}
 		<Button
-			aria-label="toggle boolean value"
+			aria-label="真偽値を切り替え"
 			class={cn(literalInputClassName, 'cursor-pointer')}
 			onclick={() => onChange?.(!value)}
 		>
@@ -89,7 +89,7 @@
 		</Button>
 	{:else if typeof value === 'number'}
 		<LiteralTextInput
-			aria-label="number value"
+			aria-label="数値"
 			value={String(value)}
 			parse={(text) => {
 				if (text.trim() === '') return undefined;
@@ -101,7 +101,7 @@
 		/>
 	{:else}
 		<LiteralTextInput
-			aria-label="text value"
+			aria-label="テキスト"
 			value={value as string}
 			parse={(text) => text}
 			onCommit={onChange}

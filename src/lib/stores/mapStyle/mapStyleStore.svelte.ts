@@ -19,6 +19,7 @@ export class MapStyleStore {
 	#future = $state<StyleSpecification[]>([]);
 	#lastPushAt = 0;
 	#saveTimer: ReturnType<typeof setTimeout> | null = null;
+	#transientBase: StyleSpecification | null = null;
 
 	mapStyle = $state() as StyleSpecification;
 	isLoading = $state(true);
@@ -54,11 +55,14 @@ export class MapStyleStore {
 	setMapStyle = (value: SetMapStyleAction) => {
 		// StyleSpecification は再帰 union のため Snapshot<T> の型展開を避けて widening する
 		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
+		const historyBase = this.#transientBase ?? currentStyle;
+		const hadTransientUpdate = this.#transientBase !== null;
+		this.#transientBase = null;
 
 		const now = performance.now();
-		if (now - this.#lastPushAt > COALESCE_MS) {
+		if (hadTransientUpdate || now - this.#lastPushAt > COALESCE_MS) {
 			// updater は currentStyle を破壊的に変更できるため、実行前に履歴を clone する
-			this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), structuredClone(currentStyle)];
+			this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), structuredClone(historyBase)];
 		}
 		this.#lastPushAt = now;
 		this.#future = [];
@@ -68,7 +72,50 @@ export class MapStyleStore {
 		this.#scheduleSave();
 	};
 
+	/**
+	 * 地図へ即時反映するが、履歴と永続化は更新しない。
+	 * 最初の一時更新時点を保持し、commitStyle で 1 履歴エントリとして確定する。
+	 */
+	setStyleTransient = (value: SetMapStyleAction) => {
+		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
+		this.#transientBase ??= structuredClone(currentStyle);
+		this.mapStyle = typeof value === 'function' ? value(currentStyle) : value;
+	};
+
+	/** 一連の一時更新を 1 回の undo で戻せる変更として確定する。 */
+	commitStyle = (value?: SetMapStyleAction) => {
+		if (this.#transientBase === null) {
+			if (value !== undefined) this.setMapStyle(value);
+			return;
+		}
+
+		if (value !== undefined) {
+			const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
+			this.mapStyle = typeof value === 'function' ? value(currentStyle) : value;
+		}
+
+		const base = this.#transientBase;
+		this.#transientBase = null;
+		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
+		if (JSON.stringify(base) === JSON.stringify(currentStyle)) return;
+		this.#past = [...this.#past.slice(-(MAX_HISTORY - 1)), base];
+		this.#future = [];
+		this.#lastPushAt = performance.now();
+		this.#scheduleSave();
+	};
+
+	/** 確定前の live 値を捨て、一時更新開始時点へ戻す。 */
+	cancelStyleTransient = () => {
+		if (this.#transientBase === null) return;
+		this.mapStyle = this.#transientBase;
+		this.#transientBase = null;
+	};
+
 	undo = () => {
+		if (this.#transientBase !== null) {
+			this.cancelStyleTransient();
+			return;
+		}
 		const previous = this.#past.at(-1);
 		if (!previous) return;
 		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;
@@ -80,6 +127,7 @@ export class MapStyleStore {
 	};
 
 	redo = () => {
+		this.#transientBase = null;
 		const next = this.#future.at(-1);
 		if (!next) return;
 		const currentStyle = $state.snapshot(this.mapStyle as object) as StyleSpecification;

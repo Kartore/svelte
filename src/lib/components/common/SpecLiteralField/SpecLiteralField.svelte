@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { ColorField } from '$lib/components/common/ColorField';
-	import { NumberArrayField } from '$lib/components/common/NumberArrayField';
-	import { NumberField } from '$lib/components/common/NumberField';
-	import { NumberListField } from '$lib/components/common/NumberListField';
-	import { VariableAnchorOffsetField } from '$lib/components/common/VariableAnchorOffsetField';
-	import { parseColor, tryParseColor } from '$lib/utils/color.ts';
-	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ColorField } from '#lib/components/common/ColorField';
+	import { NumberArrayField } from '#lib/components/common/NumberArrayField';
+	import { NumberField } from '#lib/components/common/NumberField';
+	import { NumberListField } from '#lib/components/common/NumberListField';
+	import { VariableAnchorOffsetField } from '#lib/components/common/VariableAnchorOffsetField';
+	import { parseColor, tryParseColor } from '#lib/utils/color.ts';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import { getSpecLiteralFieldKind } from './specLiteralField.ts';
 
@@ -16,7 +16,12 @@
 		spec,
 		value,
 		compact = false,
-		onChange
+		onChange,
+		onTransientChange,
+		onCommit,
+		onTransientCancel,
+		onPickVariable,
+		onPromoteColor
 	}: {
 		class?: string;
 		label?: string;
@@ -24,6 +29,11 @@
 		value: unknown;
 		compact?: boolean;
 		onChange?: (value: unknown | undefined) => void;
+		onTransientChange?: (value: unknown | undefined) => void;
+		onCommit?: (value: unknown | undefined) => void;
+		onTransientCancel?: () => void;
+		onPickVariable?: (variableId: string) => void;
+		onPromoteColor?: () => void;
 	} = $props();
 
 	const kind = $derived(getSpecLiteralFieldKind(spec, value));
@@ -82,6 +92,8 @@
 				(typeof spec.default === 'string' ? tryParseColor(spec.default) : undefined) ??
 				parseColor('rgba(255, 255, 255, 1)')}
 			onChange={(color) => onChange?.(color?.toString('rgba'))}
+			{onPickVariable}
+			{onPromoteColor}
 		/>
 	{:else if kind === 'number'}
 		<NumberField
@@ -103,7 +115,9 @@
 					}
 				: undefined}
 			description={unitLabel}
-			onValueChange={(next) => onChange?.(next)}
+			onValueCommit={(next) => (onCommit ?? onChange)?.(next)}
+			onTransientValueChange={(next) => (onTransientChange ?? onChange)?.(next)}
+			{onTransientCancel}
 		/>
 	{:else if kind === 'number-array' && spec.length !== undefined}
 		<NumberArrayField

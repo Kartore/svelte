@@ -22,7 +22,7 @@
 	import type { Attachment } from 'svelte/attachments';
 
 	import { insertSingleNewlineAndIndent } from './codeEditorCommands.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	type CodeEditorDiagnostic = {
 		from: number;
@@ -73,9 +73,9 @@
 			height: '100%',
 			minHeight: '0',
 			width: '100%',
-			backgroundColor: '#ffffff',
-			color: '#24292f',
-			fontSize: '12px'
+			backgroundColor: 'var(--color-surface)',
+			color: 'var(--color-ink-1)',
+			fontSize: '11px'
 		},
 		'&.cm-focused': {
 			outline: 'none'
@@ -87,31 +87,31 @@
 		},
 		'.cm-content': {
 			padding: '10px 0',
-			caretColor: '#24292f'
+			caretColor: 'var(--color-ink-1)'
 		},
 		'.cm-line': {
 			padding: '0 8px'
 		},
 		'.cm-gutters': {
-			borderRight: '1px solid #f0f1f2',
-			backgroundColor: '#ffffff',
-			color: '#8c959f'
+			borderRight: '1px solid var(--color-hairline-soft)',
+			backgroundColor: 'var(--color-surface)',
+			color: 'var(--color-ink-3)'
 		},
 		'.cm-lineNumbers .cm-gutterElement': {
 			minWidth: '3ch',
 			padding: '0 8px 0 6px'
 		},
 		'.cm-activeLine, .cm-activeLineGutter': {
-			backgroundColor: '#f6f8fa'
+			backgroundColor: 'var(--color-field)'
 		},
 		'&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': {
-			backgroundColor: '#b6d7ff'
+			backgroundColor: 'var(--color-accent-soft)'
 		},
 		'.cm-cursor, .cm-dropCursor': {
-			borderLeftColor: '#24292f'
+			borderLeftColor: 'var(--color-ink-1)'
 		},
 		'.cm-foldGutter .cm-gutterElement': {
-			color: '#8c959f'
+			color: 'var(--color-ink-3)'
 		},
 		'.cm-style-json-hover': {
 			boxSizing: 'border-box',
@@ -121,9 +121,9 @@
 			padding: '8px 10px',
 			fontFamily:
 				'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-			fontSize: '12px',
+			fontSize: '11px',
 			lineHeight: '1.45',
-			color: '#24292f'
+			color: 'var(--color-ink-1)'
 		},
 		'.cm-style-json-hover-title': {
 			fontFamily:
@@ -132,7 +132,7 @@
 		},
 		'.cm-style-json-hover-detail': {
 			marginTop: '2px',
-			color: '#57606a'
+			color: 'var(--color-ink-2)'
 		},
 		'.cm-style-json-hover-documentation': {
 			marginTop: '7px',

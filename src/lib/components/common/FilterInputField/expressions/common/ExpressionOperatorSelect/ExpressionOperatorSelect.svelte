@@ -12,14 +12,14 @@
 </script>
 
 <script lang="ts">
-	import { changeOperator } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { changeOperator } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import {
 		getExpressionOperatorMeta,
 		listOperatorsByCategory
-	} from '$lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
-	import type { SelectSection } from '$lib/components/common/Select';
-	import { Select } from '$lib/components/common/Select';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	} from '#lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
+	import type { SelectSection } from '#lib/components/common/Select';
+	import { Select } from '#lib/components/common/Select';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let { value, onChange, label, class: className }: ExpressionOperatorSelectProps = $props();
 
@@ -41,7 +41,7 @@
 {#if !meta || !onChange}
 	<div
 		class={cn(
-			'flex max-w-full min-w-0 flex-row rounded bg-gray-100 px-2 py-1 font-mono text-sm font-normal text-gray-700',
+			'flex h-6 max-w-full min-w-0 flex-row rounded-[5px] bg-field px-2 font-mono text-[11px] font-normal text-ink-1',
 			className
 		)}
 	>
@@ -49,9 +49,9 @@
 	</div>
 {:else}
 	<Select
-		aria-label="expression operator"
+		aria-label="式の演算子"
 		class={cn('inline-flex max-w-full min-w-0 font-mono', className)}
-		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-gray-700"
+		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-ink-2"
 		sections={operatorSections}
 		value={String(operator)}
 		onValueChange={(key) => {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import type { Attachment } from 'svelte/attachments';
 
 	import {
 		clamp,
@@ -9,8 +10,8 @@
 		type Color,
 		type ColorChannel,
 		type ColorSpace
-	} from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	} from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		label,
@@ -162,6 +163,18 @@
 
 	let trackEl: HTMLDivElement | null = $state(null);
 	let inputEl: HTMLInputElement | null = $state(null);
+	const setTrackRef: Attachment<HTMLDivElement> = (element) => {
+		trackEl = element;
+		return () => {
+			if (trackEl === element) trackEl = null;
+		};
+	};
+	const setInputRef: Attachment<HTMLInputElement> = (element) => {
+		inputEl = element;
+		return () => {
+			if (inputEl === element) inputEl = null;
+		};
+	};
 
 	const setValueFromPointerEvent = (e: PointerEvent) => {
 		if (!trackEl) {
@@ -219,10 +232,10 @@
 </script>
 
 <div
-	bind:this={trackEl}
+	{@attach setTrackRef}
 	role="group"
 	aria-label={ariaLabel ?? resolvedLabel}
-	class={cn('h-3 w-full rounded-full border border-gray-300')}
+	class={cn('h-3 w-full rounded-full border border-hairline')}
 	style={`position: relative; touch-action: none; forced-color-adjust: none; background: ${trackBackground},
             repeating-conic-gradient(#CCC 0% 25%, white 0% 50%) 50% / 12px 12px;`}
 	onpointerdown={onPointerDown}
@@ -237,7 +250,7 @@
           repeating-conic-gradient(#CCC 0% 25%, white 0% 50%) 50% / 16px 16px; border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(0,0,0,0.25);`}
 	>
 		<input
-			bind:this={inputEl}
+			{@attach setInputRef}
 			type="range"
 			min={range.minValue}
 			max={range.maxValue}

@@ -3,17 +3,17 @@
 	import { onDestroy } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { Button } from '$lib/components/common/Button';
-	import { CodeEditor } from '$lib/components/common/CodeEditor';
+	import { Button } from '#lib/components/common/Button';
+	import { CodeEditor } from '#lib/components/common/CodeEditor';
 	import {
 		createStyleJsonDiagnostics,
 		styleJsonCompletionSource,
 		styleJsonHoverSource,
 		type StyleJsonDiagnostic
-	} from '$lib/utils/styleJsonLanguage.ts';
-	import { findStyleLayerIdPosition } from '$lib/utils/styleJsonPosition.ts';
-	import { parseStyleJSON, type StyleImportResult } from '$lib/utils/styleImport.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	} from '#lib/utils/styleJsonLanguage.ts';
+	import { findStyleLayerIdPosition } from '#lib/utils/styleJsonPosition.ts';
+	import { parseStyleJSON, type StyleImportResult } from '#lib/utils/styleImport.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -108,22 +108,19 @@
 <div
 	{...props}
 	data-style-json-panel=""
-	class={cn(
-		'pointer-events-auto flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-300/80 bg-white shadow-lg shadow-gray-950/10 backdrop-blur',
-		className
-	)}
+	class={cn('flex h-full min-h-0 flex-col overflow-hidden bg-white', className)}
 >
-	<div class="shrink-0 border-b border-gray-200 px-4 py-3">
+	<div class="shrink-0 border-b border-hairline-soft px-4 py-3">
 		<div class="flex items-center justify-between gap-3">
 			<div class="min-w-0">
-				<h2 class="font-montserrat text-sm font-semibold text-gray-900">Style JSON</h2>
-				<p class="truncate text-xs text-gray-500">Valid edits update the map automatically.</p>
+				<h2 class="text-[11.5px] font-semibold text-ink-1">スタイル JSON</h2>
+				<p class="truncate text-[10px] text-ink-3">有効な編集は地図へ自動反映されます。</p>
 			</div>
 			{#if isDirty}
 				<span
-					class="shrink-0 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"
+					class="shrink-0 rounded-full border border-hairline bg-field px-2 py-0.5 text-[11px] font-semibold text-ink-2"
 				>
-					Unapplied changes
+					未適用の変更
 				</span>
 			{/if}
 		</div>
@@ -143,37 +140,32 @@
 	</div>
 
 	<div
-		class="max-h-[45%] shrink-0 overflow-y-auto border-t border-gray-200 bg-gray-50/70 px-4 py-3"
+		class="max-h-[45%] shrink-0 overflow-y-auto border-t border-hairline-soft bg-field/70 px-4 py-3"
 	>
 		<div class="flex min-h-8 flex-wrap items-start gap-x-3 gap-y-2">
 			<div class="min-w-0 flex-1 basis-64" aria-live="polite">
 				{#if readOnly}
-					<p class="text-xs text-blue-700">Preview mode — JSON editing is disabled.</p>
+					<p class="text-xs text-accent">プレビュー中は JSON を編集できません。</p>
 				{:else if isDirty && validated === null}
-					<p class="text-xs text-gray-500">Validating style…</p>
+					<p class="text-xs text-ink-3">スタイルを検証中…</p>
 				{:else if isDirty && validated?.ok === false}
-					<p class="text-xs break-words text-red-600" role="alert">{validated.error}</p>
+					<p class="text-xs break-words text-ink-2" role="alert">{validated.error}</p>
 				{:else if validated?.ok === true && validated.warnings.length > 0}
-					<p class="text-xs font-semibold text-amber-700">
-						Applied with {validated.warnings.length} validation warning{validated.warnings
-							.length === 1
-							? ''
-							: 's'}.
+					<p class="text-xs font-semibold text-ink-2">
+						{validated.warnings.length} 件の警告とともに適用しました。
 					</p>
 				{:else}
-					<p class="text-xs text-emerald-600">Valid changes are applied automatically.</p>
+					<p class="text-xs text-ink-2">有効な変更は自動的に適用されます。</p>
 				{/if}
 
 				{#if validated?.ok === true && validated.warnings.length > 0}
-					<div
-						class="mt-2 flex flex-col gap-1 rounded border border-amber-300 bg-amber-50 px-3 py-2"
-					>
+					<div class="mt-2 flex flex-col gap-1 rounded border border-hairline bg-field px-3 py-2">
 						{#each validated.warnings.slice(0, 10) as warning, index (warning + index)}
-							<p class="text-xs break-words text-amber-700">{warning}</p>
+							<p class="text-xs break-words text-ink-2">{warning}</p>
 						{/each}
 						{#if validated.warnings.length > 10}
-							<p class="text-xs font-semibold text-amber-700">
-								+{validated.warnings.length - 10} more
+							<p class="text-xs font-semibold text-ink-2">
+								ほか {validated.warnings.length - 10} 件
 							</p>
 						{/if}
 					</div>
@@ -182,11 +174,11 @@
 
 			<div class="ml-auto flex shrink-0 items-center gap-1">
 				<Button
-					class="h-8 rounded px-2.5 text-xs font-semibold text-gray-500 disabled:cursor-default disabled:text-gray-300 disabled:hover:bg-transparent"
+					class="h-8 rounded px-2.5 text-xs font-semibold text-ink-3 disabled:cursor-default disabled:text-ink-4 disabled:hover:bg-transparent"
 					disabled={readOnly || !isDirty}
 					onclick={revert}
 				>
-					Revert
+					元に戻す
 				</Button>
 			</div>
 		</div>

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import { onMount } from 'svelte';
 
-	import { Button } from '$lib/components/common/Button';
-	import { ColorizeIcon } from '$lib/components/icons';
-	import { parseColor, type Color } from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	import { Button } from '#lib/components/common/Button';
+	import { ColorizeIcon } from '#lib/components/icons';
+	import { parseColor, type Color } from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		class: className,
@@ -36,11 +37,8 @@
 			});
 	};
 
-	$effect(() => {
-		if (!window || !window.EyeDropper) {
-			return;
-		}
-		isEyeDropperSupported = true;
+	onMount(() => {
+		isEyeDropperSupported = Boolean(window.EyeDropper);
 	});
 </script>
 

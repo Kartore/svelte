@@ -1,6 +1,6 @@
 import type { ExpressionSpecification, LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+import { sampleCurveExpression } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 
 const swatchProperty = (layer: LayerSpecification): string | undefined => {
 	switch (layer.type) {

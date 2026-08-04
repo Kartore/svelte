@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Combobox } from 'bits-ui';
 
-	import type { SelectItem } from '$lib/components/common/Select';
-	import { ArrowDropDownIcon, CheckIcon } from '$lib/components/icons';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import type { SelectItem } from '#lib/components/common/Select';
+	import { ArrowDropDownIcon, CheckIcon } from '#lib/components/icons';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -94,7 +94,7 @@
 
 {#snippet preview(item: SelectItem)}
 	<span
-		class="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-gray-200 bg-white"
+		class="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-hairline-soft bg-white"
 		aria-hidden="true"
 	>
 		{#if item.preview}
@@ -110,9 +110,18 @@
 	</span>
 {/snippet}
 
-<div class={cn('flex items-center justify-between text-sm', className)}>
+<div
+	class={cn('flex h-[30px] min-w-0 items-center', className)}
+	style="column-gap: var(--field-column-gap, 0px)"
+>
 	{#if label}
-		<div class="font-semibold text-gray-600">{label}</div>
+		<div
+			class="shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+			style="width: var(--field-label-width, 84px)"
+			title={label}
+		>
+			{label}
+		</div>
 	{/if}
 	<Combobox.Root
 		type="single"
@@ -126,7 +135,7 @@
 	>
 		<div
 			class={cn(
-				'flex w-1/2 cursor-pointer flex-row items-center gap-1 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors focus-within:bg-gray-200 hover:bg-gray-200 aria-expanded:bg-gray-200',
+				'flex h-6 min-w-0 flex-1 cursor-pointer flex-row items-center gap-1 rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 focus-within:shadow-[inset_0_0_0_1px_var(--color-accent)] hover:shadow-[inset_0_0_0_1px_var(--color-accent)] aria-expanded:shadow-[inset_0_0_0_1px_var(--color-accent)]',
 				triggerClass
 			)}
 		>
@@ -159,7 +168,7 @@
 		</div>
 		<Combobox.Portal>
 			<Combobox.Content
-				class="z-50 m-0 max-h-40 min-w-32 list-none overflow-auto rounded border border-gray-500 bg-white p-0"
+				class="z-50 m-0 max-h-40 min-w-32 list-none overflow-auto rounded-[10px] border border-hairline bg-white p-0 text-[11px] shadow-xl shadow-ink-1/15"
 				sideOffset={4}
 				align="start"
 				collisionPadding={8}
@@ -169,7 +178,7 @@
 						<Combobox.Item value={item.value} label={item.label} disabled={item.disabled}>
 							{#snippet children({ selected })}
 								<div
-									class="flex cursor-pointer items-center gap-2 bg-transparent py-1 pr-3 pl-1 outline-0 hover:bg-gray-100 aria-selected:bg-gray-200"
+									class="flex cursor-pointer items-center gap-2 bg-transparent py-1 pr-3 pl-1 outline-0 hover:bg-field aria-selected:bg-field"
 									aria-selected={selected}
 								>
 									{#if selected}
@@ -185,8 +194,8 @@
 							{/snippet}
 						</Combobox.Item>
 					{:else}
-						<div class="px-2 py-1 text-xs text-gray-400">
-							{allowsCustomValue ? 'No matching sprites' : 'No results'}
+						<div class="px-2 py-1 text-[10px] text-ink-3">
+							{allowsCustomValue ? '一致するスプライトはありません' : '結果はありません'}
 						</div>
 					{/each}
 				</Combobox.Viewport>

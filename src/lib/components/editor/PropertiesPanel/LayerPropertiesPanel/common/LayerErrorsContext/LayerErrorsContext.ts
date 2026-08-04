@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 
-import type { LayerValidationError } from '$lib/utils/styleValidation.ts';
+import type { LayerValidationError } from '#lib/utils/styleValidation.ts';
 
 export type LayerErrorsContext = {
 	readonly errors: LayerValidationError[];

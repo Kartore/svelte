@@ -1,7 +1,7 @@
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-import { getExpressionOperatorMeta } from '$lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
-import { isExpression } from '$lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+import { getExpressionOperatorMeta } from '#lib/components/common/FilterInputField/expressions/utils/expressionRegistry.ts';
+import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 
 export const replaceArgAt = (
 	expression: ExpressionSpecification,

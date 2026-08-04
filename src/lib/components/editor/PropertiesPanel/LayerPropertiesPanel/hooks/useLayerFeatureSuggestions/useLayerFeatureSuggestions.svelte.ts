@@ -7,9 +7,9 @@ import type {
 import type {
 	ExpressionSuggestionValue,
 	ExpressionSuggestions
-} from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-import { createSourceLayers } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSourceLayers/useSourceLayers.svelte.ts';
-import { useBackgroundMap } from '$lib/contexts/backgroundMap.svelte.ts';
+} from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+import { createSourceLayers } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSourceLayers/useSourceLayers.svelte.ts';
+import { useBackgroundMap } from '#lib/contexts/backgroundMap.svelte.ts';
 
 const MAX_FEATURES = 2000;
 const MAX_VALUES_PER_KEY = 50;

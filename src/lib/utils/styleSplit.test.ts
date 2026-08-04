@@ -1,7 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
+import { osmLibertyMigrated } from '#lib/samples/osm-liberty.ts';
 
 import { parseStyleJSON } from './styleImport.ts';
 import { assembleStyle, sanitizeLayerBasename, splitStyle } from './styleSplit.ts';

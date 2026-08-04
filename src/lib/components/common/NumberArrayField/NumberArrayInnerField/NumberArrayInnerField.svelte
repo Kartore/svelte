@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -15,22 +15,17 @@
 
 	const id = $props.id();
 
-	let draft = $state('');
-	let focused = $state(false);
-	$effect(() => {
-		if (!focused) {
-			draft = String(value);
-		}
-	});
+	let editDraft = $state<string | null>(null);
+	const draft = $derived(editDraft ?? String(value));
 
 	const commit = () => {
 		if (draft.trim() === '') {
-			draft = String(value);
+			editDraft = String(value);
 			return;
 		}
 		const parsed = Number(draft);
 		if (Number.isNaN(parsed)) {
-			draft = String(value);
+			editDraft = String(value);
 			return;
 		}
 		if (parsed !== value) {
@@ -41,31 +36,34 @@
 
 <div
 	class={cn(
-		'flex flex-row items-center justify-between gap-2 rounded bg-gray-100 px-2 py-0.5',
+		'flex h-6 min-w-0 flex-1 flex-row items-center justify-between gap-1 rounded-[5px] bg-field px-2',
 		className
 	)}
 >
-	<label for={id} class="text-sm font-semibold text-gray-500">{label}</label>
-	<div class="w-full">
+	<label for={id} class="shrink-0 font-mono text-[10px] font-normal text-ink-3">{label}</label>
+	<div class="min-w-0 flex-1">
 		<input
 			{id}
 			type="text"
 			inputmode="decimal"
 			autocomplete="off"
-			bind:value={draft}
+			value={draft}
+			oninput={(event) => {
+				editDraft = event.currentTarget.value;
+			}}
 			onfocus={() => {
-				focused = true;
+				editDraft = draft;
 			}}
 			onblur={() => {
-				focused = false;
 				commit();
+				editDraft = null;
 			}}
 			onkeydown={(event) => {
 				if (event.key === 'Enter') {
 					event.currentTarget.blur();
 				}
 			}}
-			class="w-full rounded border-none px-1 py-0.5 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
+			class="h-6 w-full min-w-0 border-none bg-transparent px-1 font-mono text-[11px] font-normal text-ink-1 focus-visible:outline-0"
 		/>
 	</div>
 </div>

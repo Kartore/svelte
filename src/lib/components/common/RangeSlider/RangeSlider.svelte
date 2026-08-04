@@ -2,7 +2,7 @@
 	import { NumberFormatter, type NumberFormatOptions } from '@internationalized/number';
 	import { Slider } from 'bits-ui';
 
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -33,9 +33,9 @@
 
 <div class={cn('h-auto w-full', className)}>
 	{#if label}
-		<div class="flex items-center justify-between">
-			<span class="text-sm font-semibold text-gray-600">{label}</span>
-			<output class="text-sm font-semibold text-gray-800">
+		<div class="flex h-6 items-center justify-between">
+			<span class="font-mono text-[10px] font-normal text-ink-2">{label}</span>
+			<output class="font-mono text-[10px] font-normal text-ink-1">
 				{`${formatter.format(value[0])} - ${formatter.format(value[1])}`}
 			</output>
 		</div>
@@ -55,14 +55,14 @@
 		)}
 	>
 		{#snippet children({ thumbItems })}
-			<span class="relative h-1 w-full grow overflow-hidden rounded-full bg-gray-300">
-				<Slider.Range class="absolute h-full bg-gray-500" />
+			<span class="relative h-[3px] w-full grow overflow-hidden rounded-full bg-hairline">
+				<Slider.Range class="absolute h-full bg-accent" />
 			</span>
 			{#each thumbItems as { index } (index)}
 				<Slider.Thumb
 					{index}
 					aria-label={sliderThumbLabel?.[index]}
-					class="block size-3.5 rounded-full border border-gray-500 bg-white shadow-sm transition-colors hover:border-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none"
+					class="block size-3 rounded-full border border-[#c9ccd0] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.12)] transition-colors hover:border-ink-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
 			{/each}
 		{/snippet}

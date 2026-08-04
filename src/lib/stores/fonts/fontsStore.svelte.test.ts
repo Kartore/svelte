@@ -1,7 +1,7 @@
 import type { FontInfo, GlyphFont } from '@kartore/glyphore';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Glyphore } from '$lib/fonts/glyphore.ts';
+import type { Glyphore } from '#lib/fonts/glyphore.ts';
 
 import type { FontsStoreAdapter, StoredFont } from './FontsStoreAdapter.ts';
 import { FontsStore } from './fontsStore.svelte.ts';

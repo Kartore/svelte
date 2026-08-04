@@ -7,15 +7,16 @@
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
+	import { FunctionIcon, Plus, Trash } from 'phosphor-svelte';
 
-	import { Button } from '$lib/components/common/Button';
-	import { FilterQueryBuilder } from '$lib/components/common/FilterQueryBuilder';
-	import { PropertyErrorMessage } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
-	import { PropertyHistoryPopover } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
-	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { useExpressionFlyout } from '$lib/contexts/expressionFlyout.svelte.ts';
-	import { useStyleHistory } from '$lib/contexts/styleHistory.svelte.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { Button } from '#lib/components/common/Button';
+	import { FilterQueryBuilder } from '#lib/components/common/FilterQueryBuilder';
+	import { PropertyErrorMessage } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
+	import { PropertyHistoryPopover } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyHistoryPopover';
+	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { useExpressionFlyout } from '#lib/contexts/expressionFlyout.svelte.ts';
+	import { useStyleHistory } from '#lib/contexts/styleHistory.svelte.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		layer,
@@ -37,7 +38,7 @@
 	const canShowHistory = $derived(history !== undefined && history.provider !== null);
 	const isFlyoutOpen = $derived(flyout?.isOpen('filter', 'filter') ?? false);
 	const openFlyout = (anchorElement: HTMLElement) =>
-		flyout?.open({ group: 'filter', key: 'filter', label: 'Filter' }, anchorElement);
+		flyout?.open({ group: 'filter', key: 'filter', label: 'フィルター' }, anchorElement);
 	const toggleFlyout = (anchorElement: HTMLElement) => {
 		if (isFlyoutOpen) flyout?.close();
 		else openFlyout(anchorElement);
@@ -57,70 +58,74 @@
 	);
 </script>
 
-<div {...props} class={cn('flex flex-col gap-2 px-4', className)}>
-	<div class="flex flex-row items-center justify-between">
-		<h3 class="font-montserrat text-sm font-semibold">Filter</h3>
+<div {...props} class={cn('flex flex-col px-3', className)}>
+	<div class="flex h-7 flex-row items-center justify-between border-b border-hairline-soft">
+		<h3 class="text-[11px] font-semibold text-ink-1">フィルター</h3>
 		<div class="flex flex-row items-center gap-1">
 			{#if canShowHistory}
 				<PropertyHistoryPopover
 					layerId={layer.id}
 					group="filter"
 					key="filter"
-					label="Filter"
+					label="フィルター"
 					currentValue={layer.filter}
 					onRestore={restoreFilter}
 				/>
 			{/if}
 			{#if layer.filter === undefined}
 				<Button
-					aria-label="Add filter"
-					class="rounded px-2 py-0.5 text-xs font-semibold text-gray-500"
+					aria-label="フィルターを追加"
+					class="flex h-6 items-center gap-1 rounded-[6px] px-1.5 text-[11px] font-semibold text-ink-3 hover:bg-field hover:text-ink-1"
 					onclick={(event) => {
 						onChange?.(layer, undefined, 'filter', defaultFilter);
 						openFlyout(event.currentTarget);
 					}}
 				>
-					+ Add
+					<Plus size={14} weight="regular" aria-hidden="true" />
+					追加
 				</Button>
 			{:else}
 				{#if flyout !== undefined}
 					<Button
 						bind:ref={() => null, handleEditButtonRef}
-						aria-label="Edit filter expression"
+						aria-label="フィルター式を編集"
 						aria-pressed={isFlyoutOpen}
 						class={cn(
-							'flex min-w-0 flex-row items-center gap-1.5 rounded border px-2 py-0.5 text-xs transition-colors',
+							'flex h-6 min-w-0 flex-row items-center gap-1.5 rounded-[6px] border px-2 text-[11px] transition-colors',
 							isFlyoutOpen
-								? 'border-blue-300 bg-blue-50 text-blue-600'
-								: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+								? 'border-accent bg-accent-soft text-accent'
+								: 'border-hairline-soft bg-field text-ink-2 hover:border-hairline hover:bg-field'
 						)}
 						onclick={(event) => toggleFlyout(event.currentTarget)}
 					>
-						<span class="shrink-0 font-mono font-semibold italic">fx</span>
+						<FunctionIcon size={14} weight="regular" class="shrink-0" aria-hidden="true" />
 						<span class="truncate font-mono">{filterSummary}</span>
 					</Button>
 				{/if}
 				<Button
-					aria-label="Delete filter"
-					class="shrink-0 rounded px-2 py-0.5 text-xs font-semibold text-gray-500 hover:text-red-500"
+					aria-label="フィルターを削除"
+					title="フィルターを削除"
+					class="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-3 hover:bg-field hover:text-ink-1"
 					onclick={() => {
 						if (isFlyoutOpen) flyout?.close();
 						onChange?.(layer, undefined, 'filter', undefined);
 					}}
 				>
-					Delete
+					<Trash size={14} weight="regular" aria-hidden="true" />
 				</Button>
 			{/if}
 		</div>
 	</div>
-	{#if layer.filter === undefined}
-		<!-- no filter -->
-	{:else if flyout === undefined}
-		<FilterQueryBuilder
-			value={layer.filter}
-			onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
-		/>
-	{/if}
-	<PropertyErrorMessage group="filter" />
+	<div class="py-1">
+		{#if layer.filter === undefined}
+			<!-- no filter -->
+		{:else if flyout === undefined}
+			<FilterQueryBuilder
+				value={layer.filter}
+				onChange={(value) => onChange?.(layer, undefined, 'filter', value)}
+			/>
+		{/if}
+		<PropertyErrorMessage group="filter" />
+	</div>
 	{@render children?.()}
 </div>

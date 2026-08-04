@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
 
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import { isTextFieldCancelKey, isTextFieldCommitKey } from './textFieldKey.ts';
 
@@ -66,9 +66,17 @@
 	};
 </script>
 
-<div class={cn('flex flex-row items-center justify-between', className)}>
+<div
+	class={cn('flex h-[30px] min-w-0 flex-row items-center', className)}
+	style="column-gap: var(--field-column-gap, 0px)"
+>
 	{#if label}
-		<label for={id} class="text-sm font-semibold text-gray-600">{label}</label>
+		<label
+			for={id}
+			class="shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+			style="width: var(--field-label-width, 84px)"
+			title={label}>{label}</label
+		>
 	{/if}
 	<input
 		{@attach setInputRef}
@@ -82,7 +90,7 @@
 		oninput={() => onValueChange?.(value)}
 		onblur={handleBlur}
 		onkeydown={handleKeyDown}
-		class="w-1/2 rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0"
+		class="h-6 min-w-0 flex-1 rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-0"
 	/>
 	{#if suggestions && suggestions.length > 0}
 		<datalist id={suggestionsId}>

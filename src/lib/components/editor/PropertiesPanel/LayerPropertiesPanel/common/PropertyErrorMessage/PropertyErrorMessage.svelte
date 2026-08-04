@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useLayerErrors } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
+	import { useLayerErrors } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 
 	let {
 		group,
@@ -20,5 +20,13 @@
 </script>
 
 {#each errors as error (error.path + error.message)}
-	<p class="text-xs text-red-600" role="alert">{error.message}</p>
+	<div class="flex items-start gap-1.5 rounded-[6px] bg-field px-2 py-1.5" role="alert">
+		<span class="mt-1 size-1.5 shrink-0 rounded-full bg-danger"></span>
+		<div class="min-w-0">
+			<p class="text-[10px] leading-4 break-words text-ink-2">{error.message}</p>
+			<p class="text-[10px] leading-4 text-ink-3">
+				値を修正するか、行の − で未設定に戻してください。
+			</p>
+		</div>
+	</div>
 {/each}

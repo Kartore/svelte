@@ -1,24 +1,20 @@
 <script lang="ts">
 	import type {
 		LineLayerSpecification,
-		SourceSpecification,
 		SpriteSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { FilterProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/FilterProperties';
-	import { GeneralProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/GeneralProperties';
-	import { RawDataProperties } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/RawDataProperties';
-	import { SpecPropertiesSection } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertiesSection';
-	import { createSpriteIds } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
-	import type { onChangeType } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { GeneralProperties } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/GeneralProperties';
+	import { SpecPropertiesSection } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/SpecPropertiesSection';
+	import { createSpriteIds } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
+	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		children,
 		layer,
-		sources,
 		sprite,
 		onChange,
 		class: className,
@@ -27,7 +23,6 @@
 		class?: string;
 		layer: LineLayerSpecification;
 		sprite?: SpriteSpecification;
-		sources: { [key: string]: SourceSpecification };
 		onChange?: onChangeType;
 		children?: Snippet;
 	} = $props();
@@ -37,27 +32,68 @@
 	const spriteImages = $derived(spriteIdsState.spriteImages);
 </script>
 
-<div {...props} class={cn('flex flex-col gap-6', className)}>
-	<GeneralProperties {layer} {sources} {onChange} />
-	<FilterProperties {layer} {onChange} />
+<div {...props} class={cn('flex flex-col', className)}>
 	<SpecPropertiesSection
 		{layer}
-		{sources}
-		groups={['layout']}
-		title="Layout"
-		{spriteIds}
-		{spriteImages}
-		{onChange}
-	/>
-	<SpecPropertiesSection
-		{layer}
-		{sources}
 		groups={['paint']}
-		title="Paint"
+		title="色"
+		include={[
+			'line-color',
+			'line-opacity',
+			'line-pattern',
+			'line-gradient',
+			'line-trim-color',
+			'line-emissive-strength'
+		]}
 		{spriteIds}
 		{spriteImages}
 		{onChange}
 	/>
-	<RawDataProperties {layer} {onChange} />
+	<SpecPropertiesSection
+		{layer}
+		groups={['paint']}
+		title="幅"
+		meta="ズーム"
+		include={[
+			'line-width',
+			'line-gap-width',
+			'line-z-offset',
+			'line-elevation-reference',
+			'line-cross-slope',
+			'line-width-unit',
+			'line-trim-offset',
+			'line-trim-fade-range'
+		]}
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
+	<SpecPropertiesSection
+		{layer}
+		groups={['layout']}
+		title="線端・結合"
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
+	<GeneralProperties {layer} {onChange} />
+	<SpecPropertiesSection
+		{layer}
+		groups={['paint']}
+		title="破線"
+		include={['line-dasharray']}
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
+	<SpecPropertiesSection
+		{layer}
+		groups={['paint']}
+		title="オフセット・ブラー"
+		include={['line-offset', 'line-blur', 'line-translate', 'line-translate-anchor']}
+		{spriteIds}
+		{spriteImages}
+		{onChange}
+	/>
 	{@render children?.()}
 </div>

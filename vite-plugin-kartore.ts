@@ -4,6 +4,7 @@ import type { Plugin } from 'vite';
 
 const clientVirtualModuleId = 'virtual:kartore-adapter';
 const serverVirtualModuleId = 'virtual:kartore-adapter/server';
+const hostModulePrefix = 'virtual:kartore-host/';
 
 type KartoreAdapterApi = {
 	/** `adapterModules` / `adapterProviders` を export するモジュール指定子 */
@@ -79,6 +80,7 @@ const aggregateModule = (moduleIds: string[], exportNames: string[]): string => 
 };
 
 const registryPlugin = (adapters: KartoreAdapterVitePlugin[]): Plugin => {
+	let hostLibRoot = path.resolve(process.cwd(), 'src/lib');
 	// 同一アダプタが二重に渡されてもモジュールが二重登録されないよう clientModule で重複排除する
 	const apis = [
 		...new Map(
@@ -107,6 +109,7 @@ const registryPlugin = (adapters: KartoreAdapterVitePlugin[]): Plugin => {
 			};
 		},
 		configResolved(config) {
+			hostLibRoot = path.resolve(config.root, 'src/lib');
 			// kartore() を通さず plugins に直接置かれたアダプタは機能しない。事故防止に警告する
 			for (const plugin of config.plugins) {
 				const api = kartoreAdapterApi(plugin);
@@ -117,8 +120,14 @@ const registryPlugin = (adapters: KartoreAdapterVitePlugin[]): Plugin => {
 				}
 			}
 		},
-		resolveId(id) {
-			return resolvedIds.get(id);
+		async resolveId(id, importer) {
+			const registryId = resolvedIds.get(id);
+			if (registryId) return registryId;
+			if (!id.startsWith(hostModulePrefix)) return;
+
+			const target = path.resolve(hostLibRoot, id.slice(hostModulePrefix.length));
+			if (target !== hostLibRoot && !target.startsWith(hostLibRoot + path.sep)) return;
+			return this.resolve(target, importer, { skipSelf: true });
 		},
 		load(id) {
 			if (id === resolvedIds.get(clientVirtualModuleId)) {

@@ -6,11 +6,11 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionAppendArgButton } from '#lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -48,15 +48,15 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-field px-2 py-2',
 		className
 	)}
 >
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	{#each values as arg, index (index)}
 		{#if isStyleOptionsObject(arg)}
-			<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
-				format option: {JSON.stringify(arg)}
+			<div class="text-[10px] font-semibold tracking-wide text-ink-3">
+				書式オプション: {JSON.stringify(arg)}
 			</div>
 		{:else}
 			<ExpressionArgInputField
@@ -74,7 +74,7 @@
 								)
 							)
 					: undefined}
-				removeLabel="Remove format section"
+				removeLabel="書式セクションを削除"
 			/>
 		{/if}
 	{/each}

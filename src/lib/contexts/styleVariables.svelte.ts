@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 
-import type { MapStyleStore } from '$lib/stores/mapStyle';
+import type { MapStyleStore } from '#lib/stores/mapStyle';
 import {
 	applyVariableBindings,
 	bindProperty,
@@ -13,7 +13,7 @@ import {
 	type StyleVariableType,
 	unbindProperty,
 	upsertVariable
-} from '$lib/utils/styleVariables.ts';
+} from '#lib/utils/styleVariables.ts';
 
 const uniqueName = (
 	requestedName: string,

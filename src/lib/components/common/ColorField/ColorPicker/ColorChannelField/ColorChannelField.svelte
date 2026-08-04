@@ -9,8 +9,8 @@
 		type Color,
 		type ColorChannel,
 		type ColorSpace
-	} from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	} from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		class: className,
@@ -58,13 +58,8 @@
 
 	const format = (v: number): string => (Number.isNaN(v) ? '' : formatter.format(v));
 
-	let draft = $state('');
-	let focused = $state(false);
-	$effect(() => {
-		if (!focused) {
-			draft = format(numberValue);
-		}
-	});
+	let editDraft = $state<string | null>(null);
+	const draft = $derived(editDraft ?? format(numberValue));
 
 	const parse = (text: string): number => {
 		let parsed = parser.parse(text);
@@ -90,16 +85,16 @@
 	const commit = () => {
 		if (draft.trim() === '') {
 			setNumberValue(NaN);
-			draft = format(numberValue);
+			editDraft = format(numberValue);
 			return;
 		}
 		const parsed = parse(draft);
 		if (Number.isNaN(parsed)) {
-			draft = format(numberValue);
+			editDraft = format(numberValue);
 			return;
 		}
 		setNumberValue(parsed);
-		draft = format(
+		editDraft = format(
 			Number.isNaN(numberValue)
 				? snapValueToStep(clamp(parsed, minValue, maxValue), minValue, maxValue, step)
 				: numberValue
@@ -120,8 +115,8 @@
 	};
 </script>
 
-<div class={cn('text-xs', className)}>
-	<label class={cn('sr-only font-semibold text-gray-600')} for={id}>
+<div class={cn('h-6 font-mono text-[11px] font-normal', className)}>
+	<label class={cn('sr-only font-semibold text-ink-2')} for={id}>
 		{label}
 	</label>
 	<input
@@ -132,13 +127,16 @@
 		autocorrect="off"
 		spellcheck="false"
 		aria-label={label ?? color.getChannelName(channel)}
-		bind:value={draft}
+		value={draft}
+		oninput={(event) => {
+			editDraft = event.currentTarget.value;
+		}}
 		onfocus={() => {
-			focused = true;
+			editDraft = draft;
 		}}
 		onblur={() => {
-			focused = false;
 			commit();
+			editDraft = null;
 		}}
 		onkeydown={(event) => {
 			if (event.key === 'Enter') {
@@ -152,7 +150,7 @@
 			}
 		}}
 		class={cn(
-			'h-full w-full border-none bg-gray-100 px-2 py-1 font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0'
+			'h-6 w-full border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 transition-colors hover:bg-field focus-visible:bg-field focus-visible:outline-0'
 		)}
 	/>
 </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { RadioGroup } from 'bits-ui';
 
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -20,9 +20,16 @@
 	} = $props();
 </script>
 
-<div class={cn('flex items-center justify-between text-sm', className)}>
+<div
+	class={cn('flex h-[30px] min-w-0 items-center', className)}
+	style="column-gap: var(--field-column-gap, 0px)"
+>
 	{#if label}
-		<span class="font-semibold text-gray-600">{label}</span>
+		<span
+			class="shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+			style="width: var(--field-label-width, 84px)"
+			title={label}>{label}</span
+		>
 	{/if}
 	<RadioGroup.Root
 		bind:value
@@ -30,12 +37,12 @@
 		{disabled}
 		orientation="horizontal"
 		aria-label={label}
-		class="flex w-1/2 flex-row flex-wrap items-center justify-end gap-1"
+		class="flex h-6 min-w-0 flex-1 flex-row items-center rounded-[6px] bg-field p-0.5"
 	>
 		{#each items as item (item.value)}
 			<RadioGroup.Item
 				value={item.value}
-				class="block cursor-pointer rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold whitespace-nowrap transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 data-[state=checked]:bg-gray-300"
+				class="block h-5 min-w-0 flex-1 cursor-pointer rounded-[4px] border-none bg-transparent px-1.5 text-[10px] font-normal whitespace-nowrap text-ink-2 focus-visible:outline-2 focus-visible:outline-accent data-[state=checked]:bg-white data-[state=checked]:font-semibold data-[state=checked]:text-ink-1 data-[state=checked]:shadow-[0_1px_2px_rgba(0,0,0,0.1)]"
 			>
 				{item.label}
 			</RadioGroup.Item>

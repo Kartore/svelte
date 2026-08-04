@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { SelectItem } from '$lib/components/common/Select';
-	import { Button } from '$lib/components/common/Button';
-	import { ComboBox } from '$lib/components/common/ComboBox';
-	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { Select } from '$lib/components/common/Select';
-	import { TextField } from '$lib/components/common/TextField';
-	import { CloseIcon } from '$lib/components/icons';
+	import { X } from 'phosphor-svelte';
+
+	import type { SelectItem } from '#lib/components/common/Select';
+	import { Button } from '#lib/components/common/Button';
+	import { ComboBox } from '#lib/components/common/ComboBox';
+	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { Select } from '#lib/components/common/Select';
+	import { TextField } from '#lib/components/common/TextField';
 
 	import type { FilterConditionNode, FilterSubject } from './model.ts';
 
@@ -35,7 +36,7 @@
 	);
 	const fixedSubjectItems: SelectItem[] = [
 		{ value: 'subject:geometry-type', label: 'geometry-type' },
-		{ value: 'subject:id', label: 'feature id' },
+		{ value: 'subject:id', label: 'feature-id' },
 		{ value: 'subject:zoom', label: 'zoom' }
 	];
 	const subjectItems = $derived(
@@ -49,7 +50,7 @@
 			case 'geometry-type':
 				return 'geometry-type';
 			case 'id':
-				return 'feature id';
+				return 'feature-id';
 			case 'zoom':
 				return 'zoom';
 		}
@@ -79,7 +80,7 @@
 		switch (value) {
 			case 'geometry-type':
 				return { kind: 'geometry-type' };
-			case 'feature id':
+			case 'feature-id':
 				return { kind: 'id' };
 			case 'zoom':
 				return { kind: 'zoom' };
@@ -104,16 +105,16 @@
 					: 'in'
 	);
 	const operatorItems: SelectItem[] = [
-		{ value: '==', label: '==' },
-		{ value: '!=', label: '!=' },
+		{ value: '==', label: '=' },
+		{ value: '!=', label: '≠' },
 		{ value: '<', label: '<' },
 		{ value: '<=', label: '<=' },
 		{ value: '>', label: '>' },
 		{ value: '>=', label: '>=' },
-		{ value: 'exists', label: 'exists' },
-		{ value: 'not-exists', label: 'not exists' },
-		{ value: 'in', label: 'in' },
-		{ value: 'not-in', label: 'not in' }
+		{ value: 'exists', label: '存在する' },
+		{ value: 'not-exists', label: '存在しない' },
+		{ value: 'in', label: 'いずれか' },
+		{ value: 'not-in', label: 'いずれでもない' }
 	];
 
 	const valueSuggestions = $derived<(string | number | boolean)[]>(
@@ -206,9 +207,9 @@
 	};
 </script>
 
-<div class="grid grid-cols-[minmax(0,1fr)_88px_minmax(0,1fr)_20px] items-start gap-1">
+<div class="grid grid-cols-[minmax(52px,1fr)_64px_minmax(52px,1fr)_18px] items-start gap-1">
 	<ComboBox
-		aria-label="Filter subject"
+		aria-label="フィルターの対象"
 		class="min-w-0 font-mono"
 		triggerClass="w-full min-w-0 font-mono font-normal"
 		items={subjectItems}
@@ -220,7 +221,7 @@
 		onValueChange={(value) => commitSubject(parseSubjectValue(value))}
 	/>
 	<Select
-		aria-label="Filter operator"
+		aria-label="フィルターの演算子"
 		class="min-w-0 font-mono"
 		triggerClass="w-full min-w-0 font-mono font-normal"
 		items={operatorItems}
@@ -229,7 +230,7 @@
 	/>
 	{#if node.kind === 'comparison'}
 		<TextField
-			aria-label="Filter value"
+			aria-label="フィルターの値"
 			class="min-w-0 font-mono [&>input]:w-full [&>input]:font-normal"
 			value={comparisonDraft}
 			suggestions={valueSuggestions}
@@ -240,15 +241,17 @@
 			}}
 		/>
 	{:else if node.kind === 'membership'}
-		<div class="flex min-h-7 min-w-0 flex-wrap items-center gap-1 rounded bg-gray-100 px-1 py-0.5">
+		<div
+			class="flex min-h-6 min-w-0 flex-wrap items-center gap-1 rounded-[5px] bg-field px-1 py-0.5"
+		>
 			{#each node.values as value, index (index)}
 				<span
-					class="flex max-w-full items-center rounded bg-white px-1 font-mono text-xs text-gray-600"
+					class="flex h-5 max-w-full items-center rounded-[5px] bg-white px-1 font-mono text-[10px] text-ink-2"
 				>
 					<span class="truncate">{value}</span>
 					<Button
-						aria-label={`Remove ${value}`}
-						class="ml-0.5 rounded text-gray-400 hover:text-red-500"
+						aria-label={`${value} を削除`}
+						class="ml-0.5 flex size-4 items-center justify-center rounded-[5px] text-ink-3 hover:bg-field hover:text-ink-1"
 						onclick={() => {
 							if (node.kind !== 'membership') return;
 							onChange({
@@ -257,12 +260,12 @@
 							});
 						}}
 					>
-						<CloseIcon class="h-3 w-3 fill-current" />
+						<X size={11} weight="regular" aria-hidden="true" />
 					</Button>
 				</span>
 			{/each}
 			<TextField
-				aria-label="Add filter value"
+				aria-label="フィルター値を追加"
 				class="min-w-16 flex-1 font-mono [&>input]:w-full [&>input]:bg-transparent [&>input]:px-1 [&>input]:font-normal"
 				value={membershipDraft}
 				suggestions={membershipSuggestions}
@@ -271,13 +274,13 @@
 			/>
 		</div>
 	{:else}
-		<div class="px-2 py-1 text-center text-sm text-gray-400">—</div>
+		<div class="px-2 py-1 text-center text-[11px] text-ink-3">—</div>
 	{/if}
 	<Button
-		aria-label="Remove filter condition"
-		class="mt-1 rounded text-gray-400 hover:text-red-500"
+		aria-label="フィルター条件を削除"
+		class="mt-0.5 flex size-5 items-center justify-center rounded-[5px] text-ink-3 hover:bg-field hover:text-ink-1"
 		onclick={onRemove}
 	>
-		<CloseIcon class="h-4 w-4 fill-current" />
+		<X size={13} weight="regular" aria-hidden="true" />
 	</Button>
 </div>

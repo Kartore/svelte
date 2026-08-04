@@ -1,7 +1,7 @@
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import type { StyleHistoryProvider, StyleHistoryRevision } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider, StyleHistoryRevision } from '#lib/editor/EditorModule.ts';
 
 import {
 	computeHistoryEntries,

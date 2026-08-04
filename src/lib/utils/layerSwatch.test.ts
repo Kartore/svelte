@@ -1,7 +1,7 @@
 import type { ExpressionSpecification, LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { sampleCurveExpression } from '$lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
+import { sampleCurveExpression } from '#lib/components/common/FilterInputField/expressions/utils/curveSampling.ts';
 
 import { resolveLayerSwatchColor } from './layerSwatch.ts';
 

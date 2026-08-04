@@ -6,9 +6,9 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -35,7 +35,7 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-field px-2 py-2',
 		className
 	)}
 >
@@ -43,7 +43,7 @@
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	<ExpressionArgInputField parentValue={expression} index={1} {onChange} />
 	{#if startIndex !== undefined}
-		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">from</div>
+		<div class="text-[10px] font-semibold tracking-wide text-ink-3">開始位置</div>
 		<ExpressionArgInputField parentValue={expression} index={3} {onChange} />
 	{/if}
 	{@render children?.()}

@@ -1,7 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl';
 import { describe, expect, it } from 'vitest';
 
-import type { StyleHistoryProvider } from '$lib/editor/EditorModule.ts';
+import type { StyleHistoryProvider } from '#lib/editor/EditorModule.ts';
 
 import { StyleHistoryContext } from './styleHistory.svelte.ts';
 

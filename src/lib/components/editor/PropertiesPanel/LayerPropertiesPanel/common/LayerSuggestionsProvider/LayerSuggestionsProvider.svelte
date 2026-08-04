@@ -6,8 +6,8 @@
 	} from '@maplibre/maplibre-gl-style-spec';
 	import type { Snippet } from 'svelte';
 
-	import { provideExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { createLayerFeatureSuggestions } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useLayerFeatureSuggestions';
+	import { provideExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { createLayerFeatureSuggestions } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useLayerFeatureSuggestions';
 
 	let {
 		layer,

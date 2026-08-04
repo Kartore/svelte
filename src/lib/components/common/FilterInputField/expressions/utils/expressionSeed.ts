@@ -4,8 +4,8 @@ import type {
 	ExpressionPropertySuggestion,
 	ExpressionSuggestionValue,
 	ExpressionSuggestions
-} from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+} from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 type ExpressionValueKind = 'array' | 'boolean' | 'color' | 'number' | 'string' | 'unknown';
 

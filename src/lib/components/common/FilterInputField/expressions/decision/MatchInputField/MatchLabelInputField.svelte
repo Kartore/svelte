@@ -4,10 +4,10 @@
 		ExpressionSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 
-	import { Button } from '$lib/components/common/Button';
-	import { ExpressionInputTypeInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
-	import type { ExpressionSuggestionValue } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { replaceArgAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { Button } from '#lib/components/common/Button';
+	import { ExpressionInputTypeInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
+	import type { ExpressionSuggestionValue } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { replaceArgAt } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 
 	let {
 		expression,
@@ -36,9 +36,11 @@
 		{suggestions}
 	/>
 {:else}
-	<div class="flex min-w-0 flex-wrap items-center gap-1 rounded bg-gray-100 px-1 py-0.5">
+	<div class="flex min-w-0 flex-wrap items-center gap-1 rounded bg-field px-1 py-0.5">
 		{#each label as element, elementIndex (elementIndex)}
-			<div class="flex max-w-full min-w-0 items-center rounded bg-white px-0.5 ring-1 ring-black/5">
+			<div
+				class="flex max-w-full min-w-0 items-center rounded-[5px] bg-white px-0.5 ring-1 ring-hairline"
+			>
 				<ExpressionInputTypeInputField
 					class="min-w-0 px-0 [&>input]:max-w-full"
 					value={element}
@@ -50,9 +52,9 @@
 				/>
 				{#if onChange && label.length > 1}
 					<Button
-						aria-label="Remove label"
-						title="Remove label"
-						class="rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
+						aria-label="ラベルを削除"
+						title="ラベルを削除"
+						class="rounded px-1 py-0.5 text-xs text-ink-3 transition-colors hover:text-ink-2"
 						onclick={() => replaceLabelArray(label.filter((_, i) => i !== elementIndex))}
 					>
 						×
@@ -62,12 +64,12 @@
 		{/each}
 		{#if onChange}
 			<Button
-				aria-label="Add label"
-				title="Add label"
-				class="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-400 hover:text-gray-600"
+				aria-label="ラベルを追加"
+				title="ラベルを追加"
+				class="rounded px-1.5 py-0.5 text-xs font-semibold text-ink-3 hover:text-ink-2"
 				onclick={() => replaceLabelArray([...label, ''])}
 			>
-				+ Value
+				＋ 値
 			</Button>
 		{/if}
 	</div>

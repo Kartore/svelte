@@ -5,8 +5,8 @@ import type {
 	StyleSpecification
 } from '@maplibre/maplibre-gl-style-spec';
 
-import { replaceArgAt } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-import { replaceLayerData } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+import { replaceArgAt } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+import { replaceLayerData } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
 
 export const VARIABLES_METADATA_KEY = 'kartore:variables';
 export const BINDINGS_METADATA_KEY = 'kartore:bindings';
@@ -17,6 +17,11 @@ export type StyleVariable =
 	| { id: string; name: string; type: 'interpolation'; value: InterpolationSpecification };
 
 export type StyleVariableType = StyleVariable['type'];
+
+export const isLegacyVariableName = (name: string): boolean => name.startsWith('$');
+
+export const suggestModernVariableName = (name: string): string =>
+	isLegacyVariableName(name) ? name.slice(1).replace(/\./g, '/') || 'variable' : name;
 
 /** バインド対象。slot 省略時はプロパティ値そのもの (literal) */
 export type PropertyBindingTarget = {
@@ -83,6 +88,11 @@ const withStyleVariables = (
 	}
 	return nextStyle;
 };
+
+export const replaceStyleVariables = (
+	style: StyleSpecification,
+	variables: StyleVariable[]
+): StyleSpecification => applyVariableBindings(withStyleVariables(style, variables));
 
 const withLayerBindings = (
 	layer: LayerSpecification,

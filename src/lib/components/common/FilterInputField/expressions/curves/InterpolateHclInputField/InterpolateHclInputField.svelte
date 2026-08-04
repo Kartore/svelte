@@ -7,8 +7,8 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { CurveStopsEditor } from '$lib/components/common/FilterInputField/expressions/curves/common/CurveStopsEditor';
-	import type { StylePropertySpec } from '$lib/utils/layerSpec.ts';
+	import { CurveStopsEditor } from '#lib/components/common/FilterInputField/expressions/curves/common/CurveStopsEditor';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 	let {
 		class: className,

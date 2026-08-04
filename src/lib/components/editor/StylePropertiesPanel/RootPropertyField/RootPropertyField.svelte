@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { BoxRadioGroup } from '$lib/components/common/BoxRadioGroup';
+	import { BoxRadioGroup } from '#lib/components/common/BoxRadioGroup';
 	import {
 		SpecLiteralField,
 		getSpecLiteralFieldKind
-	} from '$lib/components/common/SpecLiteralField';
-	import { TextField } from '$lib/components/common/TextField';
-	import { ExpressionPropertyField } from '$lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/ExpressionPropertyField';
-	import { labelFromPropertyKey, type LayerPropertyEntry } from '$lib/utils/layerSpec.ts';
+	} from '#lib/components/common/SpecLiteralField';
+	import { TextField } from '#lib/components/common/TextField';
+	import { ExpressionPropertyField } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/ExpressionPropertyField';
+	import { labelFromPropertyKey, type LayerPropertyEntry } from '#lib/utils/layerSpec.ts';
 
 	let {
 		entry,

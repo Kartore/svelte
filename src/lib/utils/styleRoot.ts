@@ -1,6 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-import type { RootPropertyKind } from '$lib/utils/layerSpec.ts';
+import type { RootPropertyKind } from '#lib/utils/layerSpec.ts';
 
 export type StyleSettingKey =
 	'name' | 'sprite' | 'glyphs' | 'center' | 'zoom' | 'bearing' | 'pitch';

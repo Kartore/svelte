@@ -1,6 +1,7 @@
 import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
+import { isFilterBuilderSupported } from './model.ts';
 import { parseFilter } from './parse.ts';
 import { serializeFilter } from './serialize.ts';
 
@@ -226,5 +227,39 @@ describe('serializeFilter', () => {
 			subject: { kind: 'zoom' },
 			value: 10
 		});
+	});
+});
+
+describe('Phase 3 builder and expression conversion', () => {
+	it.each([
+		['equal', ['==', ['get', 'class'], 'motorway']],
+		['not equal', ['!=', ['get', 'surface'], 'unpaved']],
+		['in', ['in', ['get', 'class'], ['literal', ['primary', 'secondary']]]],
+		['not in', ['!', ['in', ['get', 'access'], ['literal', ['private', 'no']]]]],
+		['all', ['all', ['==', ['get', 'class'], 'road'], ['>=', ['get', 'lanes'], 2]]],
+		['any', ['any', ['==', ['get', 'surface'], 'paved'], ['!', ['has', 'surface']]]],
+		[
+			'nested any/all',
+			[
+				'all',
+				['==', ['geometry-type'], 'LineString'],
+				['any', ['==', ['get', 'class'], 'primary'], ['all', ['>=', ['zoom'], 10], ['has', 'name']]]
+			]
+		]
+	] as const)('round-trips the supported %s case', (_label, expression) => {
+		const parsed = parseFilter(asFilter(expression));
+		expect(isFilterBuilderSupported(parsed)).toBe(true);
+
+		const serialized = serializeFilter(parsed);
+		expect(parseFilter(asFilter(serialized))).toEqual(parsed);
+	});
+
+	it('preserves an unsupported expression as a read-only fallback', () => {
+		const expression = ['==', ['+', ['get', 'level'], 1], 3];
+		const parsed = parseFilter(asFilter(expression));
+
+		expect(isFilterBuilderSupported(parsed)).toBe(false);
+		expect(parsed.children).toEqual([{ kind: 'raw', expression }]);
+		expect(serializeFilter(parsed)).toEqual(['all', expression]);
 	});
 });

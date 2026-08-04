@@ -18,8 +18,7 @@ export const collectEditorMenuSections = (
 	const sections: Record<EditorMenuId, ResolvedEditorMenuSection[]> = {
 		file: [],
 		edit: [],
-		view: [],
-		assets: []
+		view: []
 	};
 
 	for (const module of modules) {

@@ -3,8 +3,24 @@
 body,
 html {
 	overscroll-behavior: none;
+	font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', sans-serif;
 }
 
 @theme {
-	--font-montserrat: 'Montserrat', 'sans-serif';
+	--font-sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', sans-serif;
+	--color-ink-1: #1e1e1e;
+	--color-ink-2: #6f7377;
+	--color-ink-3: #9b9ea3;
+	--color-ink-4: #c6c9cc;
+	--color-hairline: #e6e6e6;
+	--color-hairline-soft: #ececec;
+	--color-field: #f2f3f4;
+	--color-surface: #ffffff;
+	--color-canvas: #ececec;
+	--color-accent: #0d8de3;
+	--color-accent-soft: #e3f1fc;
+	--color-danger: #e03e3e;
+	--color-ok: #35a668;
+	--color-diff-del: #c0453c;
+	--color-diff-add: #2e7d4f;
 }

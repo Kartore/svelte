@@ -6,16 +6,16 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { Button } from '$lib/components/common/Button';
-	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionInputTypeInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { Button } from '#lib/components/common/Button';
+	import { ExpressionAppendArgButton } from '#lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionInputTypeInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionInputTypeInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import {
 		removeArgsOrCollapse,
 		replaceArgAt
-	} from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	} from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -44,7 +44,7 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-field px-2 py-2',
 		className
 	)}
 >
@@ -54,13 +54,13 @@
 			value={value[nameIndex]}
 			onChange={onChange ? (v) => onChange(replaceArgAt(expression, nameIndex, v)) : undefined}
 		/>
-		<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">=</div>
+		<div class="text-[10px] font-semibold tracking-wide text-ink-3">=</div>
 		<ExpressionArgInputField parentValue={expression} index={nameIndex + 1} {onChange} />
 		{#if onChange}
 			<Button
-				aria-label="Remove binding"
-				title="Remove binding"
-				class="rounded px-1 py-0.5 text-xs text-gray-400 transition-colors hover:text-red-500"
+				aria-label="変数割り当てを削除"
+				title="変数割り当てを削除"
+				class="rounded px-1 py-0.5 text-xs text-ink-3 transition-colors hover:text-ink-2"
 				onclick={() =>
 					onChange(removeArgsOrCollapse(expression, nameIndex, 2, expression[resultIndex]))}
 			>

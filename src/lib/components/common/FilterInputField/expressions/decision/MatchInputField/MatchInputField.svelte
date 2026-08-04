@@ -6,13 +6,13 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { useExpressionSuggestions } from '$lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
-	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { getGetExpressionKey } from '$lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionAppendArgButton } from '#lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { getGetExpressionKey } from '#lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import MatchLabelInputField from './MatchLabelInputField.svelte';
 
@@ -50,30 +50,30 @@
 	);
 </script>
 
-<div {...props} class={cn('flex min-w-0 flex-col gap-2 rounded bg-black/5 px-2 py-2', className)}>
+<div {...props} class={cn('flex min-w-0 flex-col gap-2 rounded bg-field px-2 py-2', className)}>
 	<div class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
 		<div class="flex min-w-0 items-center gap-1">
-			<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">operator</span>
-			<ExpressionOperatorSelect value={expression} {onChange} label="switch" />
+			<span class="text-[10px] font-semibold tracking-wide text-ink-3">演算子</span>
+			<ExpressionOperatorSelect value={expression} {onChange} label="match" />
 		</div>
 		<div class="flex min-w-0 items-center justify-end gap-1">
-			<span class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">input</span>
+			<span class="text-[10px] font-semibold tracking-wide text-ink-3">入力</span>
 			<ExpressionArgInputField class="min-w-0" parentValue={expression} index={1} {onChange} />
 		</div>
 	</div>
 
 	<div class="flex min-w-0 flex-col gap-1">
 		<div
-			class="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] gap-1 border-b border-gray-200 px-0.5 pb-1 font-mono text-[10px] text-gray-500"
+			class="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] gap-1 border-b border-hairline-soft px-0.5 pb-1 font-mono text-[10px] text-ink-3"
 		>
-			<span>case value</span>
+			<span>条件値</span>
 			<span aria-hidden="true"></span>
-			<span>output</span>
+			<span>出力</span>
 		</div>
 
 		{#each Array.from({ length: pairCount }, (_, pair) => pair) as pair (pair)}
 			<div
-				class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+				class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white"
 			>
 				<div class="min-w-0">
 					<MatchLabelInputField
@@ -84,7 +84,7 @@
 						suggestions={labelSuggestions}
 					/>
 				</div>
-				<span class="pt-1 text-center font-mono text-xs text-gray-300" aria-hidden="true">→</span>
+				<span class="pt-1 text-center font-mono text-xs text-ink-4" aria-hidden="true">→</span>
 				<ExpressionArgInputField
 					class="min-w-0 justify-between"
 					parentValue={expression}
@@ -96,16 +96,16 @@
 									removeArgsOrCollapse(expression, 2 + pair * 2, 2, expression[fallbackIndex])
 								)
 						: undefined}
-					removeLabel="Remove match case"
+					removeLabel="マッチ条件を削除"
 				/>
 			</div>
 		{/each}
 
 		<div
-			class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white/60"
+			class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-white"
 		>
-			<span class="pt-1 font-mono text-xs text-gray-500">default</span>
-			<span class="pt-1 text-center font-mono text-xs text-gray-300" aria-hidden="true">→</span>
+			<span class="pt-1 font-mono text-xs text-ink-3">フォールバック</span>
+			<span class="pt-1 text-center font-mono text-xs text-ink-4" aria-hidden="true">→</span>
 			<ExpressionArgInputField
 				class="min-w-0"
 				parentValue={expression}
@@ -115,13 +115,13 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-end border-t border-gray-200 pt-1">
+	<div class="flex items-center justify-end border-t border-hairline-soft pt-1">
 		<ExpressionAppendArgButton
 			value={expression}
 			{onChange}
-			label="+ Add case"
-			ariaLabel="Add match case"
-			class="px-2 py-1 text-gray-500"
+			label="＋ ケースを追加"
+			ariaLabel="マッチ条件を追加"
+			class="px-2 py-1 text-ink-3"
 		/>
 	</div>
 	{@render children?.()}

@@ -1,8 +1,8 @@
 import type { Component } from 'svelte';
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
 
-import type { StoredFont } from '$lib/stores/fonts';
-import type { SpriteIcons } from '$lib/stores/spriteIcons';
+import type { StoredFont } from '#lib/stores/fonts';
+import type { SpriteIcons } from '#lib/stores/spriteIcons';
 
 export type EditorPreview = {
 	style: StyleSpecification;
@@ -73,6 +73,8 @@ export type EditorApi = {
 	registerStyleHistoryProvider: (provider: StyleHistoryProvider) => void;
 	/** アダプタが保存プロバイダを登録する */
 	registerSaveProvider: (provider: SaveProvider) => void;
+	/** アダプタが登録した Rail 項目の SecondColumn を開く */
+	openRailItem: (moduleId: string, railItemId: string) => void;
 };
 
 export type EditorModulePage = {
@@ -81,7 +83,21 @@ export type EditorModulePage = {
 	component: Component;
 };
 
-export type EditorMenuId = 'file' | 'edit' | 'view' | 'assets';
+export type EditorMenuId = 'file' | 'edit' | 'view';
+
+export type EditorRailPlacement = 'main' | 'bottom';
+
+export type EditorModuleRailItem = {
+	/** module id 内で一意な識別子。ホストが module id と組み合わせて名前空間化する */
+	id: string;
+	label: string;
+	/** Rail に表示する Phosphor アイコン */
+	icon: Component;
+	/** 項目の選択時に SecondColumn としてマウントされるコンポーネント */
+	secondColumn: Component;
+	/** bottom は設定ボタンの直前、それ以外は組み込み編集モードの後ろに表示する */
+	placement?: EditorRailPlacement;
+};
 
 // この型を変更したら、すべてのアダプタの types/host-app.d.ts も更新すること。
 export type EditorModule = {
@@ -93,10 +109,12 @@ export type EditorModule = {
 	headerAction?: Component;
 	/** 各メニュー末尾に区切り線付きで差し込まれる項目群 */
 	menuSections?: Partial<Record<EditorMenuId, Component>>;
-	/** NavigationPanel のメニュー行右端に並ぶ小さな状態表示 */
+	/** トップバーのファイル名表示領域に並ぶ小さな状態表示 */
 	headerStatus?: Component;
 	/** +page.svelte 直下にマウントされるダイアログ・オーバーレイ */
 	overlays?: Component[];
+	/** Rail と SecondColumn に追加する adapter 固有の編集モード */
+	railItems?: EditorModuleRailItem[];
 	/** エディタ外のスタンドアロンページ (diff ビューア等)。setup は呼ばれない */
 	pages?: EditorModulePage[];
 	/** 起動時フック。返り値は setContext(`module:${id}`) で配られる */

@@ -3,9 +3,9 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -25,9 +25,9 @@
 
 <div
 	{...props}
-	class={cn('flex min-w-0 flex-row items-center gap-2 rounded bg-black/5 px-2 py-2', className)}
+	class={cn('flex min-w-0 flex-row items-center gap-2 rounded bg-field px-2 py-2', className)}
 >
-	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">get</div>
+	<div class="text-[10px] font-semibold tracking-wide text-ink-3">get</div>
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	<ExpressionArgInputField parentValue={expression} index={1} {onChange} />
 	{@render children?.()}

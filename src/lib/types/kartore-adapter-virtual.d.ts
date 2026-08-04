@@ -1,5 +1,5 @@
 declare module 'virtual:kartore-adapter' {
-	import type { EditorModule } from '$lib/editor/EditorModule.ts';
+	import type { EditorModule } from '#lib/editor/EditorModule.ts';
 	import type { Component, Snippet } from 'svelte';
 
 	export type AdapterProvider = Component<{ children: Snippet }>;

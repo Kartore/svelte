@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { Button } from '$lib/components/common/Button';
-	import { ColorSwatch } from '$lib/components/common/ColorField/ColorSwatch';
-	import type { StyleVariable } from '$lib/utils/styleVariables.ts';
+	import { Diamond, LinkBreak } from 'phosphor-svelte';
+
+	import { Button } from '#lib/components/common/Button';
+	import { ColorSwatch } from '#lib/components/common/ColorField/ColorSwatch';
+	import type { StyleVariable } from '#lib/utils/styleVariables.ts';
 
 	let {
 		variable,
@@ -16,41 +18,42 @@
 	} = $props();
 </script>
 
-<div
-	class="flex min-w-0 items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-1 text-xs text-blue-700"
-	title={`Bound to style variable “${variable.name}”`}
->
-	<span class="shrink-0 font-mono" aria-hidden="true">◇</span>
-	{#if variable.type === 'color'}
-		<ColorSwatch
-			class="h-3.5 w-3.5 shrink-0 rounded-sm border border-blue-200"
-			color={variable.value}
-		/>
-	{/if}
-	<span class="min-w-0 flex-1 truncate font-semibold">{variable.name}</span>
-	{#if stale}
-		<span
-			class="shrink-0 font-bold text-amber-600"
-			title="The property value differs from the variable"
-			aria-label="Binding is out of sync"
-		>
-			!
-		</span>
-		{#if onReapply}
-			<Button
-				class="shrink-0 rounded px-1 py-0.5 text-[10px] font-semibold text-amber-700 hover:bg-amber-100"
-				onclick={onReapply}
-			>
-				Reapply
-			</Button>
+<div class="flex h-6 min-w-0 flex-1 items-center justify-end gap-1">
+	<div
+		class="flex h-6 min-w-0 items-center gap-1.5 rounded-[12px] bg-field pr-2.5 pl-1.5 font-mono text-[11px] text-ink-1"
+		title={`スタイル変数「${variable.name}」を参照`}
+	>
+		{#if variable.type === 'color'}
+			<ColorSwatch
+				class="size-[11px] shrink-0 rounded-full border border-black/5"
+				color={variable.value}
+			/>
+		{:else}
+			<Diamond size={11} weight="regular" class="shrink-0 text-ink-3" aria-hidden="true" />
 		{/if}
+		<span class="min-w-0 truncate">{variable.name}</span>
+		{#if stale}
+			<span
+				class="size-1.5 shrink-0 rounded-full bg-danger"
+				title="プロパティ値が変数と一致していません"
+				aria-label="変数参照が同期していません"
+			></span>
+		{/if}
+	</div>
+	{#if stale && onReapply}
+		<Button
+			class="h-6 shrink-0 rounded-[5px] px-1.5 text-[10px] font-semibold text-ink-2 hover:bg-field"
+			onclick={onReapply}
+		>
+			再適用
+		</Button>
 	{/if}
 	<Button
-		class="shrink-0 rounded px-1 py-0.5 font-semibold text-blue-400 hover:bg-blue-100 hover:text-blue-700"
-		aria-label={`Detach style variable ${variable.name}`}
-		title="Detach variable"
+		class="flex size-6 shrink-0 items-center justify-center rounded-[5px] text-ink-3 hover:bg-field hover:text-ink-1"
+		aria-label={`スタイル変数 ${variable.name} の参照を解除`}
+		title="変数の参照を解除"
 		onclick={onDetach}
 	>
-		×
+		<LinkBreak size={12} weight="regular" aria-hidden="true" />
 	</Button>
 </div>

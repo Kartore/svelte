@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import type { Attachment } from 'svelte/attachments';
 
 	import {
 		clamp,
@@ -9,8 +10,8 @@
 		type Color,
 		type ColorChannel,
 		type ColorSpace
-	} from '$lib/utils/color';
-	import { cn } from '$lib/utils/tailwindUtil';
+	} from '#lib/utils/color';
+	import { cn } from '#lib/utils/tailwindUtil';
 
 	let {
 		class: className,
@@ -250,6 +251,24 @@
 	let containerEl: HTMLDivElement | null = $state(null);
 	let xInputEl: HTMLInputElement | null = $state(null);
 	let yInputEl: HTMLInputElement | null = $state(null);
+	const setContainerEl: Attachment<HTMLDivElement> = (element) => {
+		containerEl = element;
+		return () => {
+			if (containerEl === element) containerEl = null;
+		};
+	};
+	const setXInputEl: Attachment<HTMLInputElement> = (element) => {
+		xInputEl = element;
+		return () => {
+			if (xInputEl === element) xInputEl = null;
+		};
+	};
+	const setYInputEl: Attachment<HTMLInputElement> = (element) => {
+		yInputEl = element;
+		return () => {
+			if (yInputEl === element) yInputEl = null;
+		};
+	};
 
 	let focusedInput = $state<'x' | 'y' | null>(null);
 
@@ -363,16 +382,16 @@
 		].join(', ')}, ${v.getColorName()}`;
 	};
 
-	const inputAriaLabel = $derived(ariaLabel ? `${ariaLabel}, Color picker` : 'Color picker');
+	const inputAriaLabel = $derived(ariaLabel ? `${ariaLabel}, カラーピッカー` : 'カラーピッカー');
 
 	const visuallyHiddenStyle =
 		'border: 0; clip: rect(0 0 0 0); clip-path: inset(50%); height: 100%; width: 100%; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; opacity: 0.0001; pointer-events: none;';
 </script>
 
 <div
-	bind:this={containerEl}
+	{@attach setContainerEl}
 	role="group"
-	aria-label={ariaLabel ? `${ariaLabel}, Color picker` : undefined}
+	aria-label={ariaLabel ? `${ariaLabel}, カラーピッカー` : undefined}
 	class={cn('aspect-square w-full', className)}
 	style={`position: relative; touch-action: none; forced-color-adjust: none; ${colorAreaStyle}`}
 	onpointerdown={onPointerDown}
@@ -386,7 +405,7 @@
 		style={`position: absolute; left: ${thumbPosition.x * 100}%; top: ${thumbPosition.y * 100}%; transform: translate(-50%, -50%); touch-action: none; forced-color-adjust: none; background: ${displayColor.toString('css')}; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(0,0,0,0.25); box-sizing: border-box;`}
 	>
 		<input
-			bind:this={xInputEl}
+			{@attach setXInputEl}
 			type="range"
 			min={xRange.minValue}
 			max={xRange.maxValue}
@@ -394,7 +413,7 @@
 			value={xValue}
 			disabled={isDisabled}
 			aria-label={inputAriaLabel}
-			aria-roledescription="2D slider"
+			aria-roledescription="2 次元スライダー"
 			aria-valuetext={getAriaValueTextForChannel(channels.xChannel)}
 			aria-orientation="horizontal"
 			aria-hidden={!focusedInput || focusedInput === 'x' ? undefined : 'true'}
@@ -409,7 +428,7 @@
 			}}
 		/>
 		<input
-			bind:this={yInputEl}
+			{@attach setYInputEl}
 			type="range"
 			min={yRange.minValue}
 			max={yRange.maxValue}
@@ -417,7 +436,7 @@
 			value={yValue}
 			disabled={isDisabled}
 			aria-label={inputAriaLabel}
-			aria-roledescription="2D slider"
+			aria-roledescription="2 次元スライダー"
 			aria-valuetext={getAriaValueTextForChannel(channels.yChannel)}
 			aria-orientation="vertical"
 			aria-hidden={focusedInput === 'y' ? undefined : 'true'}

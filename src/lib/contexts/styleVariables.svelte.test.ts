@@ -1,8 +1,8 @@
 import type { StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import type { MapStyleStore, SetMapStyleAction } from '$lib/stores/mapStyle';
-import { getLayerBindings, VARIABLES_METADATA_KEY } from '$lib/utils/styleVariables.ts';
+import type { MapStyleStore, SetMapStyleAction } from '#lib/stores/mapStyle';
+import { getLayerBindings, VARIABLES_METADATA_KEY } from '#lib/utils/styleVariables.ts';
 
 import { StyleVariablesContext } from './styleVariables.svelte.ts';
 

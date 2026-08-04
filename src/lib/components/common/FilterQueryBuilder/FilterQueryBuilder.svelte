@@ -12,7 +12,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import FilterGroupRow from './FilterGroupRow.svelte';
 	import type { FilterGroupNode, FilterNode } from './model.ts';
@@ -39,6 +39,6 @@
 	};
 </script>
 
-<div {...props} class={cn('flex min-w-0 flex-col gap-1 text-sm', className)}>
+<div {...props} class={cn('flex min-w-0 flex-col gap-1 text-[11px]', className)}>
 	<FilterGroupRow node={tree} root onChange={updateTree} />
 </div>

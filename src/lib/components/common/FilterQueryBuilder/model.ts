@@ -25,3 +25,10 @@ export type FilterConditionNode =
 	  };
 
 export type FilterRawNode = { kind: 'raw'; expression: unknown[] };
+
+export const isFilterBuilderSupported = (node: FilterNode, depth = 0, maxDepth = 2): boolean => {
+	if (node.kind === 'raw') return false;
+	if (node.kind !== 'group') return true;
+	if (depth > maxDepth) return false;
+	return node.children.every((child) => isFilterBuilderSupported(child, depth + 1, maxDepth));
+};

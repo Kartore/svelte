@@ -1,7 +1,7 @@
 import type { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { osmLibertyMigrated } from '$lib/samples/osm-liberty.ts';
+import { osmLibertyMigrated } from '#lib/samples/osm-liberty.ts';
 
 import {
 	buildLayerTreeRows,

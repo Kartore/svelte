@@ -19,8 +19,8 @@
 <script lang="ts">
 	import { Select } from 'bits-ui';
 
-	import { ArrowDropDownIcon, CheckIcon } from '$lib/components/icons';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ArrowDropDownIcon, CheckIcon } from '#lib/components/icons';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -52,7 +52,7 @@
 	<Select.Item value={item.value} label={item.label} disabled={item.disabled}>
 		{#snippet children({ selected })}
 			<div
-				class="flex cursor-pointer items-center gap-2 bg-transparent py-1 pr-3 pl-1 outline-0 hover:bg-gray-100 aria-selected:bg-gray-200"
+				class="flex cursor-pointer items-center gap-2 bg-transparent py-1 pr-3 pl-1 outline-0 hover:bg-field aria-selected:bg-field"
 				aria-selected={selected}
 			>
 				{#if selected}
@@ -66,15 +66,24 @@
 	</Select.Item>
 {/snippet}
 
-<div class={cn('flex items-center justify-between text-sm', className)}>
+<div
+	class={cn('flex h-[30px] min-w-0 items-center', className)}
+	style="column-gap: var(--field-column-gap, 0px)"
+>
 	{#if label}
-		<div class="font-semibold text-gray-600">{label}</div>
+		<div
+			class="shrink-0 truncate font-mono text-[10px] font-normal text-ink-2"
+			style="width: var(--field-label-width, 84px)"
+			title={label}
+		>
+			{label}
+		</div>
 	{/if}
 	<Select.Root type="single" bind:value {onValueChange} {disabled} items={allItems}>
 		<Select.Trigger
 			aria-label={label ?? ariaLabel}
 			class={cn(
-				'flex w-1/2 cursor-pointer flex-row items-center justify-between rounded border-none bg-gray-100 px-2 py-1 text-sm font-semibold transition-colors hover:bg-gray-200 focus-visible:bg-gray-200 focus-visible:outline-0 aria-expanded:bg-gray-200',
+				'flex h-6 min-w-0 flex-1 cursor-pointer flex-row items-center justify-between rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-0 aria-expanded:shadow-[inset_0_0_0_1px_var(--color-accent)]',
 				triggerClass
 			)}
 		>
@@ -85,7 +94,7 @@
 		</Select.Trigger>
 		<Select.Portal>
 			<Select.Content
-				class="z-50 m-0 max-h-40 min-w-32 list-none overflow-auto rounded border border-gray-500 bg-white p-0"
+				class="z-50 m-0 max-h-40 min-w-32 list-none overflow-auto rounded-[10px] border border-hairline bg-white p-0 font-mono text-[11px] shadow-xl shadow-ink-1/15"
 				sideOffset={4}
 				align="start"
 			>
@@ -94,7 +103,7 @@
 						{#each sections as section (section.title)}
 							<Select.Group>
 								<Select.GroupHeading
-									class="block px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase"
+									class="block px-2 pt-2 pb-1 text-[10px] font-semibold text-ink-3"
 								>
 									{section.title}
 								</Select.GroupHeading>

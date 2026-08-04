@@ -3,11 +3,11 @@
 	import type { Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
-	import { ExpressionAppendArgButton } from '$lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
-	import { ExpressionArgInputField } from '$lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
-	import { ExpressionOperatorSelect } from '$lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
-	import { removeArgsOrCollapse } from '$lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
-	import { cn } from '$lib/utils/tailwindUtil.ts';
+	import { ExpressionAppendArgButton } from '#lib/components/common/FilterInputField/expressions/common/ExpressionAppendArgButton';
+	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
+	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
+	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
 		class: className,
@@ -29,11 +29,11 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-black/5 px-2 py-2',
+		'flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded bg-field px-2 py-2',
 		className
 	)}
 >
-	<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">typecheck</div>
+	<div class="text-[10px] font-semibold tracking-wide text-ink-3">型検査</div>
 	<ExpressionOperatorSelect value={expression} {onChange} />
 	{#each Array.from({ length: argCount }, (_, i) => i + 1) as index (index)}
 		<ExpressionArgInputField
@@ -45,7 +45,7 @@
 				: undefined}
 		/>
 		{#if index < value.length - 1}
-			<div class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase">OR</div>
+			<div class="text-[10px] font-semibold tracking-wide text-ink-3">または</div>
 		{/if}
 	{/each}
 	<ExpressionAppendArgButton value={expression} {onChange} />
