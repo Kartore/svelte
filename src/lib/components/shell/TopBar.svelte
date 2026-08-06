@@ -27,6 +27,7 @@
 		canRedo = false,
 		onUndo,
 		onRedo,
+		onNewStyle,
 		onImport,
 		onExport,
 		onRenameStyle,
@@ -51,6 +52,7 @@
 		canRedo?: boolean;
 		onUndo?: () => void;
 		onRedo?: () => void;
+		onNewStyle?: () => void;
 		onImport?: () => void;
 		onExport?: () => void;
 		onRenameStyle?: (name: string) => void;
@@ -183,6 +185,9 @@
 	<nav class="flex min-w-0 items-center gap-0.5" aria-label="エディター">
 		<MenuRoot>
 			<MenuTrigger value="file" label="ファイル">
+				<MenuItem disabled={!onNewStyle} shortcut="⌘N" onSelect={() => onNewStyle?.()}>
+					新規スタイル
+				</MenuItem>
 				<MenuItem onSelect={() => onImport?.()}>スタイルを読み込む…</MenuItem>
 				<MenuItem onSelect={() => onExport?.()}>スタイルを書き出す…</MenuItem>
 				{@render renderAdapterMenuSections('file')}

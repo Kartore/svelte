@@ -46,11 +46,17 @@
 	} = $props();
 
 	let draftId = $state('');
-	let draftType = $state<LayerType>('line');
+	let draftTypeOverride = $state<LayerType | null>(null);
 	let draftSource = $state('');
 	let draftSourceLayer = $state('');
 	let insertion = $state(topInsertion);
 
+	const defaultDraftType = $derived<LayerType>(
+		mapStyle.layers.length === 0 && Object.keys(mapStyle.sources).length === 0
+			? 'background'
+			: 'line'
+	);
+	const draftType = $derived(draftTypeOverride ?? defaultDraftType);
 	const existingIds = $derived(new Set(mapStyle.layers.map((layer) => layer.id)));
 	const compatibleSources = $derived(compatibleSourcesForLayer(draftType, mapStyle.sources));
 	const sourceRequired = $derived(draftType !== 'background');
@@ -81,7 +87,7 @@
 
 	const reset = () => {
 		draftId = '';
-		draftType = 'line';
+		draftTypeOverride = null;
 		draftSource = '';
 		draftSourceLayer = '';
 		insertion = topInsertion;
@@ -143,7 +149,7 @@
 					}`}
 					aria-pressed={type === draftType}
 					onclick={() => {
-						draftType = type;
+						draftTypeOverride = type;
 						draftSourceLayer = '';
 					}}
 				>

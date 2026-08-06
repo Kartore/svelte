@@ -262,6 +262,10 @@
 			<p class="px-2 py-6 text-center text-[11px] text-ink-3">
 				“{normalizedLayerSearch}” に一致するレイヤーはありません。
 			</p>
+		{:else if mapStyle.layers.length === 0}
+			<p class="px-2 py-6 text-center text-[11px] text-ink-3">
+				レイヤーがありません。上の＋から追加できます。
+			</p>
 		{:else}
 			{#each visibleRows as row, rowIndex (row.kind === 'group' ? `group-${row.name}-${row.startIndex}` : (mapStyle.layers[row.layerIndex]?.id ?? row.layerIndex))}
 				{#if row.kind === 'group'}

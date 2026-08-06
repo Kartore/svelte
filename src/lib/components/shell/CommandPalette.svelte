@@ -28,7 +28,7 @@
 	}: {
 		open?: boolean;
 		layers: LayerSpecification[];
-		selectedLayer: LayerSpecification;
+		selectedLayer?: LayerSpecification;
 		onSelectLayer: (layerId: string) => void;
 		onSelectProperty: (item: PropertyCatalogItem) => void;
 		onMoveZoom: (zoom: number) => void;
@@ -72,18 +72,18 @@
 			id: `layer:${layer.id}`,
 			group: 'レイヤー',
 			label: layer.id,
-			detail: layer.id === selectedLayer.id ? `${layer.type} ・ 選択中` : layer.type,
+			detail: layer.id === selectedLayer?.id ? `${layer.type} ・ 選択中` : layer.type,
 			run: () => onSelectLayer(layer.id)
 		}));
-		const propertyEntries: PaletteEntry[] = getLayerPropertyCatalog(selectedLayer.type).map(
-			(item) => ({
-				id: `property:${item.group}:${item.key}`,
-				group: 'プロパティ',
-				label: `${selectedLayer.id} の ${item.key} を編集`,
-				detail: item.spec.expression?.interpolated ? 'zoom 補間' : item.group,
-				run: () => onSelectProperty(item)
-			})
-		);
+		const propertyEntries: PaletteEntry[] = selectedLayer
+			? getLayerPropertyCatalog(selectedLayer.type).map((item) => ({
+					id: `property:${item.group}:${item.key}`,
+					group: 'プロパティ',
+					label: `${selectedLayer.id} の ${item.key} を編集`,
+					detail: item.spec.expression?.interpolated ? 'zoom 補間' : item.group,
+					run: () => onSelectProperty(item)
+				}))
+			: [];
 		const actionEntries: PaletteEntry[] = (commandRegistry?.commands ?? [])
 			.filter(({ label }) => label !== '')
 			.map((command) => ({

@@ -31,6 +31,7 @@
 	import { StyleJsonPanel } from '#lib/components/editor/StyleJsonPanel';
 	import {
 		CommandPalette,
+		EmptyPropertiesDock,
 		MapViewport,
 		PropertiesDock,
 		Rail,
@@ -71,6 +72,7 @@
 	import { groupLayersByIdPrefix } from '#lib/utils/layerGroup.ts';
 	import { COLOR_VISION_MODE_LABELS, type ColorVisionMode } from '#lib/utils/colorVision.ts';
 	import { createStyleExport } from '#lib/utils/styleExport.ts';
+	import { createEmptyStyle } from '#lib/utils/styleCreate.ts';
 	import { getLayerRawPropertyValue, type RootPropertyKind } from '#lib/utils/layerSpec.ts';
 	import { getPropertyInitialValue, type PropertyCatalogItem } from '#lib/utils/propertyCatalog.ts';
 	import { normalizeStyleVariables } from '#lib/utils/styleVariables.ts';
@@ -101,6 +103,7 @@
 	const expressionFlyout = provideExpressionFlyout();
 	const styleHistory = provideStyleHistory();
 	const saveProviders: SaveProvider[] = [];
+	const newStyleHandlers: (() => void)[] = [];
 	const localSpriteDimensions = new SvelteMap<string, LocalSpriteDimensions>();
 	provideLocalSpriteImages(() =>
 		Object.entries(spriteIconsStore.icons).map(([id, svg]) => {
@@ -362,7 +365,7 @@
 			return generateRange(font, start);
 		}
 	});
-	const selectedLayer = $derived(
+	const selectedLayer = $derived<LayerSpecification | undefined>(
 		editorStyle.layers.find((layer) => layer.id === selectedLayerId) ?? editorStyle.layers[0]
 	);
 	const effectiveSelectedLayerId = $derived(selectedLayer?.id ?? null);
@@ -414,6 +417,7 @@
 		getPreview: () => previewState,
 		registerStyleHistoryProvider: (provider) => styleHistory.register(provider),
 		registerSaveProvider: (provider) => saveProviders.push(provider),
+		registerNewStyleHandler: (handler) => newStyleHandlers.push(handler),
 		openRailItem: openAdapterRailItem
 	};
 	for (const module of adapterModules) {
@@ -467,6 +471,21 @@
 	const handleImport = (style: StyleSpecification) => {
 		if (previewState) return;
 		store.setMapStyle(normalizeStyleVariables(style));
+	};
+
+	const handleNewStyle = () => {
+		if (inspectActive) endInspectMode();
+		previewState = null;
+		store.cancelStyleTransient();
+		expressionFlyout.close();
+		for (const handler of newStyleHandlers) handler();
+		backgroundMap.filterHighlight = null;
+		paletteSelectionLabel = null;
+		activeShellMode = 'layers';
+		styleJsonMode = false;
+		addLayerPopoverOpen = false;
+		selectedLayerId = null;
+		store.setMapStyle(createEmptyStyle());
 	};
 
 	const handleApplyStyle = (style: StyleSpecification) => {
@@ -608,6 +627,14 @@
 		styleJsonMode = false;
 	};
 
+	const handleOpenAddLayer = () => {
+		expressionFlyout.close();
+		activeShellMode = 'layers';
+		styleJsonMode = false;
+		if (leftShellCollapsed) setLeftShellCollapsed(false);
+		addLayerPopoverOpen = true;
+	};
+
 	const handleApplyLayer = (nextLayer: LayerSpecification, previousId: string) => {
 		if (previewState) return;
 		if (
@@ -624,6 +651,7 @@
 	};
 
 	const handleCommandSelectProperty = async (item: PropertyCatalogItem) => {
+		if (!selectedLayer) return;
 		expressionFlyout.close();
 		activeShellMode = 'layers';
 		styleJsonMode = false;
@@ -669,7 +697,7 @@
 	};
 
 	const handleDuplicateLayer = () => {
-		if (previewState) return;
+		if (previewState || !selectedLayer) return;
 		expressionFlyout.close();
 		store.setMapStyle((currentStyle) => {
 			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayer.id);
@@ -685,13 +713,12 @@
 
 	const handleDeleteLayer = () => {
 		if (previewState || selectedLayerId === null) return;
-		if (store.mapStyle.layers.length <= 1) return;
 		expressionFlyout.close();
 		store.setMapStyle((currentStyle) => {
 			const index = currentStyle.layers.findIndex((layer) => layer.id === selectedLayerId);
-			if (index === -1 || currentStyle.layers.length <= 1) return currentStyle;
+			if (index === -1) return currentStyle;
 			const layers = currentStyle.layers.filter((_, i) => i !== index);
-			selectedLayerId = (layers[index] ?? layers[index - 1]).id;
+			selectedLayerId = (layers[index] ?? layers[index - 1])?.id ?? null;
 			return { ...currentStyle, layers };
 		});
 	};
@@ -716,6 +743,11 @@
 
 	const handleKeyDown = (event: KeyboardEvent) => {
 		const hasCommandModifier = event.metaKey || event.ctrlKey;
+		if (hasCommandModifier && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'n') {
+			event.preventDefault();
+			if (!event.repeat) handleNewStyle();
+			return;
+		}
 		if (hasCommandModifier && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 's') {
 			event.preventDefault();
 			if (!event.repeat) handleSave();
@@ -871,13 +903,11 @@
 			canRedo={!previewState && store.canRedo}
 			onUndo={() => store.undo()}
 			onRedo={() => store.redo()}
+			onNewStyle={handleNewStyle}
 			onImport={() => (importDialogOpen = true)}
 			onExport={handleExport}
 			onRenameStyle={previewState ? undefined : handleRenameStyle}
-			onAddLayer={() => {
-				activeShellMode = 'layers';
-				addLayerPopoverOpen = true;
-			}}
+			onAddLayer={handleOpenAddLayer}
 			onGroupLayersByPrefix={previewState ? undefined : handleGroupLayersByPrefix}
 			onOpenStyleSettings={handleShowStyleSettings}
 			onOpenVariables={handleShowPalette}
@@ -1067,7 +1097,7 @@
 							readOnly={previewState !== null}
 							onApply={handleApplyStyleJson}
 						/>
-					{:else}
+					{:else if selectedLayer}
 						{#key selectedLayer.id}
 							<LayerInspector
 								class="h-full w-full min-w-0 rounded-none border-0 shadow-none"
@@ -1085,15 +1115,17 @@
 								onApplyLayer={handleApplyLayer}
 								onDuplicateLayer={handleDuplicateLayer}
 								onDeleteLayer={handleDeleteLayer}
-								canDeleteLayer={!previewState && editorStyle.layers.length > 1}
+								canDeleteLayer={!previewState}
 							/>
 						{/key}
+					{:else}
+						<EmptyPropertiesDock onAddLayer={handleOpenAddLayer} />
 					{/if}
 				</PropertiesDock>
 			</ResizableSidebar>
 		</div>
 
-		{#if !styleJsonMode && flyoutVisible && expressionFlyout.target && flyoutPositionAnchor}
+		{#if !styleJsonMode && selectedLayer && flyoutVisible && expressionFlyout.target && flyoutPositionAnchor}
 			<RowPopover
 				open={true}
 				customAnchor={flyoutPositionAnchor}

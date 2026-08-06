@@ -1,5 +1,6 @@
 export { default as MapViewport } from './MapViewport.svelte';
 export { default as CommandPalette } from './CommandPalette.svelte';
+export { default as EmptyPropertiesDock } from './EmptyPropertiesDock.svelte';
 export { default as PropertiesDock } from './PropertiesDock.svelte';
 export { default as Rail } from './Rail.svelte';
 export { default as ResizableSidebar } from './ResizableSidebar.svelte';

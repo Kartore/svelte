@@ -53,6 +53,8 @@ export type SaveProvider = {
 	save: () => void | Promise<void>;
 };
 
+export type NewStyleHandler = () => void;
+
 export type EditorApi = {
 	/** ホストアプリの package version。パック manifest など外部出力の生成元バージョン */
 	readonly appVersion: string;
@@ -73,6 +75,8 @@ export type EditorApi = {
 	registerStyleHistoryProvider: (provider: StyleHistoryProvider) => void;
 	/** アダプタが保存プロバイダを登録する */
 	registerSaveProvider: (provider: SaveProvider) => void;
+	/** 新規スタイル作成時に、現在のファイル等との接続を解除するハンドラを登録する */
+	registerNewStyleHandler: (handler: NewStyleHandler) => void;
 	/** アダプタが登録した Rail 項目の SecondColumn を開く */
 	openRailItem: (moduleId: string, railItemId: string) => void;
 };
