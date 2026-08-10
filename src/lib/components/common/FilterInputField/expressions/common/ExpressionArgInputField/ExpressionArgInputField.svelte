@@ -133,7 +133,7 @@
 		<Button
 			aria-label="式に変換"
 			title="式に変換"
-			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-white hover:text-ink-1 focus-visible:opacity-100"
+			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-black/5 hover:text-ink-1 focus-visible:opacity-100"
 			onclick={specLiteralFieldKind !== undefined
 				? editSpecLiteralAsExpression
 				: () => handleChildChange?.(literalToExpression(arg))}
@@ -144,7 +144,7 @@
 		<Button
 			aria-label="式として編集"
 			title="式として編集"
-			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-white hover:text-ink-1 focus-visible:opacity-100"
+			class="flex size-6 items-center justify-center rounded-[6px] text-ink-3 opacity-0 transition-opacity group-hover/arg:opacity-100 hover:bg-black/5 hover:text-ink-1 focus-visible:opacity-100"
 			onclick={editSpecLiteralAsExpression}
 		>
 			<FunctionIcon size={14} weight="regular" aria-hidden="true" />
@@ -154,7 +154,7 @@
 		<Button
 			aria-label={removeLabel}
 			title={removeLabel}
-			class="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-3 transition-colors hover:bg-white hover:text-ink-1"
+			class="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-3 transition-colors hover:bg-black/5 hover:text-ink-1"
 			onclick={onRemove}
 		>
 			<X size={14} weight="regular" aria-hidden="true" />

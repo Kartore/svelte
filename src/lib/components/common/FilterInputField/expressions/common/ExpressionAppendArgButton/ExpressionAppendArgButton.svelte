@@ -34,7 +34,7 @@
 		aria-label={ariaLabel}
 		title={ariaLabel}
 		class={cn(
-			'flex h-6 items-center gap-1 rounded-[6px] px-1.5 text-[10px] font-semibold text-ink-3 hover:bg-white hover:text-ink-1',
+			'flex h-6 items-center gap-1 rounded-[6px] px-1.5 text-[10px] font-semibold text-ink-3 hover:bg-black/5 hover:text-ink-1',
 			className
 		)}
 		onclick={() => {

@@ -83,7 +83,7 @@
 		<Select.Trigger
 			aria-label={label ?? ariaLabel}
 			class={cn(
-				'flex h-6 min-w-0 flex-1 cursor-pointer flex-row items-center justify-between rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-0 aria-expanded:shadow-[inset_0_0_0_1px_var(--color-accent)]',
+				'flex h-6 min-w-0 flex-1 cursor-pointer flex-row items-center justify-between rounded-[5px] border-none bg-[var(--expression-control-background,var(--color-field))] px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-0 aria-expanded:shadow-[inset_0_0_0_1px_var(--color-accent)]',
 				triggerClass
 			)}
 		>

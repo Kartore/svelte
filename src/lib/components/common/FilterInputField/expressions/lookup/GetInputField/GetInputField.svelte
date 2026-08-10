@@ -13,6 +13,7 @@
 		children,
 		value,
 		nested = false,
+		depth = 0,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -24,6 +25,7 @@
 			(Record<string, unknown> | ExpressionSpecification)?
 		];
 		nested?: boolean;
+		depth?: number;
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
@@ -52,6 +54,8 @@
 				return undefined;
 		}
 	});
+	const surfaceDepth = $derived(nested ? Math.max(0, depth - 1) : depth);
+	const usesFieldSurface = $derived(surfaceDepth % 2 === 0);
 </script>
 
 <div
@@ -59,9 +63,14 @@
 	class={cn(
 		nested
 			? 'flex min-w-0 flex-row items-center'
-			: 'flex min-w-0 flex-col gap-1 rounded bg-field px-2 py-2',
+			: cn(
+					'flex min-w-0 flex-col gap-1 rounded px-2 py-2',
+					usesFieldSurface ? 'bg-field' : 'border border-hairline-soft bg-white'
+				),
 		className
 	)}
+	style:--expression-surface-background={usesFieldSurface ? 'var(--color-field)' : '#fff'}
+	style:--expression-control-background={usesFieldSurface ? '#fff' : 'var(--color-field)'}
 >
 	<div class="flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1">
 		<ExpressionOperatorSelect value={expression} {onChange} />
@@ -88,7 +97,9 @@
 				</span>
 			{/if}
 			{#if propertySuggestion.type}
-				<span class="rounded bg-field px-1 py-0.5 font-mono text-[10px] text-ink-2">
+				<span
+					class="rounded bg-[var(--expression-control-background,var(--color-field))] px-1 py-0.5 font-mono text-[10px] text-ink-2"
+				>
 					{propertySuggestion.type}
 				</span>
 			{/if}
@@ -96,7 +107,7 @@
 				<span class="ml-1 text-[10px] text-ink-3">サンプル</span>
 				{#each sampledValues as sample (`${typeof sample}:${String(sample)}`)}
 					<code
-						class="max-w-24 truncate rounded bg-white px-1 py-0.5 text-[10px] text-ink-2"
+						class="max-w-24 truncate rounded bg-[var(--expression-control-background,#fff)] px-1 py-0.5 text-[10px] text-ink-2"
 						title={String(sample)}>{String(sample)}</code
 					>
 				{/each}

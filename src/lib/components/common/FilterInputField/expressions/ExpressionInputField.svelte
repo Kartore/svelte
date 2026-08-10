@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
-	import type { Snippet } from 'svelte';
+	import { getContext, setContext, type Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
@@ -13,6 +13,15 @@
 		/** nested expressions use the same left-rule hierarchy as nested filter groups */
 		nested?: boolean;
 		onChange?: (value: ExpressionSpecification) => void;
+	};
+
+	const EXPRESSION_DEPTH_KEY = Symbol('expression-depth');
+
+	/** Registers this expression below its parent and returns root-first depth (root = 0). */
+	export const useExpressionDepth = (): number => {
+		const depth = (getContext<number | undefined>(EXPRESSION_DEPTH_KEY) ?? -1) + 1;
+		setContext(EXPRESSION_DEPTH_KEY, depth);
+		return depth;
 	};
 </script>
 
@@ -352,12 +361,14 @@
 		ZoomInputField,
 		isZoomExpressionSpecification
 	} from '#lib/components/common/FilterInputField/expressions/zoom/ZoomInputField';
+	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
 
 	type ExpressionFieldDispatchEntry = {
 		guard: (value: ExpressionSpecification) => boolean;
 		acceptsZoomRange?: boolean;
 		acceptsPropertySpec?: boolean;
 		acceptsNested?: boolean;
+		acceptsDepth?: boolean;
 		// each field narrows `value` further; the guard guarantees the match at runtime
 		component: unknown;
 	};
@@ -393,7 +404,11 @@
 		},
 		{ guard: isAllExpressionSpecification, component: AllInputField },
 		{ guard: isAnyExpressionSpecification, component: AnyInputField },
-		{ guard: isCaseExpressionSpecification, component: CaseInputField },
+		{
+			guard: isCaseExpressionSpecification,
+			component: CaseInputField,
+			acceptsDepth: true
+		},
 		{ guard: isCoalesceExpressionSpecification, component: CoalesceInputField },
 		{ guard: isEqualExpressionSpecification, component: EqualInputField },
 		{ guard: isGreaterThanExpressionSpecification, component: GreaterThanInputField },
@@ -403,7 +418,11 @@
 		},
 		{ guard: isLessThanExpressionSpecification, component: LessThanInputField },
 		{ guard: isLessThanOrEqualExpressionSpecification, component: LessThanOrEqualInputField },
-		{ guard: isMatchExpressionSpecification, component: MatchInputField },
+		{
+			guard: isMatchExpressionSpecification,
+			component: MatchInputField,
+			acceptsDepth: true
+		},
 		{ guard: isNotEqualExpressionSpecification, component: NotEqualInputField },
 		{ guard: isNotExpressionSpecification, component: NotInputField },
 		{ guard: isWithinExpressionSpecification, component: WithinInputField },
@@ -431,7 +450,12 @@
 			acceptsNested: true
 		},
 		{ guard: isAtExpressionSpecification, component: AtInputField },
-		{ guard: isGetExpressionSpecification, component: GetInputField, acceptsNested: true },
+		{
+			guard: isGetExpressionSpecification,
+			component: GetInputField,
+			acceptsNested: true,
+			acceptsDepth: true
+		},
 		{ guard: isHasExpressionSpecification, component: HasInputField },
 		{ guard: isIndexOfExpressionSpecification, component: IndexOfInputField },
 		{ guard: isInExpressionSpecification, component: InInputField },
@@ -501,6 +525,7 @@
 		onChange,
 		...props
 	}: ExpressionInputFieldProps = $props();
+	const depth = useExpressionDepth();
 
 	const entry = $derived(
 		value ? dispatchers.find((dispatcher) => dispatcher.guard(value)) : undefined
@@ -508,9 +533,17 @@
 	const fieldProps = $derived({
 		...(entry?.acceptsZoomRange ? { zoomRange } : {}),
 		...(entry?.acceptsPropertySpec ? { propertySpec } : {}),
-		...(entry?.acceptsNested ? { nested } : {})
+		...(entry?.acceptsNested ? { nested } : {}),
+		...(entry?.acceptsDepth ? { depth } : {})
 	});
-	const fieldClass = $derived(cn('max-w-full text-ink-2', className));
+	const fieldClass = $derived(
+		cn(
+			'max-w-full text-ink-2',
+			!isCompactExpression(value) &&
+				(depth % 2 === 0 ? 'bg-field' : 'border border-hairline-soft bg-white'),
+			className
+		)
+	);
 </script>
 
 {#if value}
@@ -521,13 +554,19 @@
 			{...fieldProps}
 			class={fieldClass}
 			data-expression-node={nested ? 'nested' : 'root'}
+			data-expression-depth={depth}
 			{value}
 			{onChange}
 		>
 			{@render children?.()}
 		</Field>
 	{:else}
-		<div {...props} class={fieldClass} data-expression-node={nested ? 'nested' : 'root'}>
+		<div
+			{...props}
+			class={fieldClass}
+			data-expression-node={nested ? 'nested' : 'root'}
+			data-expression-depth={depth}
+		>
 			{JSON.stringify(value)}
 			{@render children?.()}
 		</div>

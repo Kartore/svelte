@@ -41,7 +41,7 @@
 {#if !meta || !onChange}
 	<div
 		class={cn(
-			'flex h-6 max-w-full min-w-0 flex-row rounded-[5px] bg-field px-2 font-mono text-[11px] font-normal text-ink-1',
+			'flex h-6 max-w-full min-w-0 flex-row rounded-[5px] bg-[var(--expression-control-background,var(--color-field))] px-2 font-mono text-[11px] font-normal text-ink-1',
 			className
 		)}
 	>
