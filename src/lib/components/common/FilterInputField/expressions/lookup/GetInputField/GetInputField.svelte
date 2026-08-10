@@ -6,6 +6,7 @@
 	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { expressionSurface } from '#lib/components/common/FilterInputField/expressions/utils/expressionSurface.ts';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
@@ -54,8 +55,7 @@
 				return undefined;
 		}
 	});
-	const surfaceDepth = $derived(nested ? Math.max(0, depth - 1) : depth);
-	const usesFieldSurface = $derived(surfaceDepth % 2 === 0);
+	const surface = $derived(expressionSurface(depth));
 </script>
 
 <div
@@ -63,14 +63,11 @@
 	class={cn(
 		nested
 			? 'flex min-w-0 flex-row flex-nowrap items-center'
-			: cn(
-					'flex min-w-0 flex-col gap-1 rounded px-2 py-2',
-					usesFieldSurface ? 'bg-field' : 'border border-hairline-soft bg-white'
-				),
+			: cn('flex min-w-0 flex-col gap-1 rounded px-2 py-2', surface.className),
 		className
 	)}
-	style:--expression-surface-background={usesFieldSurface ? 'var(--color-field)' : '#fff'}
-	style:--expression-control-background={usesFieldSurface ? '#fff' : 'var(--color-field)'}
+	style:--expression-surface-background={nested ? undefined : surface.surfaceBackground}
+	style:--expression-control-background={nested ? undefined : surface.controlBackground}
 >
 	<div
 		class={cn(

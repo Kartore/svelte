@@ -13,6 +13,7 @@
 	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { expressionSurface } from '#lib/components/common/FilterInputField/expressions/utils/expressionSurface.ts';
 	import { getGetExpressionKey } from '#lib/components/common/FilterInputField/expressions/utils/getGetExpressionKey.ts';
 	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
 	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
@@ -57,7 +58,7 @@
 	const labelSuggestions = $derived(
 		inputKey && suggestionsContext ? suggestionsContext.getValueSuggestions(inputKey) : undefined
 	);
-	const usesFieldSurface = $derived(depth % 2 === 0);
+	const surface = $derived(expressionSurface(depth));
 	const isCompoundOutput = (output: unknown) =>
 		isExpression(output) && !isCompactExpression(output);
 	const removePair = (labelIndex: number) => {
@@ -67,13 +68,9 @@
 
 <div
 	{...props}
-	class={cn(
-		'flex min-w-0 flex-col gap-2 rounded px-2 py-2',
-		usesFieldSurface ? 'bg-field' : 'border border-hairline-soft bg-white',
-		className
-	)}
-	style:--expression-surface-background={usesFieldSurface ? 'var(--color-field)' : '#fff'}
-	style:--expression-control-background={usesFieldSurface ? '#fff' : 'var(--color-field)'}
+	class={cn('flex min-w-0 flex-col gap-2 rounded px-2 py-2', surface.className, className)}
+	style:--expression-surface-background={surface.surfaceBackground}
+	style:--expression-control-background={surface.controlBackground}
 >
 	<div class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
 		<div class="flex min-w-0 items-center gap-1">

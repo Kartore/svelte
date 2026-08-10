@@ -361,7 +361,7 @@
 		ZoomInputField,
 		isZoomExpressionSpecification
 	} from '#lib/components/common/FilterInputField/expressions/zoom/ZoomInputField';
-	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
+	import { expressionSurface } from '#lib/components/common/FilterInputField/expressions/utils/expressionSurface.ts';
 
 	type ExpressionFieldDispatchEntry = {
 		guard: (value: ExpressionSpecification) => boolean;
@@ -538,14 +538,8 @@
 		...(entry?.acceptsNested ? { nested } : {}),
 		...(entry?.acceptsDepth ? { depth } : {})
 	});
-	const fieldClass = $derived(
-		cn(
-			'max-w-full text-ink-2',
-			!isCompactExpression(value) &&
-				(depth % 2 === 0 ? 'bg-field' : 'border border-hairline-soft bg-white'),
-			className
-		)
-	);
+	const fieldClass = $derived(cn('max-w-full text-ink-2', className));
+	const fallbackClass = $derived(cn(expressionSurface(depth).className, fieldClass));
 </script>
 
 {#if value}
@@ -565,7 +559,7 @@
 	{:else}
 		<div
 			{...props}
-			class={fieldClass}
+			class={fallbackClass}
 			data-expression-node={nested ? 'nested' : 'root'}
 			data-expression-depth={depth}
 		>

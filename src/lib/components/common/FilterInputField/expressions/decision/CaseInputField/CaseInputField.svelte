@@ -12,6 +12,7 @@
 	import { ExpressionArgInputField } from '#lib/components/common/FilterInputField/expressions/common/ExpressionArgInputField';
 	import { ExpressionOperatorSelect } from '#lib/components/common/FilterInputField/expressions/common/ExpressionOperatorSelect';
 	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
+	import { expressionSurface } from '#lib/components/common/FilterInputField/expressions/utils/expressionSurface.ts';
 	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
 	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
@@ -43,7 +44,7 @@
 	const expression = $derived(value as ExpressionSpecification);
 	const pairCount = $derived(Math.floor((value.length - 2) / 2));
 	const fallbackIndex = $derived(value.length - 1);
-	const usesFieldSurface = $derived(depth % 2 === 0);
+	const surface = $derived(expressionSurface(depth));
 	const isCompoundOutput = (output: unknown) =>
 		isExpression(output) && !isCompactExpression(output);
 	const removePair = (conditionIndex: number) => {
@@ -53,13 +54,9 @@
 
 <div
 	{...props}
-	class={cn(
-		'flex min-w-0 flex-col gap-2 rounded px-2 py-2',
-		usesFieldSurface ? 'bg-field' : 'border border-hairline-soft bg-white',
-		className
-	)}
-	style:--expression-surface-background={usesFieldSurface ? 'var(--color-field)' : '#fff'}
-	style:--expression-control-background={usesFieldSurface ? '#fff' : 'var(--color-field)'}
+	class={cn('flex min-w-0 flex-col gap-2 rounded px-2 py-2', surface.className, className)}
+	style:--expression-surface-background={surface.surfaceBackground}
+	style:--expression-control-background={surface.controlBackground}
 >
 	<div class="flex min-w-0 items-center gap-1">
 		<span class="text-[10px] font-semibold tracking-wide text-ink-3">演算子</span>

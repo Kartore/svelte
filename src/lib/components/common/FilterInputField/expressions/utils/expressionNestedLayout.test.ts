@@ -26,6 +26,9 @@ describe('compact nested expression layout', () => {
 		expect(
 			body.match(/data-expression-node="nested"[^>]*class="[^"]*flex-nowrap[^"]*"/g)
 		).toHaveLength(3);
+		for (const nestedNode of body.match(/<div data-expression-node="nested"[^>]*>/g) ?? []) {
+			expect(nestedNode).not.toContain('style=');
+		}
 		expect(body).toContain('text-ellipsis');
 		expect(body).not.toContain('現在のフィーチャー');
 	});
