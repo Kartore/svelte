@@ -26,11 +26,15 @@ export class MapStyleStore {
 	isSaving = $state(false);
 	loadError = $state<Error | null>(null);
 	saveError = $state<Error | null>(null);
+	/** adapter に保存済みスタイルがなく、初期プロジェクトの復元が必要か。 */
+	needsInitialProject = true;
+	/** 初回ロードが成功・失敗のどちらかで完了した時点で解決する。 */
+	readonly ready: Promise<void>;
 
 	constructor({ adapter, initialStyle }: MapStyleStoreOptions) {
 		this.#adapter = adapter;
 		this.mapStyle = initialStyle;
-		void this.#load(initialStyle);
+		this.ready = this.#load(initialStyle);
 	}
 
 	get canUndo() {
@@ -44,6 +48,7 @@ export class MapStyleStore {
 	async #load(initialStyle: StyleSpecification) {
 		try {
 			const loadedStyle = await this.#adapter.load();
+			this.needsInitialProject = loadedStyle === null;
 			this.mapStyle = loadedStyle ?? initialStyle;
 		} catch (error) {
 			this.loadError = error instanceof Error ? error : new Error(String(error));
@@ -69,6 +74,17 @@ export class MapStyleStore {
 
 		const nextStyle = typeof value === 'function' ? value(currentStyle) : value;
 		this.mapStyle = nextStyle;
+		this.#scheduleSave();
+	};
+
+	/** 外部プロジェクトの style で置換し、以前のプロジェクトに属する undo 履歴を破棄する。 */
+	replaceMapStyle = (style: StyleSpecification) => {
+		this.#transientBase = null;
+		this.#past = [];
+		this.#future = [];
+		this.#lastPushAt = 0;
+		this.needsInitialProject = false;
+		this.mapStyle = style;
 		this.#scheduleSave();
 	};
 

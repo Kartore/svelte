@@ -1,7 +1,7 @@
 import type { LayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { describe, expect, it } from 'vitest';
 
-import { osmLibertyMigrated } from '#lib/samples/osm-liberty.ts';
+import { osmLibertyDefault, osmLibertyMigrated } from '#lib/samples/osm-liberty.ts';
 
 import {
 	buildLayerTreeRows,
@@ -53,5 +53,12 @@ describe('groupLayersByIdPrefix', () => {
 		expect(grouping.groupCount).toBeGreaterThan(0);
 		expect(grouping.layers.some((item) => getLayerGroup(item) !== undefined)).toBe(true);
 		expect(buildLayerTreeRows(grouping.layers).some((row) => row.kind === 'group')).toBe(true);
+	});
+
+	it('ships the default OSM Liberty style with collapsible groups', () => {
+		expect(osmLibertyDefault.layers.some((item) => getLayerGroup(item) !== undefined)).toBe(true);
+		expect(buildLayerTreeRows(osmLibertyDefault.layers).some((row) => row.kind === 'group')).toBe(
+			true
+		);
 	});
 });

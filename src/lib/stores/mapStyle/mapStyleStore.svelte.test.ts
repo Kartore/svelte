@@ -17,6 +17,50 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
+describe('MapStyleStore initial loading', () => {
+	it('exposes whether an initial project is needed', async () => {
+		const initialStore = new MapStyleStore({
+			initialStyle,
+			adapter: { id: 'empty', load: async () => null, save: async () => undefined }
+		});
+		await initialStore.ready;
+		expect(initialStore.needsInitialProject).toBe(true);
+
+		const storedStyle = { ...initialStyle, name: 'Stored style' };
+		const storedStore = new MapStyleStore({
+			initialStyle,
+			adapter: { id: 'stored', load: async () => storedStyle, save: async () => undefined }
+		});
+		await storedStore.ready;
+		expect(storedStore.needsInitialProject).toBe(false);
+		expect(storedStore.mapStyle.name).toBe('Stored style');
+	});
+});
+
+describe('MapStyleStore project replacement', () => {
+	it('drops history when an external project replaces the style', async () => {
+		vi.useFakeTimers();
+		vi.spyOn(performance, 'now').mockReturnValue(1_000);
+		const save = vi.fn(async () => undefined);
+		const store = new MapStyleStore({
+			initialStyle,
+			adapter: { id: 'test', load: async () => null, save }
+		});
+		await store.ready;
+		store.setMapStyle({ ...initialStyle, name: 'Edited' });
+		expect(store.canUndo).toBe(true);
+
+		store.replaceMapStyle({ ...initialStyle, name: 'Opened project' });
+
+		expect(store.mapStyle.name).toBe('Opened project');
+		expect(store.needsInitialProject).toBe(false);
+		expect(store.canUndo).toBe(false);
+		expect(store.canRedo).toBe(false);
+		await vi.runOnlyPendingTimersAsync();
+		expect(save).toHaveBeenLastCalledWith({ ...initialStyle, name: 'Opened project' });
+	});
+});
+
 describe('MapStyleStore layer grouping history', () => {
 	it('restores prefix grouping with undo when applied through setMapStyle', async () => {
 		vi.useFakeTimers();

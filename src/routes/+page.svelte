@@ -54,13 +54,18 @@
 	import { provideExpressionFlyout } from '#lib/contexts/expressionFlyout.svelte.ts';
 	import { provideStyleHistory } from '#lib/contexts/styleHistory.svelte.ts';
 	import { provideStyleVariables } from '#lib/contexts/styleVariables.svelte.ts';
-	import type { EditorApi, EditorPreview, SaveProvider } from '#lib/editor/EditorModule.ts';
+	import type {
+		EditorApi,
+		EditorPreview,
+		EditorProject,
+		SaveProvider
+	} from '#lib/editor/EditorModule.ts';
 	import { collectEditorRailItems } from '#lib/editor/editorRail.ts';
+	import { applyProjectLoad } from '#lib/editor/projectLoad.ts';
 	import { dispatchSave } from '#lib/editor/saveProvider.ts';
 	import { registerGlyphProtocol } from '#lib/fonts/glyphProtocol.ts';
 	import { loadGlyphore } from '#lib/fonts/glyphore.ts';
 	import { adapterModules } from 'virtual:kartore-adapter';
-	import { osmLibertyMigrated } from '#lib/samples/osm-liberty.ts';
 	import {
 		MapSpriteSynchronizer,
 		type LocalSpriteDimensions
@@ -87,7 +92,7 @@
 
 	const store = new MapStyleStore({
 		adapter: localStorageMapStyleStoreAdapter,
-		initialStyle: osmLibertyMigrated
+		initialStyle: createEmptyStyle()
 	});
 	const spriteIconsStore = new SpriteIconsStore({
 		adapter: localStorageSpriteIconsStoreAdapter
@@ -126,7 +131,7 @@
 		getBoundingClientRect: () => DOMRect;
 	};
 
-	let selectedLayerId = $state<string | null>(osmLibertyMigrated.layers[4].id);
+	let selectedLayerId = $state<string | null>(null);
 	let activeShellMode = $state<ShellMode>('layers');
 	let layerSelectionRequest = $state(0);
 	let layerSearchInput = $state<HTMLInputElement | null>(null);
@@ -137,6 +142,8 @@
 	let activeLayerTab = $state<LayerInspectorTab>('design');
 	let commandPaletteOpen = $state(false);
 	let previewState = $state<EditorPreview | null>(null);
+	let initialProjectLoading = $state(true);
+	let initialProjectError = $state<Error | null>(null);
 	let leftShellCollapsed = $state(false);
 	let sidebarWidth = $state(normalizeSidebarWidth(undefined));
 	let propertiesPanelWidth = $state(normalizePropertiesPanelWidth(undefined));
@@ -404,11 +411,23 @@
 	$effect(() => {
 		spriteMapSynchronizer.input = spriteSyncInput;
 	});
+	const loadProject = async (project: EditorProject): Promise<void> => {
+		previewState = null;
+		await applyProjectLoad(
+			{
+				replaceStyle: store.replaceMapStyle,
+				replaceSpriteIcons: spriteIconsStore.replaceIcons,
+				replaceStoredFonts: fontsStore.replaceStoredFonts
+			},
+			project
+		);
+	};
 
 	const editorApi: EditorApi = {
 		appVersion: appPackage.version,
 		getStyle: () => store.mapStyle,
 		setStyle: (style) => store.setMapStyle(style),
+		loadProject,
 		getSpriteIcons: () => $state.snapshot(spriteIconsStore.icons),
 		replaceSpriteIcons: spriteIconsStore.replaceIcons,
 		getStoredFonts: fontsStore.getStoredFonts,
@@ -423,6 +442,22 @@
 	for (const module of adapterModules) {
 		setContext(`module:${module.id}`, module.setup?.(editorApi));
 	}
+
+	const initializeProject = async (): Promise<void> => {
+		try {
+			await Promise.all([store.ready, spriteIconsStore.ready, fontsStore.ready]);
+			if (!store.needsInitialProject) return;
+			const { loadInitialProject } = await import('#lib/samples/initialProject.ts');
+			await loadProject(await loadInitialProject());
+		} catch (error) {
+			initialProjectError = error instanceof Error ? error : new Error(String(error));
+		} finally {
+			initialProjectLoading = false;
+		}
+	};
+	onMount(() => {
+		void initializeProject();
+	});
 
 	const handleChangeLayerOrder = (layers: LayerSpecification[]) => {
 		if (previewState) return;
@@ -889,9 +924,19 @@
 	onpagehide={() => store.flushSave()}
 />
 
-{#if store.isLoading || spriteIconsStore.isLoading || fontsStore.isLoading}
+{#if store.isLoading || spriteIconsStore.isLoading || fontsStore.isLoading || initialProjectLoading}
 	<div class="flex min-h-screen items-center justify-center text-[11px] text-ink-2">
 		地図スタイルを読み込み中…
+	</div>
+{:else if initialProjectError}
+	<div
+		class="flex min-h-screen items-center justify-center bg-canvas px-6 text-center"
+		role="alert"
+	>
+		<div class="max-w-md">
+			<p class="text-sm font-semibold text-ink-1">初期プロジェクトを読み込めませんでした</p>
+			<p class="mt-2 text-[11px] text-ink-2">{initialProjectError.message}</p>
+		</div>
 	</div>
 {:else}
 	<div class="flex h-screen w-full flex-col overflow-hidden bg-canvas">

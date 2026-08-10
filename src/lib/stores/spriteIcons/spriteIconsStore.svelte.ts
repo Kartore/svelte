@@ -12,10 +12,11 @@ export class SpriteIconsStore {
 	isSaving = $state(false);
 	loadError = $state<Error | null>(null);
 	saveError = $state<Error | null>(null);
+	readonly ready: Promise<void>;
 
 	constructor({ adapter }: SpriteIconsStoreOptions) {
 		this.#adapter = adapter;
-		void this.#load();
+		this.ready = this.#load();
 	}
 
 	setIcon = (id: string, svg: string) => {

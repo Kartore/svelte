@@ -55,12 +55,23 @@ export type SaveProvider = {
 
 export type NewStyleHandler = () => void;
 
+/** 外部ソースからエディタへ読み込むプロジェクト。省略した資産種別は現在値を保持する。 */
+export type EditorProject = {
+	style: StyleSpecification;
+	assets?: {
+		icons?: SpriteIcons;
+		fonts?: Record<string, StoredFont>;
+	};
+};
+
 export type EditorApi = {
 	/** ホストアプリの package version。パック manifest など外部出力の生成元バージョン */
 	readonly appVersion: string;
 	/** store.mapStyle を返す。$derived / $effect 内で呼べばリアクティブに追跡される */
 	getStyle: () => StyleSpecification;
 	setStyle: (style: StyleSpecification) => void;
+	/** 外部プロジェクトを読み込む。指定された資産はアップロード済みローカル資産として全置換する。 */
+	loadProject: (project: EditorProject) => Promise<void>;
 	/** ローカル sprite 元 SVG の現在値を返す */
 	getSpriteIcons: () => SpriteIcons;
 	/** ローカル sprite 元 SVG をマージせず全置換する */

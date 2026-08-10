@@ -31,6 +31,7 @@ export class FontsStore {
 	fonts = $state<Fonts>({});
 	isLoading = $state(true);
 	loadError = $state<Error | null>(null);
+	readonly ready: Promise<void>;
 
 	constructor({
 		adapter,
@@ -40,7 +41,7 @@ export class FontsStore {
 		this.#adapter = adapter;
 		this.#loadGlyphore = glyphoreLoader;
 		this.#now = now;
-		void this.#load();
+		this.ready = this.#load();
 	}
 
 	addFont = async (bytes: ArrayBuffer | Uint8Array): Promise<FontInfo> => {

@@ -4,6 +4,8 @@
 import { migrate } from '@maplibre/maplibre-gl-style-spec';
 import type { StyleSpecification } from 'maplibre-gl';
 
+import { groupLayersByIdPrefix } from '#lib/utils/layerGroup.ts';
+
 export const osmLiberty = {
 	version: 8,
 	name: 'OSM Liberty',
@@ -2100,3 +2102,9 @@ export const osmLiberty = {
 } as StyleSpecification;
 
 export const osmLibertyMigrated = migrate(osmLiberty);
+
+/** 初回起動時に表示する、レイヤー接頭辞でグループ化済みの OSM Liberty。 */
+export const osmLibertyDefault: StyleSpecification = {
+	...osmLibertyMigrated,
+	layers: groupLayersByIdPrefix(osmLibertyMigrated.layers).layers
+};
