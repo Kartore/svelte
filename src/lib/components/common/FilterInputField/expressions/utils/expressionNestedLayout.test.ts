@@ -22,7 +22,8 @@ describe('compact nested expression layout', () => {
 			['get', 'fallback']
 		] as unknown as ExpressionSpecification);
 
-		expect(body.match(/class="group\/arg[^"]*flex-nowrap[^"]*"/g)).toHaveLength(3);
+		// Three wrappers hold the compact get expressions, and each get keeps its literal key row nowrap.
+		expect(body.match(/class="group\/arg[^"]*flex-nowrap[^"]*"/g)).toHaveLength(6);
 		expect(
 			body.match(/data-expression-node="nested"[^>]*class="[^"]*flex-nowrap[^"]*"/g)
 		).toHaveLength(3);
@@ -30,6 +31,7 @@ describe('compact nested expression layout', () => {
 			expect(nestedNode).not.toContain('style=');
 		}
 		expect(body).toContain('text-ellipsis');
+		expect(body).toMatch(/class="[^"]*shrink-0[^"]*whitespace-nowrap[^"]*"[^>]*>入力/);
 		expect(body).not.toContain('現在のフィーチャー');
 	});
 

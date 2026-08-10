@@ -78,7 +78,9 @@
 			<ExpressionOperatorSelect value={expression} {onChange} label="match" />
 		</div>
 		<div class="flex min-w-0 items-center justify-end gap-1">
-			<span class="text-[10px] font-semibold tracking-wide text-ink-3">入力</span>
+			<span class="shrink-0 text-[10px] font-semibold tracking-wide whitespace-nowrap text-ink-3">
+				入力
+			</span>
 			<ExpressionArgInputField class="min-w-0" parentValue={expression} index={1} {onChange} />
 		</div>
 	</div>

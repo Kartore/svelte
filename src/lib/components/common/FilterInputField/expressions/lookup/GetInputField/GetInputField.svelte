@@ -75,8 +75,9 @@
 			nested ? 'flex-nowrap' : 'flex-wrap'
 		)}
 	>
-		<ExpressionOperatorSelect value={expression} {onChange} />
+		<ExpressionOperatorSelect class={nested ? 'h-6' : undefined} value={expression} {onChange} />
 		<ExpressionArgInputField
+			class={nested ? 'h-6 flex-nowrap [&>div]:py-0' : undefined}
 			parentValue={expression}
 			index={1}
 			{onChange}
