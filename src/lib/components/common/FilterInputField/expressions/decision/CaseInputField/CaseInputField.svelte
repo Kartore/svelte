@@ -14,6 +14,7 @@
 	import { removeArgsOrCollapse } from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
 	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
+	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	let {
@@ -21,6 +22,7 @@
 		children,
 		value,
 		depth = 0,
+		propertySpec,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -34,6 +36,7 @@
 			ExpressionInputType | ExpressionSpecification | null
 		];
 		depth?: number;
+		propertySpec?: StylePropertySpec;
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
@@ -101,6 +104,7 @@
 							class="w-full min-w-0"
 							parentValue={expression}
 							index={outputIndex}
+							{propertySpec}
 							{onChange}
 						/>
 					</div>
@@ -120,6 +124,7 @@
 						class="min-w-0 justify-between"
 						parentValue={expression}
 						index={outputIndex}
+						{propertySpec}
 						{onChange}
 						onRemove={onChange ? () => removePair(conditionIndex) : undefined}
 						removeLabel="条件ケースを削除"
@@ -139,6 +144,7 @@
 						class="w-full min-w-0"
 						parentValue={expression}
 						index={fallbackIndex}
+						{propertySpec}
 						{onChange}
 					/>
 				</div>
@@ -153,6 +159,7 @@
 					class="min-w-0"
 					parentValue={expression}
 					index={fallbackIndex}
+					{propertySpec}
 					{onChange}
 				/>
 			</div>

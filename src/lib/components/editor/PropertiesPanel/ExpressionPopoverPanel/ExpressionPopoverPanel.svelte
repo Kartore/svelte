@@ -3,12 +3,14 @@
 		BackgroundLayerSpecification,
 		ExpressionSpecification,
 		FilterSpecification,
-		LayerSpecification
+		LayerSpecification,
+		SpriteSpecification
 	} from '@maplibre/maplibre-gl-style-spec';
 	import { WarningCircle, X } from 'phosphor-svelte';
 
 	import { Button } from '#lib/components/common/Button';
 	import { ExpressionInputField } from '#lib/components/common/FilterInputField/expressions';
+	import { provideSpriteImages } from '#lib/components/common/FilterInputField/expressions/common/SpriteImagesContext';
 	import { isExpressionBuilderSupported } from '#lib/components/common/FilterInputField/expressions/utils/expressionBuilder.ts';
 	import {
 		FilterQueryBuilder,
@@ -19,12 +21,14 @@
 	import { provideLayerErrors } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/LayerErrorsContext';
 	import { PropertyErrorMessage } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/common/PropertyErrorMessage';
 	import type { onChangeType } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/utils/LayerUtil/LayerUtil.ts';
+	import { createSpriteIds } from '#lib/components/editor/PropertiesPanel/LayerPropertiesPanel/hooks/useSpriteIds/useSpriteIds.svelte.ts';
 	import type { ExpressionFlyoutTarget } from '#lib/contexts/expressionFlyout.svelte.ts';
 	import { getLayerProperties, getLayerZoomRange } from '#lib/utils/layerSpec.ts';
 	import type { LayerValidationError } from '#lib/utils/styleValidation.ts';
 
 	let {
 		layer,
+		sprite,
 		target,
 		errors,
 		onChange,
@@ -32,6 +36,7 @@
 		onClose
 	}: {
 		layer: LayerSpecification;
+		sprite?: SpriteSpecification;
 		target: ExpressionFlyoutTarget;
 		errors?: LayerValidationError[];
 		onChange?: onChangeType;
@@ -40,6 +45,8 @@
 	} = $props();
 
 	provideLayerErrors(() => errors ?? []);
+	const spriteIdsState = createSpriteIds(() => sprite);
+	provideSpriteImages(() => spriteIdsState.spriteImages);
 	const isFilter = $derived(target.group === 'filter');
 	const zoomRange = $derived(getLayerZoomRange(layer));
 	const propertySpec = $derived(

@@ -72,7 +72,7 @@
 	const editableLiteral = $derived(getEditableExpressionLiteral(arg));
 	const specLiteralFieldKind = $derived(
 		propertySpec !== undefined && editableLiteral !== undefined
-			? getSpecLiteralFieldKind(propertySpec, editableLiteral.value)
+			? getSpecLiteralFieldKind(propertySpec, editableLiteral.value, { context: 'expression' })
 			: undefined
 	);
 	const getSuggestionsContext = useExpressionSuggestions();
@@ -113,13 +113,20 @@
 		<SpecLiteralField
 			class="min-w-0 flex-1"
 			compact
+			context="expression"
 			label="値"
 			spec={propertySpec}
 			value={editableLiteral.value}
 			onChange={handleChildChange ? handleSpecLiteralChange : undefined}
 		/>
 	{:else if isExpression(arg)}
-		<ExpressionInputField class="min-w-0 flex-1" value={arg} onChange={handleChildChange} nested />
+		<ExpressionInputField
+			class="min-w-0 flex-1"
+			value={arg}
+			{propertySpec}
+			onChange={handleChildChange}
+			nested
+		/>
 	{:else}
 		<ExpressionInputTypeInputField
 			class="max-w-full min-w-0"

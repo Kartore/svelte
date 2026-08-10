@@ -1180,6 +1180,7 @@
 			>
 				<ExpressionPopoverPanel
 					layer={selectedLayer}
+					sprite={editorStyle.sprite}
 					target={expressionFlyout.target!}
 					errors={validation.layerErrors[selectedLayer.id]}
 					onChange={handleChangeLayerData}

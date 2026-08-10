@@ -29,6 +29,16 @@ describe('specLiteralField', () => {
 		).toBe('variable-anchor-offset');
 	});
 
+	it('keeps enum and image editors opt-in for expression output slots', () => {
+		const enumSpec = spec({ type: 'enum', values: { center: {}, top: {} } });
+		const imageSpec = spec({ type: 'resolvedImage' });
+
+		expect(getSpecLiteralFieldKind(enumSpec, 'center')).toBeUndefined();
+		expect(getSpecLiteralFieldKind(imageSpec, 'marker')).toBeUndefined();
+		expect(getSpecLiteralFieldKind(enumSpec, 'center', { context: 'expression' })).toBe('enum');
+		expect(getSpecLiteralFieldKind(imageSpec, 'marker', { context: 'expression' })).toBe('image');
+	});
+
 	it('unwraps literal expressions while leaving nested expressions to the expression editor', () => {
 		expect(getEditableExpressionLiteral(['literal', [1, 2]])).toEqual({
 			value: [1, 2],

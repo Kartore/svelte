@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { ColorField } from '#lib/components/common/ColorField';
+	import { ComboBox } from '#lib/components/common/ComboBox';
+	import { useSpriteImages } from '#lib/components/common/FilterInputField/expressions/common/SpriteImagesContext';
 	import { NumberArrayField } from '#lib/components/common/NumberArrayField';
 	import { NumberField } from '#lib/components/common/NumberField';
 	import { NumberListField } from '#lib/components/common/NumberListField';
+	import { Select } from '#lib/components/common/Select';
 	import { VariableAnchorOffsetField } from '#lib/components/common/VariableAnchorOffsetField';
 	import { parseColor, tryParseColor } from '#lib/utils/color.ts';
 	import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
@@ -16,6 +19,7 @@
 		spec,
 		value,
 		compact = false,
+		context,
 		onChange,
 		onTransientChange,
 		onCommit,
@@ -28,6 +32,7 @@
 		spec: StylePropertySpec;
 		value: unknown;
 		compact?: boolean;
+		context?: 'expression';
 		onChange?: (value: unknown | undefined) => void;
 		onTransientChange?: (value: unknown | undefined) => void;
 		onCommit?: (value: unknown | undefined) => void;
@@ -36,8 +41,30 @@
 		onPromoteColor?: () => void;
 	} = $props();
 
-	const kind = $derived(getSpecLiteralFieldKind(spec, value));
+	const kind = $derived(getSpecLiteralFieldKind(spec, value, { context }));
 	const visibleLabel = $derived(compact ? undefined : label);
+	const getSpriteImages = useSpriteImages();
+	const spriteImages = $derived(getSpriteImages());
+	const enumItems = $derived(
+		Object.keys(spec.values ?? {}).map((item) => ({ value: item, label: item }))
+	);
+	const spriteImageItems = $derived(
+		(spriteImages ?? []).map((image) => ({
+			value: image.id,
+			label: image.id,
+			preview: {
+				src: image.src,
+				x: image.x,
+				y: image.y,
+				width: image.width,
+				height: image.height,
+				pixelRatio: image.pixelRatio
+			}
+		}))
+	);
+	const stringValue = $derived(
+		typeof value === 'string' ? value : typeof spec.default === 'string' ? spec.default : ''
+	);
 	const isPercentNumber = $derived(spec.minimum === 0 && spec.maximum === 1);
 	const numberArrayLabels = $derived(
 		spec.length === 4
@@ -94,6 +121,33 @@
 			onChange={(color) => onChange?.(color?.toString('rgba'))}
 			{onPickVariable}
 			{onPromoteColor}
+		/>
+	{:else if kind === 'enum'}
+		<Select
+			class={compactControlClass}
+			label={visibleLabel}
+			aria-label={compact ? (label ?? 'Value') : undefined}
+			items={enumItems}
+			value={stringValue}
+			onValueChange={(next) => onChange?.(next)}
+		/>
+	{:else if kind === 'image'}
+		<ComboBox
+			class={compactControlClass}
+			label={visibleLabel}
+			aria-label={compact ? (label ?? 'Value') : undefined}
+			allowsCustomValue
+			items={spriteImageItems}
+			inputValue={stringValue}
+			value={stringValue}
+			onValueChange={(next) => {
+				if (!next || next === stringValue) return;
+				onChange?.(next);
+			}}
+			onCommit={(next) => {
+				if (next === stringValue) return;
+				onChange?.(next);
+			}}
 		/>
 	{:else if kind === 'number'}
 		<NumberField

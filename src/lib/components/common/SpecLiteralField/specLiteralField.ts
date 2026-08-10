@@ -4,12 +4,28 @@ import { isExpression } from '#lib/components/common/FilterInputField/expression
 import type { StylePropertySpec } from '#lib/utils/layerSpec.ts';
 
 export type SpecLiteralFieldKind =
-	'color' | 'number' | 'number-array' | 'number-list' | 'padding' | 'variable-anchor-offset';
+	| 'color'
+	| 'enum'
+	| 'image'
+	| 'number'
+	| 'number-array'
+	| 'number-list'
+	| 'padding'
+	| 'variable-anchor-offset';
+
+export type SpecLiteralFieldOptions = {
+	context?: 'expression';
+};
 
 export const getSpecLiteralFieldKind = (
 	spec: StylePropertySpec,
-	value: unknown
+	value: unknown,
+	options?: SpecLiteralFieldOptions
 ): SpecLiteralFieldKind | undefined => {
+	if (options?.context === 'expression') {
+		if (spec.type === 'enum') return 'enum';
+		if (spec.type === 'resolvedImage') return 'image';
+	}
 	if (spec.type === 'color' || (spec.type === 'colorArray' && typeof value !== 'object')) {
 		return 'color';
 	}

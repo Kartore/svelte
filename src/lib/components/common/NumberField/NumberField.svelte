@@ -188,7 +188,7 @@
 		</button>
 	{/if}
 	<div
-		class="flex h-6 min-w-0 flex-1 flex-row items-center rounded-[5px] bg-field focus-within:shadow-[inset_0_0_0_1px_var(--color-accent)]"
+		class="flex h-6 min-w-0 flex-1 flex-row items-center rounded-[5px] bg-[var(--expression-control-background,var(--color-field))] focus-within:shadow-[inset_0_0_0_1px_var(--color-accent)]"
 	>
 		<input
 			{id}

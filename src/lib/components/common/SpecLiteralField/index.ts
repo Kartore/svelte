@@ -4,5 +4,6 @@ export {
 	getSpecLiteralFieldKind,
 	replaceEditableExpressionLiteral,
 	type EditableExpressionLiteral,
-	type SpecLiteralFieldKind
+	type SpecLiteralFieldKind,
+	type SpecLiteralFieldOptions
 } from './specLiteralField.ts';

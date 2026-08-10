@@ -407,6 +407,7 @@
 		{
 			guard: isCaseExpressionSpecification,
 			component: CaseInputField,
+			acceptsPropertySpec: true,
 			acceptsDepth: true
 		},
 		{ guard: isCoalesceExpressionSpecification, component: CoalesceInputField },
@@ -421,6 +422,7 @@
 		{
 			guard: isMatchExpressionSpecification,
 			component: MatchInputField,
+			acceptsPropertySpec: true,
 			acceptsDepth: true
 		},
 		{ guard: isNotEqualExpressionSpecification, component: NotEqualInputField },
