@@ -357,6 +357,7 @@
 		guard: (value: ExpressionSpecification) => boolean;
 		acceptsZoomRange?: boolean;
 		acceptsPropertySpec?: boolean;
+		acceptsNested?: boolean;
 		// each field narrows `value` further; the guard guarantees the match at runtime
 		component: unknown;
 	};
@@ -406,15 +407,31 @@
 		{ guard: isNotEqualExpressionSpecification, component: NotEqualInputField },
 		{ guard: isNotExpressionSpecification, component: NotInputField },
 		{ guard: isWithinExpressionSpecification, component: WithinInputField },
-		{ guard: isAccumulatedExpressionSpecification, component: AccumulatedInputField },
+		{
+			guard: isAccumulatedExpressionSpecification,
+			component: AccumulatedInputField,
+			acceptsNested: true
+		},
 		{ guard: isFeatureStateExpressionSpecification, component: FeatureStateInputField },
-		{ guard: isGeometryTypeExpressionSpecification, component: GeometryTypeInputField },
-		{ guard: isIdExpressionSpecification, component: IdInputField },
-		{ guard: isLineProgressExpressionSpecification, component: LineProgressInputField },
+		{
+			guard: isGeometryTypeExpressionSpecification,
+			component: GeometryTypeInputField,
+			acceptsNested: true
+		},
+		{ guard: isIdExpressionSpecification, component: IdInputField, acceptsNested: true },
+		{
+			guard: isLineProgressExpressionSpecification,
+			component: LineProgressInputField,
+			acceptsNested: true
+		},
 		{ guard: isPropertiesExpressionSpecification, component: PropertiesInputField },
-		{ guard: isHeatmapDensityExpressionSpecification, component: HeatmapDensityInputField },
+		{
+			guard: isHeatmapDensityExpressionSpecification,
+			component: HeatmapDensityInputField,
+			acceptsNested: true
+		},
 		{ guard: isAtExpressionSpecification, component: AtInputField },
-		{ guard: isGetExpressionSpecification, component: GetInputField },
+		{ guard: isGetExpressionSpecification, component: GetInputField, acceptsNested: true },
 		{ guard: isHasExpressionSpecification, component: HasInputField },
 		{ guard: isIndexOfExpressionSpecification, component: IndexOfInputField },
 		{ guard: isInExpressionSpecification, component: InInputField },
@@ -429,16 +446,16 @@
 		{ guard: isCosExpressionSpecification, component: CosInputField },
 		{ guard: isDistanceExpressionSpecification, component: DistanceInputField },
 		{ guard: isDivisionExpressionSpecification, component: DivisionInputField },
-		{ guard: isEExpressionSpecification, component: EInputField },
+		{ guard: isEExpressionSpecification, component: EInputField, acceptsNested: true },
 		{ guard: isFloorExpressionSpecification, component: FloorInputField },
-		{ guard: isLn2ExpressionSpecification, component: Ln2InputField },
+		{ guard: isLn2ExpressionSpecification, component: Ln2InputField, acceptsNested: true },
 		{ guard: isLnExpressionSpecification, component: LnInputField },
 		{ guard: isLog2ExpressionSpecification, component: Log2InputField },
 		{ guard: isLog10ExpressionSpecification, component: Log10InputField },
 		{ guard: isMaxExpressionSpecification, component: MaxInputField },
 		{ guard: isMinExpressionSpecification, component: MinInputField },
 		{ guard: isMultiplicationExpressionSpecification, component: MultiplicationInputField },
-		{ guard: isPiExpressionSpecification, component: PiInputField },
+		{ guard: isPiExpressionSpecification, component: PiInputField, acceptsNested: true },
 		{ guard: isPowerExpressionSpecification, component: PowerInputField },
 		{ guard: isRemainderExpressionSpecification, component: RemainderInputField },
 		{ guard: isRoundExpressionSpecification, component: RoundInputField },
@@ -470,8 +487,8 @@
 		{ guard: isToStringExpressionSpecification, component: ToStringInputField },
 		{ guard: isTypeofExpressionSpecification, component: TypeofInputField },
 		{ guard: isLetExpressionSpecification, component: LetInputField },
-		{ guard: isVarExpressionSpecification, component: VarInputField },
-		{ guard: isZoomExpressionSpecification, component: ZoomInputField }
+		{ guard: isVarExpressionSpecification, component: VarInputField, acceptsNested: true },
+		{ guard: isZoomExpressionSpecification, component: ZoomInputField, acceptsNested: true }
 	];
 
 	let {
@@ -490,7 +507,8 @@
 	);
 	const fieldProps = $derived({
 		...(entry?.acceptsZoomRange ? { zoomRange } : {}),
-		...(entry?.acceptsPropertySpec ? { propertySpec } : {})
+		...(entry?.acceptsPropertySpec ? { propertySpec } : {}),
+		...(entry?.acceptsNested ? { nested } : {})
 	});
 	const fieldClass = $derived(cn('max-w-full text-ink-2', className));
 </script>

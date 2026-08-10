@@ -12,6 +12,7 @@
 		class: className,
 		children,
 		value,
+		nested = false,
 		onChange,
 		...props
 	}: Omit<HTMLAttributes<HTMLDivElement>, 'onchange'> & {
@@ -22,6 +23,7 @@
 			string | ExpressionSpecification,
 			(Record<string, unknown> | ExpressionSpecification)?
 		];
+		nested?: boolean;
 		onChange?: (value: ExpressionSpecification) => void;
 	} = $props();
 
@@ -52,7 +54,15 @@
 	});
 </script>
 
-<div {...props} class={cn('flex min-w-0 flex-col gap-1 rounded bg-field px-2 py-2', className)}>
+<div
+	{...props}
+	class={cn(
+		nested
+			? 'flex min-w-0 flex-row items-center'
+			: 'flex min-w-0 flex-col gap-1 rounded bg-field px-2 py-2',
+		className
+	)}
+>
 	<div class="flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1">
 		<ExpressionOperatorSelect value={expression} {onChange} />
 		<ExpressionArgInputField
@@ -61,14 +71,16 @@
 			{onChange}
 			suggestion="propertyKey"
 		/>
-		<div class="text-[10px] font-semibold tracking-wide text-ink-3">取得元</div>
-		{#if items !== undefined}
-			<ExpressionArgInputField parentValue={expression} index={2} {onChange} />
-		{:else}
-			<div class="text-[10px] font-semibold tracking-wide text-ink-3">現在のフィーチャー</div>
+		{#if !nested || items !== undefined}
+			<div class="text-[10px] font-semibold tracking-wide text-ink-3">取得元</div>
+			{#if items !== undefined}
+				<ExpressionArgInputField parentValue={expression} index={2} {onChange} />
+			{:else}
+				<div class="text-[10px] font-semibold tracking-wide text-ink-3">現在のフィーチャー</div>
+			{/if}
 		{/if}
 	</div>
-	{#if propertyKey && propertySuggestion}
+	{#if !nested && propertyKey && propertySuggestion}
 		<div class="flex min-w-0 flex-wrap items-center gap-1 border-t border-hairline-soft pt-1.5">
 			{#if sourceLabel}
 				<span class="text-[10px] font-semibold tracking-wide text-ink-3">
@@ -90,7 +102,7 @@
 				{/each}
 			{/if}
 		</div>
-	{:else if !propertyKey && suggestions && suggestions.propertyKeys.length > 0}
+	{:else if !nested && !propertyKey && suggestions && suggestions.propertyKeys.length > 0}
 		<div class="border-t border-hairline-soft pt-1.5 text-[10px] text-ink-3">
 			ソースフィールド {suggestions.propertyKeys.length} 件を利用できます
 		</div>
