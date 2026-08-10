@@ -26,6 +26,8 @@
 	import { getLayerProperties, getLayerZoomRange } from '#lib/utils/layerSpec.ts';
 	import type { LayerValidationError } from '#lib/utils/styleValidation.ts';
 
+	import { getExpressionTypeItems } from './expressionTypeItems.ts';
+
 	let {
 		layer,
 		sprite,
@@ -75,6 +77,7 @@
 	const expressionType = $derived(
 		expression && typeof expression[0] === 'string' ? expression[0] : 'expression'
 	);
+	const expressionTypeItems = $derived(getExpressionTypeItems(expressionType));
 	const handleExpressionChange = (next: ExpressionSpecification) => {
 		onChange?.(layer, target.group as never, target.key as never, next as never);
 	};
@@ -119,14 +122,7 @@
 				class="w-[86px]"
 				triggerClass="h-6 rounded-[5px] bg-field px-2 font-mono text-[10.5px]"
 				aria-label="式タイプ"
-				items={[
-					{ value: 'interpolate', label: 'interpolate' },
-					{ value: 'step', label: 'step' },
-					{ value: 'match', label: 'match' },
-					{ value: 'case', label: 'case' },
-					{ value: 'get', label: 'get' },
-					{ value: 'literal', label: 'literal' }
-				]}
+				items={expressionTypeItems}
 				value={expressionType}
 				onValueChange={resetExpressionType}
 			/>

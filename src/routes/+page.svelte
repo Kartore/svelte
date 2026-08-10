@@ -1174,6 +1174,7 @@
 			<RowPopover
 				open={true}
 				customAnchor={flyoutPositionAnchor}
+				contentClass="w-[320px]"
 				onOpenChange={(open) => {
 					if (!open) expressionFlyout.close();
 				}}

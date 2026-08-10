@@ -28,6 +28,7 @@
 	{...props}
 	class={cn(
 		'flex min-w-0 flex-row items-center gap-2',
+		nested && 'flex-nowrap',
 		!nested && 'rounded bg-field px-2 py-2',
 		className
 	)}

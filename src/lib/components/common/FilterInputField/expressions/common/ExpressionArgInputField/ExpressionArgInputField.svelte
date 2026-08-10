@@ -42,6 +42,7 @@
 		replaceArgAt
 	} from '#lib/components/common/FilterInputField/expressions/utils/expressionEdit.ts';
 	import { literalToSuggestedExpression } from '#lib/components/common/FilterInputField/expressions/utils/expressionSeed.ts';
+	import { isCompactExpression } from '#lib/components/common/FilterInputField/expressions/utils/isCompactExpression.ts';
 	import { isExpression } from '#lib/components/common/FilterInputField/expressions/utils/isExpression.ts';
 	import {
 		SpecLiteralField,
@@ -69,6 +70,7 @@
 	let editAsExpression = $state(false);
 
 	const arg = $derived(parentValue[index]);
+	const compactExpressionArg = $derived(isCompactExpression(arg));
 	const editableLiteral = $derived(getEditableExpressionLiteral(arg));
 	const specLiteralFieldKind = $derived(
 		propertySpec !== undefined && editableLiteral !== undefined
@@ -107,7 +109,11 @@
 
 <div
 	{...props}
-	class={cn('group/arg flex max-w-full min-w-0 flex-row flex-wrap items-center gap-1', className)}
+	class={cn(
+		'group/arg flex max-w-full min-w-0 flex-row items-center gap-1',
+		compactExpressionArg ? 'flex-nowrap' : 'flex-wrap',
+		className
+	)}
 >
 	{#if propertySpec !== undefined && specLiteralFieldKind !== undefined && editableLiteral !== undefined && !editAsExpression}
 		<SpecLiteralField

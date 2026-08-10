@@ -27,7 +27,8 @@
 <div
 	{...props}
 	class={cn(
-		'flex min-w-0 flex-row flex-wrap items-center gap-1',
+		'flex min-w-0 flex-row items-center gap-1',
+		nested ? 'flex-nowrap' : 'flex-wrap',
 		!nested && 'rounded bg-field px-2 py-2',
 		className
 	)}

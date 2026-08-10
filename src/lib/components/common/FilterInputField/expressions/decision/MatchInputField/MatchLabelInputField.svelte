@@ -36,12 +36,10 @@
 		{suggestions}
 	/>
 {:else}
-	<div
-		class="flex min-w-0 flex-wrap items-center gap-1 rounded bg-[var(--expression-control-background,var(--color-field))] px-1 py-0.5"
-	>
+	<div class="flex min-w-0 flex-wrap items-center gap-1 rounded px-1 py-0.5">
 		{#each label as element, elementIndex (elementIndex)}
 			<div
-				class="flex max-w-full min-w-0 items-center rounded-[5px] bg-white px-0.5 ring-1 ring-hairline"
+				class="flex max-w-full min-w-0 items-center rounded-[5px] bg-[var(--expression-control-background,#fff)] px-0.5 ring-1 ring-hairline"
 			>
 				<ExpressionInputTypeInputField
 					class="min-w-0 px-0 [&>input]:max-w-full"

@@ -62,7 +62,7 @@
 	{...props}
 	class={cn(
 		nested
-			? 'flex min-w-0 flex-row items-center'
+			? 'flex min-w-0 flex-row flex-nowrap items-center'
 			: cn(
 					'flex min-w-0 flex-col gap-1 rounded px-2 py-2',
 					usesFieldSurface ? 'bg-field' : 'border border-hairline-soft bg-white'
@@ -72,7 +72,12 @@
 	style:--expression-surface-background={usesFieldSurface ? 'var(--color-field)' : '#fff'}
 	style:--expression-control-background={usesFieldSurface ? '#fff' : 'var(--color-field)'}
 >
-	<div class="flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1">
+	<div
+		class={cn(
+			'flex min-w-0 flex-row items-center gap-x-2 gap-y-1',
+			nested ? 'flex-nowrap' : 'flex-wrap'
+		)}
+	>
 		<ExpressionOperatorSelect value={expression} {onChange} />
 		<ExpressionArgInputField
 			parentValue={expression}
