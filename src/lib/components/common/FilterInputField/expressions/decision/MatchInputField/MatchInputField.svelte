@@ -87,7 +87,7 @@
 
 	<div class="flex min-w-0 flex-col gap-1">
 		<div
-			class="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] gap-1 border-b border-hairline-soft px-0.5 pb-1 font-mono text-[10px] text-ink-3"
+			class="grid grid-cols-[minmax(0,0.8fr)_16px_minmax(0,1.2fr)] gap-1 border-b border-hairline-soft px-0.5 pb-1 font-mono text-[10px] text-ink-3"
 		>
 			<span>条件値</span>
 			<span aria-hidden="true"></span>
@@ -133,7 +133,7 @@
 				</div>
 			{:else}
 				<div
-					class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-black/5"
+					class="grid min-w-0 grid-cols-[minmax(0,0.8fr)_16px_minmax(0,1.2fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-black/5"
 				>
 					<div class="min-w-0">
 						<MatchLabelInputField
@@ -176,7 +176,7 @@
 			</div>
 		{:else}
 			<div
-				class="grid min-w-0 grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-black/5"
+				class="grid min-w-0 grid-cols-[minmax(0,0.8fr)_16px_minmax(0,1.2fr)] items-start gap-1 rounded px-0.5 py-1 hover:bg-black/5"
 			>
 				<span class="pt-1 font-mono text-xs text-ink-3">フォールバック</span>
 				<span class="pt-1 text-center font-mono text-xs text-ink-4" aria-hidden="true">→</span>

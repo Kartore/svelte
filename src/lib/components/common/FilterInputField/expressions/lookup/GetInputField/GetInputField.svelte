@@ -71,16 +71,22 @@
 >
 	<div
 		class={cn(
-			'flex min-w-0 flex-row items-center gap-x-2 gap-y-1',
-			nested ? 'flex-nowrap' : 'flex-wrap'
+			'flex min-w-0 flex-row items-center gap-y-1',
+			nested ? 'flex-nowrap gap-x-1' : 'flex-wrap gap-x-2'
 		)}
 	>
-		<ExpressionOperatorSelect class={nested ? 'h-6' : undefined} value={expression} {onChange} />
+		<ExpressionOperatorSelect
+			class={nested ? 'h-6 shrink-0' : undefined}
+			value={expression}
+			{onChange}
+			compact={nested}
+		/>
 		<ExpressionArgInputField
 			class={nested ? 'h-6 flex-nowrap [&>div]:py-0' : undefined}
 			parentValue={expression}
 			index={1}
 			{onChange}
+			disableConvert={nested}
 			suggestion="propertyKey"
 		/>
 		{#if !nested || items !== undefined}

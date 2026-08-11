@@ -7,6 +7,8 @@
 		onChange?: (value: ExpressionSpecification) => void;
 		/** display override for the operator token ("switch" for match, etc.) */
 		label?: string;
+		/** reduce horizontal padding when the control is embedded in a compact expression */
+		compact?: boolean;
 		class?: string;
 	};
 </script>
@@ -21,7 +23,13 @@
 	import { Select } from '#lib/components/common/Select';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
 
-	let { value, onChange, label, class: className }: ExpressionOperatorSelectProps = $props();
+	let {
+		value,
+		onChange,
+		label,
+		compact = false,
+		class: className
+	}: ExpressionOperatorSelectProps = $props();
 
 	const operatorSections: SelectSection[] = listOperatorsByCategory().map(
 		({ category, operators }) => ({
@@ -42,6 +50,7 @@
 	<div
 		class={cn(
 			'flex h-6 max-w-full min-w-0 flex-row rounded-[5px] bg-[var(--expression-control-background,var(--color-field))] px-2 font-mono text-[11px] font-normal text-ink-1',
+			compact && 'px-1',
 			className
 		)}
 	>
@@ -51,7 +60,10 @@
 	<Select
 		aria-label="式の演算子"
 		class={cn('inline-flex max-w-full min-w-0 font-mono', className)}
-		triggerClass="w-auto min-w-0 max-w-full font-mono font-normal text-ink-2"
+		triggerClass={cn(
+			'w-auto min-w-0 max-w-full font-mono font-normal text-ink-2',
+			compact && 'px-1'
+		)}
 		sections={operatorSections}
 		value={String(operator)}
 		onValueChange={(key) => {

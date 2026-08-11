@@ -119,7 +119,7 @@
 		</p>
 		{#if !isFilter && expression}
 			<Select
-				class="w-[86px]"
+				class="w-[104px]"
 				triggerClass="h-6 rounded-[5px] bg-field px-2 font-mono text-[10.5px]"
 				aria-label="式タイプ"
 				items={expressionTypeItems}

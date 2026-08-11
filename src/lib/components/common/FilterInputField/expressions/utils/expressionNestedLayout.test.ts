@@ -32,6 +32,13 @@ describe('compact nested expression layout', () => {
 		}
 		expect(body).toContain('text-ellipsis');
 		expect(body).toMatch(/class="[^"]*shrink-0[^"]*whitespace-nowrap[^"]*"[^>]*>入力/);
+		expect(body.match(/h-6 shrink-0/g)).toHaveLength(3);
+		expect(
+			body.match(/<button(?=[^>]*aria-label="式の演算子")(?=[^>]*class="[^"]*px-1[^"]*")[^>]*>/g)
+		).toHaveLength(3);
+		expect(body.match(/grid-cols-\[minmax\(0,0\.8fr\)_16px_minmax\(0,1\.2fr\)\]/g)).toHaveLength(3);
+		expect(body.match(/flex-nowrap gap-x-1/g)).toHaveLength(3);
+		expect(body).not.toContain('aria-label="式に変換"');
 		expect(body).not.toContain('現在のフィーチャー');
 	});
 
@@ -40,5 +47,6 @@ describe('compact nested expression layout', () => {
 
 		expect(body).toContain('現在のフィーチャー');
 		expect(body).toContain('flex-wrap');
+		expect(body).toContain('aria-label="式に変換"');
 	});
 });
