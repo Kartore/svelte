@@ -2,4 +2,4 @@
 url = "https://mcp.svelte.dev/mcp"
 
 [sandbox_workspace_write]
-writable_roots = ["../file-adapter", "../github-adapter"]
+writable_roots = ["../file-adapter", "../github-adapter", "../spritore", "../glyphore"]

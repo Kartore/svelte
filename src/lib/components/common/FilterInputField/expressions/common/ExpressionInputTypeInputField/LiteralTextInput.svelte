@@ -7,6 +7,7 @@
 	import type { ExpressionInputType } from '@maplibre/maplibre-gl-style-spec';
 
 	import type { ExpressionSuggestionValue } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
+	import { SuggestionTextInput } from '#lib/components/common/SuggestionTextInput';
 
 	let {
 		value,
@@ -24,10 +25,8 @@
 
 	// resets to the incoming value whenever the prop changes (React: useEffect + setDraft)
 	let draft = $derived(value);
-	const listId = $props.id();
-
-	const commit = () => {
-		const parsed = parse(draft);
+	const commit = (text = draft) => {
+		const parsed = parse(text);
 		if (parsed === undefined || parsed === value) {
 			draft = value;
 			return;
@@ -35,10 +34,10 @@
 		onCommit(parsed);
 	};
 	const handleKeyDown = (event: KeyboardEvent & { currentTarget: HTMLInputElement }) => {
-		if (event.key === 'Enter') {
+		if (event.key === 'Enter' && !event.isComposing) {
 			event.currentTarget.blur();
 		}
-		if (event.key === 'Escape') {
+		if (event.key === 'Escape' && !event.isComposing) {
 			draft = value;
 		}
 	};
@@ -46,20 +45,24 @@
 	const hasSuggestions = $derived(suggestions !== undefined && suggestions.length > 0);
 </script>
 
-<input
-	aria-label={ariaLabel ?? 'リテラル値'}
-	class={literalInputClassName}
-	style:width={`${Math.max(draft.length, 1) + 2}ch`}
-	value={draft}
-	list={hasSuggestions ? listId : undefined}
-	oninput={(event) => (draft = event.currentTarget.value)}
-	onblur={commit}
-	onkeydown={handleKeyDown}
-/>
-{#if suggestions !== undefined && suggestions.length > 0}
-	<datalist id={listId}>
-		{#each suggestions as suggestion (String(suggestion))}
-			<option value={String(suggestion)}>{String(suggestion)}</option>
-		{/each}
-	</datalist>
+{#if hasSuggestions && suggestions}
+	<SuggestionTextInput
+		aria-label={ariaLabel ?? 'リテラル値'}
+		value={draft}
+		{suggestions}
+		autoWidth
+		inputClass={literalInputClassName}
+		onValueChange={(text) => (draft = text)}
+		onCommit={commit}
+	/>
+{:else}
+	<input
+		aria-label={ariaLabel ?? 'リテラル値'}
+		class={literalInputClassName}
+		style:width={`${Math.max(draft.length, 1) + 2}ch`}
+		value={draft}
+		oninput={(event) => (draft = event.currentTarget.value)}
+		onblur={() => commit()}
+		onkeydown={handleKeyDown}
+	/>
 {/if}

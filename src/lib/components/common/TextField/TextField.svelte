@@ -14,7 +14,6 @@
 		onCancel,
 		description,
 		placeholder,
-		suggestions,
 		disabled,
 		'aria-label': ariaLabel,
 		ref = $bindable(null)
@@ -27,14 +26,12 @@
 		onCancel?: () => void;
 		description?: string;
 		placeholder?: string;
-		suggestions?: (string | number | boolean)[];
 		disabled?: boolean;
 		'aria-label'?: string;
 		ref?: HTMLInputElement | null;
 	} = $props();
 
 	const id = $props.id();
-	const suggestionsId = `${id}-suggestions`;
 	let skipNextCommit = false;
 	const setInputRef: Attachment<HTMLInputElement> = (node) => {
 		ref = node;
@@ -85,20 +82,12 @@
 		aria-label={label ? undefined : ariaLabel}
 		{placeholder}
 		{disabled}
-		list={suggestions && suggestions.length > 0 ? suggestionsId : undefined}
 		bind:value
 		oninput={() => onValueChange?.(value)}
 		onblur={handleBlur}
 		onkeydown={handleKeyDown}
 		class="h-6 min-w-0 flex-1 rounded-[5px] border-none bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:outline-0"
 	/>
-	{#if suggestions && suggestions.length > 0}
-		<datalist id={suggestionsId}>
-			{#each suggestions as suggestion (String(suggestion))}
-				<option value={String(suggestion)}>{String(suggestion)}</option>
-			{/each}
-		</datalist>
-	{/if}
 	{#if description}
 		<div class="text-xs">{description}</div>
 	{/if}

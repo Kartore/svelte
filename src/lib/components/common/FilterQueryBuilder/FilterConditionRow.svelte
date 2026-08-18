@@ -6,7 +6,7 @@
 	import { ComboBox } from '#lib/components/common/ComboBox';
 	import { useExpressionSuggestions } from '#lib/components/common/FilterInputField/expressions/common/ExpressionSuggestionsContext';
 	import { Select } from '#lib/components/common/Select';
-	import { TextField } from '#lib/components/common/TextField';
+	import { SuggestionTextInput } from '#lib/components/common/SuggestionTextInput';
 
 	import type { FilterConditionNode, FilterSubject } from './model.ts';
 
@@ -229,9 +229,10 @@
 		onValueChange={(value) => changeOperator(value as FilterOperator)}
 	/>
 	{#if node.kind === 'comparison'}
-		<TextField
+		<SuggestionTextInput
 			aria-label="フィルターの値"
-			class="min-w-0 font-mono [&>input]:w-full [&>input]:font-normal"
+			class="min-w-0 font-mono"
+			inputClass="w-full rounded-[5px] bg-field px-2 font-mono text-[11px] font-normal text-ink-1 hover:shadow-[inset_0_0_0_1px_var(--color-accent)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]"
 			value={comparisonDraft}
 			suggestions={valueSuggestions}
 			onValueChange={(value) => (comparisonDraft = value)}
@@ -264,9 +265,10 @@
 					</Button>
 				</span>
 			{/each}
-			<TextField
+			<SuggestionTextInput
 				aria-label="フィルター値を追加"
-				class="min-w-16 flex-1 font-mono [&>input]:w-full [&>input]:bg-transparent [&>input]:px-1 [&>input]:font-normal"
+				class="min-w-16 flex-1 font-mono"
+				inputClass="w-full bg-transparent px-1 font-mono text-[11px] font-normal text-ink-1"
 				value={membershipDraft}
 				suggestions={membershipSuggestions}
 				onValueChange={(value) => (membershipDraft = value)}
