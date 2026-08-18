@@ -117,7 +117,7 @@
 			const dimensions = rendered?.svg === svg ? rendered : fallback;
 			return {
 				id,
-				src: svgDataUrl(svg),
+				src: svgDataUrl(svg, dimensions),
 				x: 0,
 				y: 0,
 				width: dimensions.width,

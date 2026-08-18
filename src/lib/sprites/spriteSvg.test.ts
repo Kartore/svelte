@@ -33,4 +33,14 @@ describe('sprite SVG helpers', () => {
 			`data:image/svg+xml,${encodeURIComponent('<svg fill="#fff" />')}`
 		);
 	});
+
+	it('adds explicit dimensions for SVG preview data URLs', () => {
+		const svg = '<svg viewBox="0 0 30 30"><rect width="30" height="30" /></svg>';
+		const sizedSvg =
+			'<svg viewBox="0 0 30 30" width="30" height="30"><rect width="30" height="30" /></svg>';
+
+		expect(svgDataUrl(svg, { width: 30, height: 30 })).toBe(
+			`data:image/svg+xml,${encodeURIComponent(sizedSvg)}`
+		);
+	});
 });

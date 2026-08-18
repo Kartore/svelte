@@ -451,6 +451,7 @@
 		{style}
 		{cursor}
 		center={{ lng: 139.767, lat: 35.681 }}
+		hash
 		maplibreLogo={false}
 		attributionControl={false}
 		localIdeographFontFamily={false}

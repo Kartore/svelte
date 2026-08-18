@@ -53,7 +53,26 @@ export const spriteDimensionsFromSvg = (svg: string): SpriteDimensions => {
 	return { width, height, hasIntegerSizeAttributes };
 };
 
-export const svgDataUrl = (svg: string): string => `data:image/svg+xml,${encodeURIComponent(svg)}`;
+export const svgDataUrl = (
+	svg: string,
+	dimensions?: Pick<SpriteDimensions, 'width' | 'height'>
+): string => {
+	if (!dimensions) return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+	const openingTag = svg.match(/<svg\b[^>]*>/i)?.[0];
+	if (!openingTag) return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+	const hasWidth = /(?:^|\s)width\s*=/.test(openingTag);
+	const hasHeight = /(?:^|\s)height\s*=/.test(openingTag);
+	if (hasWidth && hasHeight) return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+	const sizeAttributes = [
+		...(hasWidth ? [] : [` width="${dimensions.width}"`]),
+		...(hasHeight ? [] : [` height="${dimensions.height}"`])
+	].join('');
+	const sizedSvg = svg.replace(openingTag, openingTag.replace(/\/?>(?=$)/, `${sizeAttributes}$&`));
+	return `data:image/svg+xml,${encodeURIComponent(sizedSvg)}`;
+};
 
 export const spriteIdFromFileName = (fileName: string): string => {
 	const stem = fileName.replace(/\.svg$/i, '');
