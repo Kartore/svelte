@@ -150,7 +150,12 @@ const variableDiffs = (
 	for (const id of ids) {
 		const beforeVariable = beforeVariables.get(id);
 		const afterVariable = afterVariables.get(id);
-		if (beforeVariable && afterVariable && valuesEqual(beforeVariable.value, afterVariable.value)) {
+		if (
+			beforeVariable &&
+			afterVariable &&
+			valuesEqual(beforeVariable.value, afterVariable.value) &&
+			beforeVariable.name === afterVariable.name
+		) {
 			continue;
 		}
 		const usageStyle = afterVariable ? after : before;

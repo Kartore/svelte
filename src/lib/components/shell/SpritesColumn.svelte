@@ -35,6 +35,7 @@
 	let uploadError = $state<string>();
 	let downloadError = $state<string>();
 	let pendingDeleteId = $state<string>();
+	let selectedDetailElement = $state<HTMLElement>();
 	let validationGeneration = 0;
 
 	const iconEntries = $derived(
@@ -42,6 +43,13 @@
 			.filter(([id]) => id.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
 			.sort(([left], [right]) => left.localeCompare(right))
 	);
+	const iconRows = $derived.by(() => {
+		const rows: [string, string][][] = [];
+		for (let index = 0; index < iconEntries.length; index += 5) {
+			rows.push(iconEntries.slice(index, index + 5));
+		}
+		return rows;
+	});
 	const allIconEntries = $derived(
 		Object.entries(icons).sort(([left], [right]) => left.localeCompare(right))
 	);
@@ -50,6 +58,17 @@
 	);
 	const selectedSvg = $derived(selectedId ? icons[selectedId] : undefined);
 	const selectedUsages = $derived(selectedId ? spriteUsageLayerIds(mapStyle, selectedId) : []);
+	const selectIcon = (id: string) => {
+		selectedId = selectedId === id ? undefined : id;
+		pendingDeleteId = undefined;
+		void tick().then(() => selectedDetailElement?.scrollIntoView({ block: 'nearest' }));
+	};
+	const registerSelectedDetail = (element: HTMLElement) => {
+		selectedDetailElement = element;
+		return () => {
+			if (selectedDetailElement === element) selectedDetailElement = undefined;
+		};
+	};
 
 	const errorMessage = (error: unknown): string =>
 		error instanceof Error ? error.message : String(error);
@@ -223,84 +242,94 @@
 			ondragover={(event) => event.preventDefault()}
 			ondrop={handleDrop}
 		>
-			{#if iconEntries.length === 0}
+			{#if iconRows.length === 0}
 				<p class="col-span-5 self-center text-center text-[10px] text-ink-3">
 					スプライトはありません。
 				</p>
 			{:else}
-				{#each iconEntries as [id, svg] (id)}
-					<button
-						type="button"
-						class={cn(
-							'flex aspect-square items-center justify-center rounded-[6px] border border-hairline-soft p-1 text-ink-2 outline-none hover:bg-field focus-visible:border-accent',
-							selectedId === id && 'border-accent outline-1 outline-accent'
-						)}
-						aria-label={`${id} を選択`}
-						title={id}
-						onclick={() => (selectedId = selectedId === id ? undefined : id)}
-					>
-						<img src={svgDataUrl(svg)} alt="" class="max-h-full max-w-full" />
-					</button>
+				{#each iconRows as row (row[0][0])}
+					{#each row as [id, svg] (id)}
+						<button
+							type="button"
+							class={cn(
+								'flex aspect-square items-center justify-center rounded-[6px] border border-hairline-soft p-1 text-ink-2 outline-none hover:bg-field focus-visible:border-accent',
+								selectedId === id && 'border-accent outline-1 outline-accent'
+							)}
+							aria-label={`${id} を選択`}
+							title={id}
+							onclick={() => selectIcon(id)}
+						>
+							<img src={svgDataUrl(svg)} alt="" class="max-h-full max-w-full" />
+						</button>
+					{/each}
+					{@const rowSelected = row.some(([id]) => id === selectedId)}
+					{#if rowSelected && selectedId && selectedSvg}
+						<div
+							{@attach registerSelectedDetail}
+							class="col-span-5 flex flex-col gap-1 border-t border-hairline-soft px-3 pt-1 pb-2.5 text-[10px]"
+						>
+							<TextField
+								label="名前"
+								value={selectedId}
+								disabled={readOnly}
+								onCommit={renameIcon}
+							/>
+							{#if validationErrors[selectedId]}
+								<p class="text-ink-2" role="alert">{validationErrors[selectedId]}</p>
+							{:else if isValidating}
+								<p class="text-ink-3">検証中…</p>
+							{/if}
+							<div class="flex min-h-[30px] items-start">
+								<p class="w-[84px] shrink-0 pt-2 text-[10px] text-ink-2">使用</p>
+								{#if selectedUsages.length === 0}
+									<p class="pt-2 text-ink-3">使用レイヤーなし</p>
+								{:else}
+									<div class="min-w-0 flex-1">
+										{#each selectedUsages as layerId (layerId)}
+											<button
+												type="button"
+												class="block h-[22px] w-full truncate text-left font-mono text-ink-2 outline-none hover:bg-field hover:text-ink-1 focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]"
+												onclick={() => onSelectLayer?.(layerId)}
+											>
+												{layerId} ・ icon-image
+											</button>
+										{/each}
+									</div>
+								{/if}
+							</div>
+							<p class="mt-1 text-[9.5px] leading-4 text-ink-4">
+								SVG ソースを保持 ・ 表示は WASM(spritore)で生成
+							</p>
+							<div class="flex justify-end">
+								{#if pendingDeleteId === selectedId}
+									<Button
+										class="h-6 px-2 text-[10px] text-ink-3 hover:bg-field"
+										onclick={() => (pendingDeleteId = undefined)}
+									>
+										キャンセル
+									</Button>
+									<Button
+										class="h-6 bg-ink-1 px-2 text-[10px] font-semibold text-white"
+										onclick={() => confirmDelete(selectedId)}
+									>
+										削除
+									</Button>
+								{:else}
+									<Button
+										class="flex h-6 items-center gap-1 px-2 text-[10px] text-ink-2 hover:bg-field disabled:text-ink-4"
+										disabled={readOnly}
+										onclick={() => (pendingDeleteId = selectedId)}
+									>
+										<Trash size={12} weight="regular" aria-hidden="true" />
+										削除
+									</Button>
+								{/if}
+							</div>
+						</div>
+					{/if}
 				{/each}
 			{/if}
 		</div>
-
-		{#if selectedId && selectedSvg}
-			<div class="flex flex-col gap-1 border-t border-hairline-soft px-3 pt-1 pb-2.5 text-[10px]">
-				<TextField label="名前" value={selectedId} disabled={readOnly} onCommit={renameIcon} />
-				{#if validationErrors[selectedId]}
-					<p class="text-ink-2" role="alert">{validationErrors[selectedId]}</p>
-				{:else if isValidating}
-					<p class="text-ink-3">検証中…</p>
-				{/if}
-				<div class="flex min-h-[30px] items-start">
-					<p class="w-[84px] shrink-0 pt-2 text-[10px] text-ink-2">使用</p>
-					{#if selectedUsages.length === 0}
-						<p class="pt-2 text-ink-3">使用レイヤーなし</p>
-					{:else}
-						<div class="min-w-0 flex-1">
-							{#each selectedUsages as layerId (layerId)}
-								<button
-									type="button"
-									class="block h-[22px] w-full truncate text-left font-mono text-ink-2 outline-none hover:bg-field hover:text-ink-1 focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]"
-									onclick={() => onSelectLayer?.(layerId)}
-								>
-									{layerId} ・ icon-image
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
-				<p class="mt-1 text-[9.5px] leading-4 text-ink-4">
-					SVG ソースを保持 ・ 表示は WASM(spritore)で生成
-				</p>
-				<div class="flex justify-end">
-					{#if pendingDeleteId === selectedId}
-						<Button
-							class="h-6 px-2 text-[10px] text-ink-3 hover:bg-field"
-							onclick={() => (pendingDeleteId = undefined)}
-						>
-							キャンセル
-						</Button>
-						<Button
-							class="h-6 bg-ink-1 px-2 text-[10px] font-semibold text-white"
-							onclick={() => confirmDelete(selectedId!)}
-						>
-							削除
-						</Button>
-					{:else}
-						<Button
-							class="flex h-6 items-center gap-1 px-2 text-[10px] text-ink-2 hover:bg-field disabled:text-ink-4"
-							disabled={readOnly}
-							onclick={() => (pendingDeleteId = selectedId)}
-						>
-							<Trash size={12} weight="regular" aria-hidden="true" />
-							削除
-						</Button>
-					{/if}
-				</div>
-			</div>
-		{/if}
 		{#if uploadError}
 			<p class="px-3 py-2 text-[10px] text-ink-2" role="alert">{uploadError}</p>
 		{/if}

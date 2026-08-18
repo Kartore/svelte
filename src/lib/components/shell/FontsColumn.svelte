@@ -3,11 +3,13 @@
 	import type { StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import { ArrowDown, Plus, Trash, X } from 'phosphor-svelte';
 	import { onMount, tick } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	import { Button } from '#lib/components/common/Button';
 	import { TextField } from '#lib/components/common/TextField';
 	import { buildGlyphArchive, type GlyphDownloadProgress } from '#lib/fonts/glyphDownload.ts';
 	import { loadGlyphore } from '#lib/fonts/glyphore.ts';
+	import { fontPreviewDescriptors, fontPreviewFamily } from '#lib/fonts/fontPreview.ts';
 	import type { FontMeta, LoadedFont, StoredFont } from '#lib/stores/fonts';
 	import { fontUsageLayerIds, referencedFontStacks } from '#lib/utils/assetUsage.ts';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
@@ -55,6 +57,13 @@
 	);
 	const selectedMeta = $derived(selectedFontstack ? fonts[selectedFontstack] : undefined);
 	const selectedInfo = $derived(selectedFontstack ? fontInfos[selectedFontstack] : undefined);
+	const selectedStyleName = $derived(selectedInfo?.styleName ?? selectedMeta?.styleName ?? '');
+	const selectedPreviewDescriptors = $derived(fontPreviewDescriptors(selectedStyleName));
+	const selectedPreviewFamily = $derived(
+		selectedFontstack && selectedMeta
+			? `"${fontPreviewFamily(selectedFontstack)}", "${selectedMeta.familyName}", sans-serif`
+			: 'sans-serif'
+	);
 	const selectedUsages = $derived(
 		selectedFontstack ? fontUsageLayerIds(mapStyle, selectedFontstack) : []
 	);
@@ -77,6 +86,65 @@
 		if (bytes < 1024) return `${bytes} B`;
 		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
 		return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+	};
+	type PreviewFont = { face: FontFace };
+	const previewFonts = new SvelteMap<string, PreviewFont>();
+	const previewFontPromises = new SvelteMap<string, Promise<void>>();
+	let previewDestroyed = false;
+	const releasePreviewFont = (fontstack: string) => {
+		const previewFont = previewFonts.get(fontstack);
+		if (!previewFont) return;
+		document.fonts.delete(previewFont.face);
+		previewFonts.delete(fontstack);
+	};
+	const ensurePreviewFont = (fontstack: string): Promise<void> => {
+		if (previewFonts.has(fontstack)) return Promise.resolve();
+		const pending = previewFontPromises.get(fontstack);
+		if (pending) return pending;
+		const load = async () => {
+			if (
+				previewDestroyed ||
+				typeof globalThis.FontFace === 'undefined' ||
+				!document.fonts ||
+				!(fontstack in fonts)
+			)
+				return;
+			const meta = fonts[fontstack];
+			if (!meta) return;
+			let face: FontFace | undefined;
+			try {
+				const stored = (await getStoredFonts())[fontstack];
+				if (!stored || previewDestroyed || fonts[fontstack] !== meta) return;
+				const family = fontPreviewFamily(fontstack);
+				face = new globalThis.FontFace(
+					family,
+					stored.bytes,
+					fontPreviewDescriptors(meta.styleName)
+				);
+				document.fonts.add(face);
+				await face.load();
+				if (previewDestroyed || fonts[fontstack] !== meta) {
+					document.fonts.delete(face);
+					return;
+				}
+				previewFonts.set(fontstack, { face });
+			} catch {
+				if (face) document.fonts.delete(face);
+				// The sample still falls back to the family name if the browser rejects the font.
+			}
+		};
+		const next = load();
+		previewFontPromises.set(fontstack, next);
+		void next
+			.finally(() => {
+				if (previewFontPromises.get(fontstack) === next) previewFontPromises.delete(fontstack);
+			})
+			.catch(() => undefined);
+		return next;
+	};
+	const selectFont = (fontstack: string, selected: boolean) => {
+		selectedFontstack = selected ? undefined : fontstack;
+		if (!selected && fontstack in fonts) void ensurePreviewFont(fontstack);
 	};
 	const validateFonts = async (fontNames: string[]) => {
 		const generation = ++validationGeneration;
@@ -131,6 +199,8 @@
 				fontSizes = { ...fontSizes, [info.fontstackName]: file.size };
 				validationErrors = { ...validationErrors, [info.fontstackName]: undefined };
 				selectedFontstack = info.fontstackName;
+				await tick();
+				void ensurePreviewFont(info.fontstackName);
 			} catch (error) {
 				operationError = `${file.name} を追加できません: ${errorMessage(error)}`;
 			}
@@ -143,6 +213,7 @@
 		operationError = undefined;
 		try {
 			await onRemoveFont(fontstack);
+			releasePreviewFont(fontstack);
 			selectedFontstack = undefined;
 			const nextInfos = { ...fontInfos };
 			const nextSizes = { ...fontSizes };
@@ -159,6 +230,7 @@
 			deletingFontstack = undefined;
 		}
 	};
+
 	const downloadBlob = (contents: Uint8Array, fileName: string) => {
 		const blob = new Blob([contents as BlobPart], { type: 'application/zip' });
 		const url = URL.createObjectURL(blob);
@@ -194,7 +266,13 @@
 	};
 
 	onMount(() => {
+		previewDestroyed = false;
 		void validateFonts(Object.keys(fonts).sort((a, b) => a.localeCompare(b)));
+		return () => {
+			previewDestroyed = true;
+			for (const { face } of previewFonts.values()) document.fonts.delete(face);
+			previewFonts.clear();
+		};
 	});
 </script>
 
@@ -255,7 +333,7 @@
 					'flex min-h-[42px] w-full items-center gap-2 px-3 py-1.5 text-left outline-none focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]',
 					selected ? 'bg-accent-soft text-ink-1' : 'text-ink-2 hover:bg-field'
 				)}
-				onclick={() => (selectedFontstack = selected ? undefined : fontstack)}
+				onclick={() => selectFont(fontstack, selected)}
 			>
 				<span class="min-w-0 flex-1">
 					<span class="flex items-center gap-1.5">
@@ -277,9 +355,11 @@
 				<div class="flex flex-col border-b border-hairline-soft px-3 pb-2.5 text-[10px]">
 					<p
 						class="my-2 truncate rounded-[6px] border border-hairline-soft px-2 py-3 text-center text-[21px] tracking-[0.08em] text-ink-1"
-						style:font-family={selectedMeta
-							? `"${selectedMeta.familyName}", sans-serif`
-							: 'sans-serif'}
+						style:font-family={selectedPreviewFamily}
+						style:font-style={selectedPreviewDescriptors.style}
+						style:font-weight={selectedPreviewDescriptors.weight}
+						style:font-stretch={selectedPreviewDescriptors.stretch}
+						style:font-synthesis="none"
 					>
 						Basis 地図 Aa 123
 					</p>

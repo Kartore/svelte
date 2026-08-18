@@ -21,8 +21,13 @@
 		children?: Snippet;
 	} = $props();
 
+	const ZOOM_STEP = 0.1;
+	const ZOOM_STEPS = Array.from({ length: 241 }, (_, index) => index * ZOOM_STEP);
 	const minzoom = $derived(layer.minzoom ?? 0);
 	const maxzoom = $derived(layer.maxzoom ?? 24);
+	// Bits UI normalizes values that are not in the step list on mount.
+	// Keep the current values in the list so opening a style never edits it.
+	const zoomSteps = $derived([...new Set([...ZOOM_STEPS, minzoom, maxzoom])].sort((a, b) => a - b));
 	const updateMinzoom = (value: number) => {
 		const next = Math.min(value, maxzoom);
 		onChange?.(layer, undefined, 'minzoom', next === 0 ? undefined : next);
@@ -42,7 +47,7 @@
 			value={minzoom}
 			minValue={0}
 			maxValue={maxzoom}
-			step={1}
+			step={ZOOM_STEP}
 			onValueChange={updateMinzoom}
 		/>
 		<RangeSlider
@@ -50,7 +55,7 @@
 			value={[minzoom, maxzoom]}
 			minValue={0}
 			maxValue={24}
-			step={1}
+			step={zoomSteps}
 			sliderThumbLabel={['最小ズーム', '最大ズーム']}
 			onValueChange={([min, max]) => {
 				updateMinzoom(min);
@@ -63,7 +68,7 @@
 			value={maxzoom}
 			minValue={minzoom}
 			maxValue={24}
-			step={1}
+			step={ZOOM_STEP}
 			onValueChange={updateMaxzoom}
 		/>
 	</div>

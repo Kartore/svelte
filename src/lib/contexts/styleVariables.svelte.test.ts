@@ -107,6 +107,45 @@ describe('StyleVariablesContext', () => {
 		expect(paintValue(harness.store, 'background-color')).toBe('#00ff00');
 	});
 
+	it('renames a variable while preserving every binding and materialized value', () => {
+		const harness = createStore();
+		harness.store.mapStyle = {
+			...harness.store.mapStyle,
+			layers: [
+				...harness.store.mapStyle.layers,
+				{
+					id: 'background-copy',
+					type: 'background',
+					paint: { 'background-color': '#000000' }
+				}
+			]
+		};
+		const context = new StyleVariablesContext(harness.store, () => true);
+		const variable = context.create({
+			name: 'Primary',
+			type: 'color',
+			value: '#ff0000'
+		});
+		const target = { group: 'paint', key: 'background-color' } as const;
+
+		context.bind('background', target, variable.id);
+		context.bind('background-copy', target, variable.id);
+		context.rename(variable.id, 'Brand primary');
+
+		expect(context.variables).toEqual([{ ...variable, name: 'Brand primary' }]);
+		expect(getLayerBindings(harness.store.mapStyle.layers[0])).toEqual({
+			'paint:background-color': variable.id
+		});
+		expect(getLayerBindings(harness.store.mapStyle.layers[1])).toEqual({
+			'paint:background-color': variable.id
+		});
+		expect(paintValue(harness.store, 'background-color')).toBe('#ff0000');
+		expect(
+			(harness.store.mapStyle.layers[1].paint as Record<string, unknown>)['background-color']
+		).toBe('#ff0000');
+		expect(harness.callCount).toBe(4);
+	});
+
 	it('makes every command a no-op while editing is disabled', () => {
 		const harness = createStore();
 		const context = new StyleVariablesContext(harness.store, () => false);

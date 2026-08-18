@@ -107,6 +107,33 @@ describe('styleDiff representative cases', () => {
 		]);
 	});
 
+	it('reports a variable rename even when its value and bindings are unchanged', () => {
+		const variable = {
+			id: 'brand',
+			name: 'road/primary',
+			type: 'color' as const,
+			value: '#112233'
+		};
+		const before = upsertVariable(style([layer('a')]), variable);
+		const bound = bindProperty(before, 'a', { group: 'paint', key: 'line-color' }, variable.id);
+		const after = upsertVariable(bound, { ...variable, name: 'brand/primary' });
+
+		const diff = styleDiff(bound, after);
+
+		expect(diff.variables).toEqual([
+			{
+				variableId: 'brand',
+				name: 'brand/primary',
+				kind: 'modified',
+				before: '#112233',
+				after: '#112233',
+				affectedLayerCount: 1,
+				affectedPropertyCount: 1
+			}
+		]);
+		expect(diff.hasChanges).toBe(true);
+	});
+
 	it('returns an empty result when styles are unchanged', () => {
 		const before = style([layer('a'), layer('b')]);
 

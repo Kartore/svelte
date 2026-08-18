@@ -8,6 +8,7 @@
 		onChange,
 		minLength,
 		maxLength,
+		disabled,
 		'aria-label': ariaLabel
 	}: {
 		class?: string;
@@ -16,6 +17,7 @@
 		onChange?: (values: number[] | undefined) => void;
 		minLength?: number;
 		maxLength?: number;
+		disabled?: boolean;
 		'aria-label'?: string;
 	} = $props();
 
@@ -76,6 +78,7 @@
 		type="text"
 		inputmode="decimal"
 		autocomplete="off"
+		{disabled}
 		bind:value={getDraft, setDraft}
 		onfocus={() => {
 			draft = format(values);

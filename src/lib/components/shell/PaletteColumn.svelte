@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { LayerSpecification, StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 	import { ArrowRight, CaretDown, FunctionIcon, Plus, Trash } from 'phosphor-svelte';
-	import { onDestroy, onMount } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
+	import { onDestroy, onMount, tick } from 'svelte';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import type * as maplibregl from 'maplibre-gl';
 
 	import { Button } from '#lib/components/common/Button';
@@ -56,8 +56,18 @@
 		| { kind: 'variable'; variable: StyleVariable; label: string; depth: number };
 	type PaletteSelection =
 		{ kind: 'variable'; id: string } | { kind: 'literal'; canonicalColor: string };
+	const SYMBOL_PAINT_PROPERTIES = [
+		'text-color',
+		'text-halo-color',
+		'text-halo-width',
+		'icon-color'
+	] as const;
+	type SymbolPaintProperty = (typeof SYMBOL_PAINT_PROPERTIES)[number];
 
 	const HIGHLIGHT_PREFIX = 'kartore-palette-highlight-';
+	const LITERAL_SWATCH_SIZE = 20;
+	const LITERAL_GAP = 6;
+	const LITERAL_HORIZONTAL_PADDING = 16;
 
 	let {
 		mapStyle,
@@ -77,6 +87,7 @@
 	const backgroundMap = useBackgroundMap();
 	const collapsedGroups = new SvelteSet<string>();
 	const highlightLayerIds = new SvelteSet<string>();
+	const symbolPaintBackups = new SvelteMap<string, SvelteMap<SymbolPaintProperty, unknown>>();
 	let search = $state('');
 	let adding = $state(false);
 	let addName = $state('color/new');
@@ -85,6 +96,9 @@
 	let colorVisionWarningId = $state<string>();
 	let pendingDeleteId = $state<string>();
 	let modesOpen = $state(false);
+	let selectedDetailElement = $state<HTMLElement>();
+	let literalGridWidth = $state(0);
+	let colorHighlightEnabled = $state(false);
 	let attachedMap: maplibregl.Map | null = null;
 	let mapAttachTimer: ReturnType<typeof setTimeout> | undefined;
 	let highlightTimer: ReturnType<typeof setTimeout> | undefined;
@@ -130,6 +144,10 @@
 			? literals.find(({ canonicalColor }) => canonicalColor === current.canonicalColor)
 			: undefined;
 	});
+	const selectedColorVariable = $derived(
+		selectedVariable?.type === 'color' ? selectedVariable : undefined
+	);
+	const hasSelectedColor = $derived(Boolean(selectedColorVariable || selectedLiteral));
 	const variableUsages = $derived(
 		selectedVariable ? variableUsageTargets(mapStyle, selectedVariable.id) : []
 	);
@@ -140,6 +158,9 @@
 				? variableUsages.map(({ layerId }) => layerId)
 				: (selectedLiteral?.usages.map(({ layerId }) => layerId) ?? [])
 		).filter((layerId, index, values) => values.indexOf(layerId) === index)
+	);
+	const selectionHighlightLayerIds = $derived(
+		hasSelectedColor && !colorHighlightEnabled ? [] : selectedLayerIds
 	);
 	const modes = $derived(getStyleVariableModes(mapStyle));
 
@@ -215,6 +236,23 @@
 			);
 		})
 	);
+	const literalColumns = $derived(
+		Math.max(
+			1,
+			Math.floor(
+				(Math.max(literalGridWidth - LITERAL_HORIZONTAL_PADDING, LITERAL_SWATCH_SIZE) +
+					LITERAL_GAP) /
+					(LITERAL_SWATCH_SIZE + LITERAL_GAP)
+			)
+		)
+	);
+	const literalRows = $derived.by(() => {
+		const rows: LiteralColorEntry[][] = [];
+		for (let index = 0; index < visibleLiterals.length; index += literalColumns) {
+			rows.push(visibleLiterals.slice(index, index + literalColumns));
+		}
+		return rows;
+	});
 	const mergeSuggestions = $derived.by(() => {
 		if (selectedLiteral) {
 			return variables
@@ -237,14 +275,53 @@
 		return [];
 	});
 
+	const restoreSymbolHighlights = () => {
+		const map = attachedMap;
+		if (map) {
+			for (const [layerId, properties] of symbolPaintBackups) {
+				if (!map.getLayer(layerId)) continue;
+				for (const [property, value] of properties) {
+					try {
+						map.setPaintProperty(layerId, property, (value ?? null) as never);
+					} catch {
+						// Style reloads can remove a layer before its temporary paint is restored.
+					}
+				}
+			}
+		}
+		symbolPaintBackups.clear();
+	};
 	const clearHighlights = () => {
 		const map = attachedMap;
+		restoreSymbolHighlights();
 		if (map) {
 			for (const id of highlightLayerIds) {
 				if (map.getLayer(id)) map.removeLayer(id);
 			}
 		}
 		highlightLayerIds.clear();
+	};
+	const highlightSymbolLayer = (layerId: string, accent: string) => {
+		const map = attachedMap;
+		if (!map || !map.getLayer(layerId)) return;
+		const values: Record<SymbolPaintProperty, string | number> = {
+			'text-color': accent,
+			'text-halo-color': 'rgba(255, 255, 255, 1)',
+			'text-halo-width': 3,
+			'icon-color': accent
+		};
+		const previous = new SvelteMap<SymbolPaintProperty, unknown>();
+		try {
+			for (const property of SYMBOL_PAINT_PROPERTIES) {
+				previous.set(property, map.getPaintProperty(layerId, property));
+			}
+			symbolPaintBackups.set(layerId, previous);
+			for (const property of SYMBOL_PAINT_PROPERTIES) {
+				map.setPaintProperty(layerId, property, values[property] as never);
+			}
+		} catch {
+			restoreSymbolHighlights();
+		}
 	};
 	const highlightedLayer = (
 		layer: LayerSpecification,
@@ -271,14 +348,7 @@
 				};
 				break;
 			case 'symbol':
-				record.paint = {
-					...(next.paint ?? {}),
-					'text-color': accent,
-					'text-halo-color': 'rgba(255, 255, 255, 1)',
-					'text-halo-width': 3,
-					'icon-color': accent
-				};
-				break;
+				return undefined;
 			case 'fill-extrusion':
 				record.paint = {
 					...(next.paint ?? {}),
@@ -309,7 +379,7 @@
 	};
 	const syncHighlights = (layerIds: string[]) => {
 		const map = attachedMap;
-		if (!map || !map.isStyleLoaded()) return;
+		if (!map) return;
 		clearHighlights();
 		const accent = getComputedStyle(document.documentElement)
 			.getPropertyValue('--color-accent')
@@ -317,6 +387,10 @@
 		for (const [index, layerId] of layerIds.entries()) {
 			const layer = mapStyle.layers.find(({ id }) => id === layerId);
 			if (!layer || ('source' in layer && !map.getSource(layer.source))) continue;
+			if (layer.type === 'symbol') {
+				highlightSymbolLayer(layer.id, accent);
+				continue;
+			}
 			const id = `${HIGHLIGHT_PREFIX}${index}`;
 			const clone = highlightedLayer(layer, id, accent);
 			if (!clone) continue;
@@ -328,12 +402,16 @@
 			}
 		}
 	};
-	const scheduleHighlightSync = (layerIds = selectedLayerIds) => {
+	const scheduleHighlightSync = (layerIds = selectionHighlightLayerIds) => {
 		if (highlightTimer !== undefined) clearTimeout(highlightTimer);
 		highlightTimer = setTimeout(() => {
 			highlightTimer = undefined;
 			syncHighlights(layerIds);
 		}, 0);
+	};
+	const resetHighlightTrackingAfterStyleLoad = () => {
+		highlightLayerIds.clear();
+		symbolPaintBackups.clear();
 	};
 	const attachMap = () => {
 		const map = backgroundMap.map;
@@ -349,18 +427,42 @@
 		current?.kind === 'variable'
 			? (context?.variables.find(({ id }) => id === current.id)?.name ?? null)
 			: (current?.canonicalColor ?? null);
+	const isColorSelection = (current: PaletteSelection | undefined) =>
+		current?.kind === 'literal' ||
+		(current?.kind === 'variable' &&
+			variables.find(({ id }) => id === current.id)?.type === 'color');
+	const notifySelectionHighlight = (current: PaletteSelection | undefined) => {
+		onSelectionChange?.(
+			isColorSelection(current) && !colorHighlightEnabled ? null : selectionLabelFor(current)
+		);
+	};
 	const select = (next: PaletteSelection | undefined) => {
 		selection = next;
+		colorHighlightEnabled = false;
 		colorVisionWarningId = undefined;
 		pendingDeleteId = undefined;
-		onSelectionChange?.(selectionLabelFor(next));
+		notifySelectionHighlight(next);
 		scheduleHighlightSync();
+		void tick().then(() => selectedDetailElement?.scrollIntoView({ block: 'nearest' }));
+	};
+	const toggleColorHighlight = () => {
+		if (!hasSelectedColor) return;
+		colorHighlightEnabled = !colorHighlightEnabled;
+		notifySelectionHighlight(selection);
+		scheduleHighlightSync();
+	};
+	const registerSelectedDetail = (element: HTMLElement) => {
+		selectedDetailElement = element;
+		return () => {
+			if (selectedDetailElement === element) selectedDetailElement = undefined;
+		};
 	};
 	const colorVisionWarningLabel = (warning: ColorVisionWarning): string =>
 		`${warning.left.label} / ${warning.right.label}（${COLOR_VISION_MODE_LABELS[warning.mode]}）`;
 	const selectColorVisionWarning = (warning: ColorVisionWarning) => {
 		const selected = colorVisionWarningId === warning.id;
 		selection = undefined;
+		colorHighlightEnabled = false;
 		colorVisionWarningId = selected ? undefined : warning.id;
 		pendingDeleteId = undefined;
 		onSelectionChange?.(selected ? null : colorVisionWarningLabel(warning));
@@ -369,6 +471,7 @@
 		);
 	};
 	const handleStyleLoad = () => {
+		resetHighlightTrackingAfterStyleLoad();
 		if (colorVisionWarningId) {
 			const warning = colorVisionWarnings.find(({ id }) => id === colorVisionWarningId);
 			if (!warning) {
@@ -392,14 +495,12 @@
 			select(undefined);
 			return;
 		}
-		onSelectionChange?.(selectionLabelFor(current));
+		notifySelectionHighlight(current);
 		scheduleHighlightSync();
 	};
 	const renameVariable = (variable: StyleVariable, name: string) => {
 		context?.rename(variable.id, name);
-		onSelectionChange?.(
-			context?.variables.find(({ id }) => id === variable.id)?.name ?? name.trim()
-		);
+		notifySelectionHighlight({ kind: 'variable', id: variable.id });
 	};
 	const updateLiteralColor = (literal: LiteralColorEntry, value: string) => {
 		const canonicalColor = canonicalizeStyleColor(value);
@@ -590,8 +691,17 @@
 						</span>
 					</button>
 					{#if selected}
-						<div class="mx-2 mb-1.5 flex flex-col border-b border-hairline-soft pt-2.5 pb-0.5">
-							<p class="mb-2 font-mono text-[10px] text-ink-3">{row.variable.name}</p>
+						<div
+							{@attach registerSelectedDetail}
+							class="mx-2 mb-1.5 flex flex-col border-b border-hairline-soft pt-2.5 pb-0.5"
+						>
+							<TextField
+								class="mb-2 [&>input]:w-full"
+								label="名前"
+								value={row.variable.name}
+								disabled={!editable}
+								onCommit={(name) => renameVariable(row.variable, name)}
+							/>
 							{#if isLegacyVariableName(row.variable.name)}
 								<Button
 									class="mb-2 h-5 px-0 text-left text-[10px] text-accent hover:bg-transparent"
@@ -608,6 +718,15 @@
 									disabled={!editable}
 									onChange={(value) => context?.updateValue(row.variable.id, value)}
 								/>
+								{#if variableUsages.length > 0}
+									<Button
+										class="h-6 self-start rounded-[5px] bg-field px-2 text-[10px] font-semibold text-ink-2 hover:text-ink-1"
+										aria-pressed={colorHighlightEnabled}
+										onclick={toggleColorHighlight}
+									>
+										{colorHighlightEnabled ? 'ハイライトを解除' : '使用箇所をハイライト'}
+									</Button>
+								{/if}
 							{:else if row.variable.type === 'number'}
 								<NumberField
 									label="値"
@@ -667,76 +786,98 @@
 				<h3>リテラル</h3>
 				<span class="text-[10px] text-ink-4">{visibleLiterals.length}</span>
 			</div>
-			<div class="flex flex-wrap gap-1.5 px-2 pt-1 pb-2">
-				{#each visibleLiterals as literal (literal.canonicalColor)}
-					{@const selected =
-						selection?.kind === 'literal' && selection.canonicalColor === literal.canonicalColor}
-					<button
-						type="button"
-						class={cn(
-							'relative size-5 rounded-[4px] border border-black/5 outline-none focus-visible:outline-1 focus-visible:outline-offset-1 focus-visible:outline-accent',
-							selected && 'outline-1 outline-offset-1 outline-accent'
-						)}
-						aria-label={`${literal.canonicalColor}、使用 ${literal.usages.length} 箇所`}
-						title={`${literal.canonicalColor} · ${literal.usages.length} 箇所`}
-						onclick={() =>
-							select(
-								selected ? undefined : { kind: 'literal', canonicalColor: literal.canonicalColor }
+			<div
+				bind:clientWidth={literalGridWidth}
+				class="grid gap-1.5 px-2 pt-1 pb-2"
+				style:grid-template-columns={`repeat(${literalColumns}, minmax(0, 1fr))`}
+			>
+				{#each literalRows as row (row[0].canonicalColor)}
+					{#each row as literal (literal.canonicalColor)}
+						{@const selected =
+							selection?.kind === 'literal' && selection.canonicalColor === literal.canonicalColor}
+						<button
+							type="button"
+							class={cn(
+								'relative size-5 rounded-[4px] border border-black/5 outline-none focus-visible:outline-1 focus-visible:outline-offset-1 focus-visible:outline-accent',
+								selected && 'outline-1 outline-offset-1 outline-accent'
 							)}
-					>
-						<ColorSwatch class="block size-full rounded-[3px]" color={literal.color} />
-						{#if literal.expressionUsages.length > 0}
-							<span
-								class="absolute right-0 bottom-0 flex size-3 items-center justify-center rounded-tl-[5px] bg-white text-ink-2"
-								title="式内にも存在"
-							>
-								<FunctionIcon size={9} weight="regular" aria-hidden="true" />
-							</span>
-						{/if}
-					</button>
+							aria-label={`${literal.canonicalColor}、使用 ${literal.usages.length} 箇所`}
+							title={`${literal.canonicalColor} · ${literal.usages.length} 箇所`}
+							onclick={() =>
+								select(
+									selected ? undefined : { kind: 'literal', canonicalColor: literal.canonicalColor }
+								)}
+						>
+							<ColorSwatch class="block size-full rounded-[3px]" color={literal.color} />
+							{#if literal.expressionUsages.length > 0}
+								<span
+									class="absolute right-0 bottom-0 flex size-3 items-center justify-center rounded-tl-[5px] bg-white text-ink-2"
+									title="式内にも存在"
+								>
+									<FunctionIcon size={9} weight="regular" aria-hidden="true" />
+								</span>
+							{/if}
+						</button>
+					{/each}
+					{@const rowSelected = row.some(
+						({ canonicalColor }) =>
+							selection?.kind === 'literal' && canonicalColor === selection.canonicalColor
+					)}
+					{#if rowSelected && selectedLiteral}
+						<div
+							{@attach registerSelectedDetail}
+							class="col-span-full flex flex-col gap-1.5 border-b border-hairline-soft pt-2 pb-2"
+						>
+							<p class="font-mono text-[11px] font-semibold text-ink-1">
+								{selectedLiteral.canonicalColor}
+							</p>
+							{#if selectedLiteral.directUsages.length > 0}
+								<InlineColorEditor
+									value={selectedLiteral.color}
+									disabled={!editable}
+									onChange={(value) => updateLiteralColor(selectedLiteral, value)}
+								/>
+								<Button
+									class="h-6 rounded-[5px] bg-field px-2 text-[10px] font-semibold text-ink-2 hover:text-ink-1 disabled:text-ink-4"
+									disabled={!editable}
+									onclick={() => promoteLiteral(selectedLiteral)}
+								>
+									変数に昇格 ({selectedLiteral.directUsages.length} 箇所)
+								</Button>
+							{/if}
+							{#if selectedLiteral.usages.length > 0}
+								<Button
+									class="h-6 self-start rounded-[5px] bg-field px-2 text-[10px] font-semibold text-ink-2 hover:text-ink-1"
+									aria-pressed={colorHighlightEnabled}
+									onclick={toggleColorHighlight}
+								>
+									{colorHighlightEnabled ? 'ハイライトを解除' : '使用箇所をハイライト'}
+								</Button>
+							{/if}
+							{#if selectedLiteral.expressionUsages.length > 0}
+								<p class="text-[10px] text-ink-3">
+									式内 {selectedLiteral.expressionUsages.length} 箇所は初期版では編集対象外です。
+								</p>
+							{/if}
+							<div>
+								<p class="mb-1 text-[10px] font-semibold text-ink-2">使用箇所</p>
+								{#each selectedLiteral.usages as usage (`${usage.layerId}:${usage.group}:${usage.propertyKey}:${usage.inExpression}`)}
+									<button
+										type="button"
+										class="flex h-5 w-full items-center gap-1 text-left font-mono text-[10px] text-ink-2 outline-none hover:text-ink-1 focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]"
+										onclick={() => onSelectLayer(usage.layerId)}
+									>
+										<span class="min-w-0 flex-1 truncate">
+											{usage.layerId} · {usage.propertyKey}
+										</span>
+										{#if usage.inExpression}<span class="shrink-0 text-ink-3">式内</span>{/if}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
 				{/each}
 			</div>
-			{#if selectedLiteral}
-				<div class="mx-2 mb-1.5 flex flex-col gap-1.5 border-b border-hairline-soft pt-2 pb-2">
-					<p class="font-mono text-[11px] font-semibold text-ink-1">
-						{selectedLiteral.canonicalColor}
-					</p>
-					{#if selectedLiteral.directUsages.length > 0}
-						<InlineColorEditor
-							value={selectedLiteral.color}
-							disabled={!editable}
-							onChange={(value) => updateLiteralColor(selectedLiteral, value)}
-						/>
-						<Button
-							class="h-6 rounded-[5px] bg-field px-2 text-[10px] font-semibold text-ink-2 hover:text-ink-1 disabled:text-ink-4"
-							disabled={!editable}
-							onclick={() => promoteLiteral(selectedLiteral)}
-						>
-							変数に昇格 ({selectedLiteral.directUsages.length} 箇所)
-						</Button>
-					{/if}
-					{#if selectedLiteral.expressionUsages.length > 0}
-						<p class="text-[10px] text-ink-3">
-							式内 {selectedLiteral.expressionUsages.length} 箇所は初期版では編集対象外です。
-						</p>
-					{/if}
-					<div>
-						<p class="mb-1 text-[10px] font-semibold text-ink-2">使用箇所</p>
-						{#each selectedLiteral.usages as usage (`${usage.layerId}:${usage.group}:${usage.propertyKey}:${usage.inExpression}`)}
-							<button
-								type="button"
-								class="flex h-5 w-full items-center gap-1 text-left font-mono text-[10px] text-ink-2 outline-none hover:text-ink-1 focus-visible:shadow-[inset_0_0_0_1px_var(--color-accent)]"
-								onclick={() => onSelectLayer(usage.layerId)}
-							>
-								<span class="min-w-0 flex-1 truncate">
-									{usage.layerId} · {usage.propertyKey}
-								</span>
-								{#if usage.inExpression}<span class="shrink-0 text-ink-3">式内</span>{/if}
-							</button>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</section>
 
 		<section class="px-2">

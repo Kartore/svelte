@@ -22,7 +22,7 @@
 		onValueChange?: (value: number[]) => void;
 		minValue?: number;
 		maxValue?: number;
-		step?: number;
+		step?: number | number[];
 		formatOptions?: NumberFormatOptions;
 		sliderThumbLabel?: [string, string];
 		disabled?: boolean;

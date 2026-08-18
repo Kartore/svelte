@@ -10,6 +10,8 @@
 	import { validateMapStyle } from '#lib/utils/styleValidation.ts';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
 
+	import SourceEditor from './SourceEditor.svelte';
+
 	type AddableSourceType = 'vector' | 'raster' | 'raster-dem' | 'geojson';
 	type EditableSourceType = SourceSpecification['type'];
 
@@ -81,18 +83,6 @@
 	});
 
 	const sourceJSON = (source: SourceSpecification): string => JSON.stringify(source, null, '\t');
-	const sourceSummary = (source: SourceSpecification): string | undefined => {
-		switch (source.type) {
-			case 'vector':
-			case 'raster':
-			case 'raster-dem':
-				return source.url ?? source.tiles?.[0];
-			case 'geojson':
-				return typeof source.data === 'string' ? source.data : undefined;
-			default:
-				return undefined;
-		}
-	};
 	const usedLayerIds = (sourceId: string): string[] =>
 		mapStyle.layers
 			.filter((layer) => 'source' in layer && layer.source === sourceId)
@@ -132,7 +122,17 @@
 			[sourceId]: source
 		}
 	});
-	const applySourceEdit = () => {
+	const applySource = (source: SourceSpecification) => {
+		if (!selectedSourceId || readOnly) return;
+		const candidate = candidateWithSource(selectedSourceId, source);
+		editValue = sourceJSON(source);
+		editWarnings = validateMapStyle(candidate).styleErrors.filter((error) =>
+			error.startsWith('sources.')
+		);
+		editError = undefined;
+		onApply(candidate);
+	};
+	const applySourceJSONEdit = () => {
 		if (!selectedSourceId || readOnly) return;
 		let parsed: unknown;
 		try {
@@ -151,12 +151,7 @@
 			editError = '有効な type を持つソース JSON が必要です。';
 			return;
 		}
-		const candidate = candidateWithSource(selectedSourceId, parsed as SourceSpecification);
-		editWarnings = validateMapStyle(candidate).styleErrors.filter((error) =>
-			error.startsWith('sources.')
-		);
-		editError = undefined;
-		onApply(candidate);
+		applySource(parsed as SourceSpecification);
 	};
 	const deleteSource = (sourceId: string) => {
 		if (readOnly || usedLayerIds(sourceId).length > 0) return;
@@ -271,9 +266,10 @@
 
 			{#if selected}
 				<div class="border-b border-hairline-soft px-3 pt-1.5 pb-3 text-[10px]">
-					<p class="mb-1 font-mono leading-4 break-all text-ink-3">
-						{sourceSummary(source) ?? 'URL なし'}
-					</p>
+					<SourceEditor {source} {readOnly} onChange={applySource} />
+					{#each editWarnings as warning, index (warning + index)}
+						<p class="mt-1 text-[10px] text-ink-3">{warning}</p>
+					{/each}
 					<div>
 						<p class="mt-1.5 mb-0.5 text-[10px] text-ink-3">使用中の source-layer</p>
 						{#if usedSourceLayers(sourceId).length === 0}
@@ -310,7 +306,7 @@
 							class="h-5 px-0 text-[10px] font-semibold text-accent hover:bg-transparent"
 							onclick={() => (editingSource = !editingSource)}
 						>
-							{editingSource ? 'JSON 編集を閉じる' : 'JSON を編集'}
+							{editingSource ? '詳細 JSON を閉じる' : '詳細 JSON を編集'}
 						</Button>
 						<Button
 							class="h-5 px-0 text-[10px] text-ink-3 hover:bg-transparent hover:text-ink-1 disabled:text-ink-4"
@@ -338,7 +334,7 @@
 							<Button
 								class="mt-1 h-5 px-0 text-[10px] font-semibold text-accent hover:bg-transparent"
 								disabled={readOnly}
-								onclick={applySourceEdit}
+								onclick={applySourceJSONEdit}
 							>
 								適用
 							</Button>
