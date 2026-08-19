@@ -534,6 +534,14 @@
 		styleJsonMode = true;
 	};
 
+	const handleToggleStyleJson = () => {
+		if (styleJsonMode) {
+			styleJsonMode = false;
+			return;
+		}
+		handleShowWholeStyleJson();
+	};
+
 	const handleApplyStyleJson = (style: StyleSpecification) => {
 		if (previewState) return;
 		store.setMapStyle(style);
@@ -955,6 +963,8 @@
 			onAddLayer={handleOpenAddLayer}
 			onGroupLayersByPrefix={previewState ? undefined : handleGroupLayersByPrefix}
 			onOpenStyleSettings={handleShowStyleSettings}
+			{styleJsonMode}
+			onToggleStyleJson={handleToggleStyleJson}
 			onOpenVariables={handleShowPalette}
 			onOpenSources={() => {
 				activeShellMode = 'sources';

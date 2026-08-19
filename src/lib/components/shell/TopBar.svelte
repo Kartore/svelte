@@ -34,6 +34,8 @@
 		onAddLayer,
 		onGroupLayersByPrefix,
 		onOpenStyleSettings,
+		styleJsonMode = false,
+		onToggleStyleJson,
 		onOpenVariables,
 		onOpenSources,
 		onOpenSprites,
@@ -59,6 +61,8 @@
 		onAddLayer?: () => void;
 		onGroupLayersByPrefix?: () => number;
 		onOpenStyleSettings?: () => void;
+		styleJsonMode?: boolean;
+		onToggleStyleJson?: () => void;
 		onOpenVariables?: () => void;
 		onOpenSources?: () => void;
 		onOpenSprites?: () => void;
@@ -248,6 +252,19 @@
 			<MagnifyingGlass size={14} weight="regular" aria-hidden="true" />
 			<span>検索</span>
 			<span class="font-mono text-[10px] font-normal text-ink-3">⌘K</span>
+		</Button>
+		<Button
+			class={`h-7 rounded-[6px] border px-2 text-[11px] font-semibold ${
+				styleJsonMode
+					? 'border-accent bg-accent-soft text-accent hover:bg-accent-soft'
+					: 'border-hairline text-ink-2 hover:bg-field'
+			}`}
+			aria-label="スタイル全体を JSON で表示"
+			aria-pressed={styleJsonMode}
+			title="スタイル全体を JSON で表示"
+			onclick={() => onToggleStyleJson?.()}
+		>
+			JSON
 		</Button>
 		<Button
 			class="flex size-7 items-center justify-center rounded-[6px] text-ink-2 hover:bg-field disabled:text-ink-4"
