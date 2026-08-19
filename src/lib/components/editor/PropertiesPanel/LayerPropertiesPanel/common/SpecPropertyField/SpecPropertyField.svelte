@@ -6,6 +6,7 @@
 	import { Button } from '#lib/components/common/Button';
 	import { ComboBox } from '#lib/components/common/ComboBox';
 	import { EnumSetField } from '#lib/components/common/EnumSetField';
+	import { FontStackField } from '#lib/components/common/FontStackField';
 	import { NumberField } from '#lib/components/common/NumberField';
 	import { Select } from '#lib/components/common/Select';
 	import {
@@ -28,6 +29,7 @@
 		entry,
 		spriteIds,
 		spriteImages,
+		fontSuggestions,
 		onReset,
 		onChange
 	}: {
@@ -36,6 +38,7 @@
 		entry: LayerPropertyEntry;
 		spriteIds?: string[];
 		spriteImages?: SpriteImage[];
+		fontSuggestions?: string[];
 		onReset?: () => void;
 		onChange?: onChangeType;
 	} = $props();
@@ -238,11 +241,20 @@
 				onChange={(values) => commit(values)}
 			/>
 		{:else if spec.type === 'array' && spec.value === 'string'}
-			<TextField
-				{label}
-				value={formatStringList(rawValue ?? spec.default)}
-				onCommit={(value) => commit(parseStringList(value))}
-			/>
+			{#if key === 'text-font'}
+				<FontStackField
+					{label}
+					value={formatStringList(rawValue ?? spec.default)}
+					suggestions={fontSuggestions}
+					onCommit={(value) => commit(parseStringList(value))}
+				/>
+			{:else}
+				<TextField
+					{label}
+					value={formatStringList(rawValue ?? spec.default)}
+					onCommit={(value) => commit(parseStringList(value))}
+				/>
+			{/if}
 		{:else if spec.type === 'resolvedImage'}
 			<ComboBox
 				{label}

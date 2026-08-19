@@ -16,6 +16,7 @@
 		children,
 		layer,
 		sprite,
+		fontSuggestions,
 		onChange,
 		class: className,
 		...props
@@ -23,6 +24,7 @@
 		class?: string;
 		layer: SymbolLayerSpecification;
 		sprite?: SpriteSpecification;
+		fontSuggestions?: string[];
 		onChange?: onChangeType;
 		children?: Snippet;
 	} = $props();
@@ -66,6 +68,7 @@
 		title="テキスト"
 		{spriteIds}
 		{spriteImages}
+		{fontSuggestions}
 		{onChange}
 	/>
 	<GeneralProperties {layer} {onChange} />

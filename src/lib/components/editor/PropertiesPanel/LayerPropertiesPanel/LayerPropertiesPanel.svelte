@@ -37,6 +37,7 @@
 	let {
 		layer,
 		sprite,
+		fontSuggestions,
 		sources,
 		errors,
 		onChange,
@@ -48,6 +49,7 @@
 		class?: string;
 		layer: LayerSpecification;
 		sprite?: SpriteSpecification;
+		fontSuggestions?: string[];
 		sources: { [key: string]: SourceSpecification };
 		errors?: LayerValidationError[];
 		onChange?: onChangeType;
@@ -91,7 +93,7 @@
 		{:else if isRasterLayer(layer)}
 			<RasterLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
 		{:else if isSymbolLayer(layer)}
-			<SymbolLayerPropertiesPanel {layer} {sprite} {onChange} {...props} />
+			<SymbolLayerPropertiesPanel {layer} {sprite} {fontSuggestions} {onChange} {...props} />
 		{/if}
 	</LayerSuggestionsProvider>
 {/if}

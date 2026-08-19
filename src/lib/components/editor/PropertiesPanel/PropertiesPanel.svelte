@@ -21,6 +21,7 @@
 		class: className,
 		sources,
 		sprite,
+		fontSuggestions,
 		layer,
 		errors,
 		onChange,
@@ -33,6 +34,7 @@
 		class?: string;
 		layer: LayerSpecification;
 		sprite?: SpriteSpecification;
+		fontSuggestions?: string[];
 		sources: { [key: string]: SourceSpecification };
 		errors?: LayerValidationError[];
 		onChange?: onChangeType;
@@ -98,6 +100,7 @@
 	<LayerPropertiesPanel
 		{layer}
 		{sprite}
+		{fontSuggestions}
 		{sources}
 		{errors}
 		{onChange}

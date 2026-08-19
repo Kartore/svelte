@@ -1150,6 +1150,7 @@
 								mapStyle={editorStyle}
 								sprite={editorStyle.sprite}
 								layer={selectedLayer}
+								fontNames={Object.keys(fontsStore.fonts)}
 								sources={editorStyle.sources}
 								errors={validation.layerErrors[selectedLayer.id]}
 								readOnly={previewState !== null}

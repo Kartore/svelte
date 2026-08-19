@@ -19,6 +19,7 @@
 		meta,
 		spriteIds,
 		spriteImages,
+		fontSuggestions,
 		onChange
 	}: {
 		layer: LayerSpecification;
@@ -30,6 +31,7 @@
 		meta?: string;
 		spriteIds?: string[];
 		spriteImages?: SpriteImage[];
+		fontSuggestions?: string[];
 		onChange?: onChangeType;
 	} = $props();
 
@@ -118,6 +120,7 @@
 							{entry}
 							{spriteIds}
 							{spriteImages}
+							{fontSuggestions}
 							onReset={() => onChange?.(layer, entry.group, entry.key as never, undefined as never)}
 							{onChange}
 						/>

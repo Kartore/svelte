@@ -24,6 +24,7 @@
 	} from '#lib/components/common/FilterQueryBuilder';
 	import type { LayerValidationError } from '#lib/utils/styleValidation.ts';
 	import { getLayerGroup } from '#lib/utils/layerGroup.ts';
+	import { referencedFontStacks } from '#lib/utils/assetUsage.ts';
 	import { cn } from '#lib/utils/tailwindUtil.ts';
 
 	import LayerDataPanel from './LayerDataPanel.svelte';
@@ -36,6 +37,7 @@
 		mapStyle,
 		layer,
 		sprite,
+		fontNames = [],
 		sources,
 		errors,
 		readOnly = false,
@@ -53,6 +55,7 @@
 		mapStyle: StyleSpecification;
 		layer: LayerSpecification;
 		sprite?: SpriteSpecification;
+		fontNames?: string[];
 		sources: Record<string, SourceSpecification>;
 		errors?: LayerValidationError[];
 		readOnly?: boolean;
@@ -101,6 +104,11 @@
 		return `${layer.type} ・ ${layer.source}${sourceLayer ? ` / ${sourceLayer}` : ''}`;
 	});
 	const layerGroup = $derived(getLayerGroup(layer));
+	const fontSuggestions = $derived(
+		[...new Set([...fontNames, ...referencedFontStacks(mapStyle)])].sort((a, b) =>
+			a.localeCompare(b)
+		)
+	);
 </script>
 
 <div
@@ -187,6 +195,7 @@
 			<PropertiesPanel
 				class="h-full w-full min-w-0 rounded-none border-0 shadow-none"
 				{sprite}
+				{fontSuggestions}
 				{layer}
 				{sources}
 				{errors}
